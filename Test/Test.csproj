@@ -11,7 +11,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\AutoSpectre\AutoSpectre.csproj" />
-      <ProjectReference Include="..\ClassLibrary1\AutoSpectre.SourceGeneration.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+      <ProjectReference Include="..\AutoSpectre.SourceGeneration\AutoSpectre.SourceGeneration.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
 
 </Project>

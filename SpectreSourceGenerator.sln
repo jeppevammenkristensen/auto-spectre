@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30114.105
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoSpectre.SourceGeneration", "ClassLibrary1\AutoSpectre.SourceGeneration.csproj", "{C15CCB9D-BDF2-4ED4-9C55-038E67349091}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoSpectre.SourceGeneration", "AutoSpectre.SourceGeneration\AutoSpectre.SourceGeneration.csproj", "{C15CCB9D-BDF2-4ED4-9C55-038E67349091}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test", "Test\Test.csproj", "{60CC2B3F-82EC-4E63-BC07-5D8F4C2DB132}"
 EndProject
