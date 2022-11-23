@@ -9,9 +9,9 @@ namespace Test
         {
             ISomeclassSpectreFactory factory = new SomeclassSpectreFactory();
             var item = new Someclass();
-            factory.Get();
+            factory.Get(item);
             
-            Console.WriteLine(item.FirstName);
+            Console.WriteLine(item.MiddleName);
         }
     }
 
@@ -19,6 +19,9 @@ namespace Test
     {
         [Ask(title: "[Green]Enter first name[/]")]   
         public string FirstName { get; set; }
+
+        [Ask()]
+        public string? MiddleName { get; set; }
 
         [Ask()]
         public string LastName { get; set; }

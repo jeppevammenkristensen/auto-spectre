@@ -115,8 +115,6 @@ namespace AutoSpectre.SourceGeneration
             {
                 var attribute = propertySymbol.GetAttributes().First(AttributePredicate);
                 var title = attribute.GetValue<string?>(nameof(AskAttribute.Title), 0) ?? $"Enter [green]{propertySymbol.Name} [/]";
-
-
                 _builder.AppendLine($"destination.{propertySymbol.Name} = AnsiConsole.Ask<{propertySymbol.Type.Name}>(\"{title} \");");
             }
         }
