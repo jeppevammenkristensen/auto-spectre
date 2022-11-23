@@ -111,14 +111,22 @@ namespace AutoSpectre.SourceGeneration
         {
             var propertySymbols = Type.GetMembers().OfType<IPropertySymbol>().ToList();
             
-            foreach (var propertySymbol in propertySymbols.Where(x => x.GetAttributes().Any(y => y.AttributeClass?.Equals(Attribute) == true)))
+            foreach (var propertySymbol in propertySymbols.Where(x => x.GetAttributes().Any(AttributePredicate)))
             {
-                var attribute = propertySymbol.GetAttributes().First(x => x.AttributeClass == Attribute);
+                var attribute = propertySymbol.GetAttributes().First(AttributePredicate);
                 var title = attribute.GetValue<string?>(nameof(AskAttribute.Title), 0) ?? $"Enter [green]{propertySymbol.Name} [/]";
 
 
                 _builder.AppendLine($"destination.{propertySymbol.Name} = AnsiConsole.Ask<{propertySymbol.Type.Name}>(\"{title} \");");
             }
+        }
+
+        private bool AttributePredicate(AttributeData? attributeData)
+        {
+            if (attributeData?.AttributeClass is not {} attributeClass)
+                return false;
+
+            return SymbolEqualityComparer.Default.Equals(attributeClass, Attribute);
         }
     }
 }
