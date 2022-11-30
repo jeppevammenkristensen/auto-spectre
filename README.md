@@ -4,7 +4,9 @@
 Source generator project to generate classes that can be used in a console to prompt for values using Spectre.Console
 
 ## Short Guide
-Decorate properties with AskAttribute for intance
+Decorate a class with the AutoSpectreForm attribute and then decorate the properties (must be settable) with AskAttribute. 
+
+For example:
 
 ```csharp
  [AutoSpectreForm]
