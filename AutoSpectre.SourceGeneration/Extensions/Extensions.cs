@@ -14,17 +14,17 @@ namespace AutoSpectre.SourceGeneration.Extensions
             return source.Equals(nameWithoutAttribute) || source.Equals($"{nameWithoutAttribute}Attribute");
         }
 
-        public  static T? GetValue<T>(this AttributeData? attributeData, string property, int index)
+        public  static T GetValue<T>(this AttributeData? attributeData, string property, int index)
         {
             var typeConstantKeyValuePair = attributeData?.NamedArguments.FirstOrDefault(x => x.Key == property);
             if (typeConstantKeyValuePair?.Key == property)
             {
-                return (T?)typeConstantKeyValuePair.Value.Value.Value;
+                return (T)typeConstantKeyValuePair.Value.Value.Value;
             }
 
             if (attributeData?.ConstructorArguments.Length > index)
             {
-                return (T?)attributeData.ConstructorArguments[index].Value;
+                return (T)attributeData.ConstructorArguments[index].Value;
             }
 
             return default;
