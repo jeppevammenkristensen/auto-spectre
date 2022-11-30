@@ -8,6 +8,7 @@ namespace Test
         static void Main(string[] args)
         {
             ISomeclassSpectreFactory factory = new SomeclassSpectreFactory();
+            
             var item = new Someclass();
             factory.Get(item);
             
@@ -15,19 +16,22 @@ namespace Test
         }
     }
 
+    [AutoSpectreForm]
     public class Someclass
     {
         [Ask(title: "[Green]Enter first name[/]")]   
-        public string FirstName { get; set; }
+        public string FirstName { get; set; } = null!;
 
         [Ask()]
         public string? MiddleName { get; set; }
 
-        [Ask()]
-        public string LastName { get; set; }
+        [Ask()] public string LastName { get; set; } = null!;
 
         [Ask()]
         public int Age { get; set; }
+
+        [Ask(title: "[Yellow]Are you cool?[/]")]
+        public bool Cool { get; set; }
         
     }
 }

@@ -5,6 +5,7 @@ Source generator project to generate classes that can be used in a console to pr
 Decorate properties with AskAttribute for intance
 
 ```csharp
+ [AutoSpectreForm]
  public class Someclass
     {
         [Ask(title: "[Green]Enter first name[/]")]   
