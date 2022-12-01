@@ -1,4 +1,4 @@
-![Nuget](https://img.shields.io/nuget/v/AutoSpectre.SourceGeneration)
+[![Nuget](https://img.shields.io/nuget/v/AutoSpectre.SourceGeneration?style=flat-square)](https://www.nuget.org/packages/AutoSpectre.SourceGeneration)
 
 # Auto Spectre
 Source generator project to generate classes that can be used in a console to prompt for values using Spectre.Console
