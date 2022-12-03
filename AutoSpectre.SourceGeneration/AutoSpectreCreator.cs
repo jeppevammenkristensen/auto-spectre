@@ -241,7 +241,10 @@ namespace {{ Type.ContainingNamespace}}
 
         private void AppendPropertyPrompt(StringBuilder builder, IPropertySymbol property, string title)
         {
-            if (property.Type.SpecialType == SpecialType.System_Boolean)
+            var (isNullable, type) = property.Type.GetTypeWithNullableInformation();
+
+
+            if (type.SpecialType == SpecialType.System_Boolean)
             {
                 builder.Append($"""AnsiConsole.Confirm("{title}")""");
 
@@ -250,10 +253,6 @@ namespace {{ Type.ContainingNamespace}}
             {
                 builder.Append($"AnsiConsole.Ask<{property.Type.Name}>(\"{title} \")");
             }
-            
-
-
-            
         }
     }    
 }

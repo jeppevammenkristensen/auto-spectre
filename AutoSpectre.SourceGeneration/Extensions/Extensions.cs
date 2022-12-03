@@ -38,15 +38,22 @@ namespace AutoSpectre.SourceGeneration.Extensions
                 .Where(x => x.SetMethod != null);
         }
 
-        //public static (bool isNullable, INamedTypeSymbol type) GetTypeWithNullableInformation(this ITypeSymbol typeSymbol)
-        //{
-        //    if (typeSymbol.NullableAnnotation == NullableAnnotation.Annotated)
-        //    {
-        //        if (typeSymbol.OriginalDefinition?.SpecialType == SpecialType.System_Nullable_T)
-        //        {
-                    
-        //        }
-        //    }
-        //}
+        public static (bool isNullable, ITypeSymbol type) GetTypeWithNullableInformation(this ITypeSymbol typeSymbol)
+        {
+            if (typeSymbol.OriginalDefinition?.SpecialType == SpecialType.System_Nullable_T && typeSymbol is INamedTypeSymbol { IsGenericType: true} namedType)
+            {
+                if (namedType.TypeArguments.FirstOrDefault() is {} argument)
+                {
+                    return (true, argument);
+                }
+            }
+
+            if (typeSymbol.NullableAnnotation == NullableAnnotation.Annotated )
+            {
+                return (true, typeSymbol);
+            }
+
+            return (false, typeSymbol);
+        }
     }
 }

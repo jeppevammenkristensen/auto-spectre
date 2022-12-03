@@ -31,7 +31,7 @@ namespace Test
         public int Age { get; set; }
 
         [Ask(title: "[Yellow]Are you cool?[/]")]
-        public bool? Cool { get; set; }
+        public bool? Coolio { get; set; }
 
     }
 }
