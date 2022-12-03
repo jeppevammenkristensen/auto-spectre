@@ -7,10 +7,10 @@ namespace Test
     {
         static void Main(string[] args)
         {
-            //ISomeclassSpectreFactory factory = new SomeclassSpectreFactory();
+            ISomeclassSpectreFactory factory = new SomeclassSpectreFactory();
             
-            //var item = new Someclass();
-            //factory.Get(item);
+            var item = new Someclass();
+            factory.Get(item);
             
             //Console.WriteLine(item.MiddleName);
         }
@@ -25,13 +25,13 @@ namespace Test
         //[Ask()]
         //public string? MiddleName { get; set; }
 
-        //[Ask()] public string LastName { get; set; } = null!;
+        [Ask()] public string LastName { get; set; } = null!;
 
-        //[Ask()]
-        //public int Age { get; set; }
+        [Ask()]
+        public int Age { get; set; }
 
-        //[Ask(title: "[Yellow]Are you cool?[/]")]
-        //public bool Cool { get; set; }
+        [Ask(title: "[Yellow]Are you cool?[/]")]
+        public bool? Cool { get; set; }
 
     }
 }

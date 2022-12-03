@@ -2,13 +2,12 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <LangVersion>8</LangVersion>
+    <LangVersion>11</LangVersion>
     <Nullable>enable</Nullable>
-    <!--<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-    <IsRoslynComponent>true</IsRoslynComponent>-->
-    <Version>0.1.5</Version>
-
-
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <IsRoslynComponent>true</IsRoslynComponent>
+    <Version>0.1.6</Version>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking> 
 
 
   </PropertyGroup>
@@ -21,9 +20,10 @@
     <Description>A quick and dirty tool to generate a form through with a source generator that can collect data</Description>
     <PackageProjectUrl>https://github.com/jeppevammenkristensen/auto-spectre</PackageProjectUrl>
     <RepositoryUrl>https://github.com/jeppevammenkristensen/auto-spectre</RepositoryUrl>
-    <PackageTags>C#;Source Generator</PackageTags> 
+    <PackageTags>C#;Source Generator</PackageTags>
+    <PackageReleaseNotes>Update to use Confirm instead of Ask for boolean properties</PackageReleaseNotes> 
   </PropertyGroup>
-
+  
   <ItemGroup>
     <!-- Package the generator in the analyzer directory of the nuget package -->
     <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />

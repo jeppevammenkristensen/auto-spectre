@@ -10,6 +10,7 @@ using AutoSpectre.SourceGeneration.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Spectre.Console;
 
 namespace AutoSpectre.SourceGeneration
 {
@@ -28,22 +29,10 @@ namespace AutoSpectre.SourceGeneration
                 {
                     if (syntaxContext.TargetSymbol is INamedTypeSymbol namedType)
                     {
-                        var propertyAndAttributes = namedType.GetMembers()
-                            .OfType<IPropertySymbol>()
-                            .Where(x => x.SetMethod != null)
+                        var propertyAndAttributes = namedType
+                            .GetPropertiesWithSetter()
                             .Select(x =>
                             {
-
-                                var attributes = string.Join(",",
-                                    x.GetAttributes().Select(x =>
-                                            $"{x.AttributeClass.MetadataName}{x.AttributeClass.ContainingNamespace.IsGlobalNamespace}{x.AttributeClass.ContainingNamespace.Name}")
-                                        .ToArray());
-                                productionContext.ReportDiagnostic(Diagnostic.Create(
-                                    new DiagnosticDescriptor("AutoSpectre_JJK0004", "Attribute",
-                                        attributes, "General", DiagnosticSeverity.Info, true),
-                                    syntaxContext.TargetSymbol.Locations.FirstOrDefault()));
-
-
                                 var attribute = x.GetAttributes().FirstOrDefault(x =>
                                     x.AttributeClass is
                                     {
@@ -62,14 +51,13 @@ namespace AutoSpectre.SourceGeneration
 
                         if (propertyAndAttributes.Any())
                         {
-
                             var builder = new NewCodeBuilder(namedType, propertyAndAttributes);
                             var code = builder.Code();
                             if (string.IsNullOrWhiteSpace(code))
                             {
                                 productionContext.ReportDiagnostic(Diagnostic.Create(
                                     new DiagnosticDescriptor("AutoSpectre_JJK0003", "Code was empty",
-                                        "No code generated", "General", DiagnosticSeverity.Warning, true),
+                                        "No code was generated", "General", DiagnosticSeverity.Warning, true),
                                     syntaxContext.TargetSymbol.Locations.FirstOrDefault()));
                             }
 
@@ -189,9 +177,7 @@ namespace AutoSpectre.SourceGeneration
     internal class NewCodeBuilder
     {
         public ITypeSymbol Type { get; }
-        public List<PropertyAndAttribute> PropertyAndAttributes { get; }
-
-        private StringBuilder _builder = new StringBuilder();
+        public List<PropertyAndAttribute> PropertyAndAttributes { get; }       
 
         public NewCodeBuilder(INamedTypeSymbol type, List<PropertyAndAttribute> propertyAndAttributes)
         {
@@ -201,44 +187,73 @@ namespace AutoSpectre.SourceGeneration
 
         public string Code()
         {
+
+
             var name = $"{Type.ContainingNamespace}.{Type.Name}";
 
-            _builder.AppendLine("using Spectre.Console;");
-            _builder.AppendLine("using System;");
-            _builder.AppendLine();
-            _builder.AppendLine($"namespace {Type.ContainingNamespace}");
-            _builder.AppendLine("{");
+            var propertySetters = BuildPropertySetters();
 
-            _builder.AppendLine($"   public interface I{Type.Name}SpectreFactory");
-            _builder.AppendLine("    {");
-            _builder.AppendLine($"        {Type.Name} Get({Type.Name} destination = null);");
-            _builder.AppendLine("    }");
+            var result = $$"""
+using Spectre.Console;
+using System;
 
+namespace {{ Type.ContainingNamespace}}  
+{
+    public interface I{{Type.Name}}SpectreFactory
+    {
+        {{ Type.Name}} Get({{ Type.Name}} destination = null);
+    }
 
-            _builder.AppendLine($"   public class {Type.Name}SpectreFactory : I{Type.Name}SpectreFactory");
-            _builder.AppendLine("    {");
-            _builder.AppendLine($"        public {Type.Name} Get({Type.Name} destination = null)");
-            _builder.AppendLine("        {");
-            _builder.AppendLine($"           destination ??= new {name}();");
-            BuildPropertySetters();
-            _builder.AppendLine($"           return destination;");
+    public class {{Type.Name}}SpectreFactory : I{{ Type.Name}}SpectreFactory
+    {
+        public {{ Type.Name}} Get({{Type.Name}} destination = null)
+        {
+            destination ??= new {{ name}} ();
+{{ propertySetters}}
+            return destination;
+        }
+    }
+}
+""" ;
 
-            _builder.AppendLine("        }");
-            _builder.AppendLine("    }");
-            _builder.AppendLine("}");
-
-            return _builder.ToString();
+            return result;
         }
 
-        private void BuildPropertySetters()
+
+
+        private string BuildPropertySetters()
         {
+            var builder = new StringBuilder();
+            
+
             foreach (var (property, attributeData) in PropertyAndAttributes)
             {
                 var title = attributeData.GetValue<string?>(nameof(AskAttribute.Title), 0) ??
                             $"Enter [green]{property.Name} [/]";
-                _builder.AppendLine(
-                    $"destination.{property.Name} = AnsiConsole.Ask<{property.Type.Name}>(\"{title} \");");
+                builder.Append($"\t\t\tdestination.{property.Name} = ");
+                AppendPropertyPrompt(builder, property, title);
+                builder.AppendLine(";");
+                
             }
+
+            return builder.ToString();
         }
-    }
+
+        private void AppendPropertyPrompt(StringBuilder builder, IPropertySymbol property, string title)
+        {
+            if (property.Type.SpecialType == SpecialType.System_Boolean)
+            {
+                builder.Append($"""AnsiConsole.Confirm("{title}")""");
+
+            }
+            else
+            {
+                builder.Append($"AnsiConsole.Ask<{property.Type.Name}>(\"{title} \")");
+            }
+            
+
+
+            
+        }
+    }    
 }
