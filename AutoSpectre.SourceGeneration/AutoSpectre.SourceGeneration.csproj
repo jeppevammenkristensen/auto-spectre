@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <IsRoslynComponent>true</IsRoslynComponent>
-    <Version>0.2.0.1</Version>
+    <Version>0.2.0.2</Version>
 
 
   </PropertyGroup>
@@ -20,7 +20,7 @@
     <PackageProjectUrl>https://github.com/jeppevammenkristensen/auto-spectre</PackageProjectUrl>
     <RepositoryUrl>https://github.com/jeppevammenkristensen/auto-spectre</RepositoryUrl>
     <PackageTags>C#;Source Generator</PackageTags>
-    <PackageReleaseNotes>Update to use Confirm instead of Ask for boolean properties</PackageReleaseNotes> 
+    <PackageReleaseNotes>Fixed minor issue so that no set operation is generated if it's not possible to create a valid setter</PackageReleaseNotes> 
   </PropertyGroup>
   
   <ItemGroup>
