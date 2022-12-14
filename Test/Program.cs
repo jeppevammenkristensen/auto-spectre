@@ -20,27 +20,33 @@ namespace Test
             //Console.WriteLine(item.MiddleName);
         }
     }
+    
+    [AutoSpectreForm]
+    public class TestForm 
+    {
+        [Ask]
+        public string Name {get;set;}   
+    }
+
+
 
     [AutoSpectreForm]
     public class Someclass
     {
-        [Ask(Title = "Middle name")]
-        public string? MiddleName { get; set; }
+        [Ask(Title = "Enter first name")]
+        public string? FirstName { get; set; }
+        
+        [Ask]
+        public bool LeftHanded { get; set; }
 
-        //[Ask()] public string LastName { get; set; } = null!;
+        [Ask]
+        public bool Age { get; set; }
 
-        //[Ask()]
-        //public int Age { get; set; }
 
         [Ask(AskType = AskType.Selection, SelectionSource = nameof(Items))]
         public string Item { get; set; }
 
         public List<string> Items { get; } = new List<string>() { "Alpha", "Bravo", "Charlie" };
-
-        [Ask(AskType = AskType.Selection, SelectionSource = nameof(Ages))]
-        public int Age { get; set; }
-
-        public IEnumerable<int> Ages => new List<int>() {44, 39};
 
     }
 }

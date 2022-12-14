@@ -1,13 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30114.105
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33122.133
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoSpectre.SourceGeneration", "AutoSpectre.SourceGeneration\AutoSpectre.SourceGeneration.csproj", "{C15CCB9D-BDF2-4ED4-9C55-038E67349091}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test", "Test\Test.csproj", "{60CC2B3F-82EC-4E63-BC07-5D8F4C2DB132}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoSpectre", "AutoSpectre\AutoSpectre.csproj", "{5A5D7CC1-BD95-47EC-AA57-AC12EF7B46F0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoSpectre.SourceGeneration.Tests", "AutoSpectre.SourceGeneration.Tests\AutoSpectre.SourceGeneration.Tests.csproj", "{0B4BEE92-D937-4120-9CB9-5A4BE654240D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -55,6 +57,18 @@ Global
 		{5A5D7CC1-BD95-47EC-AA57-AC12EF7B46F0}.Release|x64.Build.0 = Release|Any CPU
 		{5A5D7CC1-BD95-47EC-AA57-AC12EF7B46F0}.Release|x86.ActiveCfg = Release|Any CPU
 		{5A5D7CC1-BD95-47EC-AA57-AC12EF7B46F0}.Release|x86.Build.0 = Release|Any CPU
+		{0B4BEE92-D937-4120-9CB9-5A4BE654240D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B4BEE92-D937-4120-9CB9-5A4BE654240D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B4BEE92-D937-4120-9CB9-5A4BE654240D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0B4BEE92-D937-4120-9CB9-5A4BE654240D}.Debug|x64.Build.0 = Debug|Any CPU
+		{0B4BEE92-D937-4120-9CB9-5A4BE654240D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0B4BEE92-D937-4120-9CB9-5A4BE654240D}.Debug|x86.Build.0 = Debug|Any CPU
+		{0B4BEE92-D937-4120-9CB9-5A4BE654240D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B4BEE92-D937-4120-9CB9-5A4BE654240D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B4BEE92-D937-4120-9CB9-5A4BE654240D}.Release|x64.ActiveCfg = Release|Any CPU
+		{0B4BEE92-D937-4120-9CB9-5A4BE654240D}.Release|x64.Build.0 = Release|Any CPU
+		{0B4BEE92-D937-4120-9CB9-5A4BE654240D}.Release|x86.ActiveCfg = Release|Any CPU
+		{0B4BEE92-D937-4120-9CB9-5A4BE654240D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

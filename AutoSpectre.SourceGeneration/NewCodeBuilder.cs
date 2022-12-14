@@ -1,11 +1,11 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using AutoSpectre.SourceGeneration.Extensions;
+﻿using AutoSpectre.SourceGeneration.Extensions;
 using AutoSpectre.SourceGeneration.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 namespace AutoSpectre.SourceGeneration;
 
@@ -66,15 +66,20 @@ namespace {{ Type.ContainingNamespace}}
             var askType = attributeData.GetValue<AskTypeCopy>("AskType");
             var selectionType = attributeData.GetValue<string?>("SelectionSource") ?? null;
 
-            builder.Append($"\t\t\tdestination.{property.Name} = ");
-            AppendPropertyPrompt(builder, property, title, askType, selectionType);
-            builder.AppendLine(";");
+
+            if (GetPropertyPrompt(property, title, askType, selectionType) is { } prompt)
+            {
+                builder.Append($"\t\t\tdestination.{property.Name} = ");
+                builder.Append(prompt);
+                builder.AppendLine(";");
+            }
+            
         }
 
         return builder.ToString();
     }
 
-    private void AppendPropertyPrompt(StringBuilder builder, IPropertySymbol property, string title,
+    private string? GetPropertyPrompt(IPropertySymbol property, string title,
         AskTypeCopy askType, string? selectionType)
     {
         var (isNullable, type) = property.Type.GetTypeWithNullableInformation();
@@ -91,26 +96,28 @@ namespace {{ Type.ContainingNamespace}}
             {
                 if (type.SpecialType == SpecialType.System_Boolean)
                 {
-                    builder.Append($"""AnsiConsole.Confirm("{ title}  ")""" );
+                    return $"""AnsiConsole.Confirm("{ title}")""" ;
                 }
                 else
                 {
-                    builder.Append($"AnsiConsole.Ask<{typeRepresentation}>(\"{title} \")");
+                    return $"AnsiConsole.Ask<{typeRepresentation}>(\"{title} \")";
                 }
             }
             else if (askType == AskTypeCopy.Selection && selectionType != null)
             {
-                builder.AppendLine($"""
+                return $"""
 AnsiConsole.Prompt(
 new SelectionPrompt<{ type}>()
 .Title("{ title}  ")
 .PageSize(10) 
 .AddChoices(destination.{ selectionType}.ToArray()))
-""" );
+""";
             }
             else
             {
             }
         }
+
+        return null;
     }
 }
