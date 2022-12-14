@@ -9,39 +9,46 @@ Decorate a class with the AutoSpectreForm attribute and then decorate the proper
 For example:
 
 ```csharp
- [AutoSpectreForm]
- public class Someclass
-    {
-        [Ask(title: "[Green]Enter first name[/]")]   
-        public string FirstName { get; set; }
+[AutoSpectreForm]
+   public class Someclass
+   {
+       [Ask(Title = "Enter first name")]
+       public string? FirstName { get; set; }
 
-        [Ask()]
-        public string LastName { get; set; }
+       [Ask]
+       public bool LeftHanded { get; set; }
 
-        [Ask()]
-        public int Age { get; set; }        
-    }
+       [Ask]
+       public bool Age { get; set; }
+
+       [Ask(AskType = AskType.Selection, SelectionSource = nameof(Items))]
+       public string Item { get; set; }
+
+       public List<string> Items { get; } = new List<string>() { "Alpha", "Bravo", "Charlie" };
+
+   }
 ```
 
 Behind the scenes this will generate an interface factory and implentation using `Spectre.Console` to prompt for the values. 
 
 **Example output:**
 ```csharp
-    public interface ISomeclassSpectreFactory
-    {
-        Someclass Get(Someclass destination = null);
-    }
-    
-    public class SomeclassSpectreFactory : ISomeclassSpectreFactory
-    {
-        public Someclass Get(Someclass destination = null)
-        {
-           destination ??= new Test.Someclass();
-           destination.FirstName = AnsiConsole.Ask<String>("[Green]Enter first name[/] ");
-           destination.LastName = AnsiConsole.Ask<String>("Enter [green]LastName [/] ");
-           destination.Age = AnsiConsole.Ask<Int32>("Enter [green]Age [/] ");
-           return destination;
-        }
-    }
+ public interface ISomeclassSpectreFactory
+ {
+     Someclass Get(Someclass destination = null);
+ }
+
+ public class SomeclassSpectreFactory : ISomeclassSpectreFactory
+ {
+     public Someclass Get(Someclass destination = null)
+     {
+         destination ??= new Test.Someclass();
+         destination.FirstName = AnsiConsole.Ask<>("Enter first name ");
+         destination.LeftHanded = AnsiConsole.Confirm("Enter [green]LeftHanded [/]  ");
+         destination.Age = AnsiConsole.Confirm("Enter [green]Age [/]  ");
+         destination.Item = AnsiConsole.Prompt(new SelectionPrompt<string>().Title("Enter [green]Item [/]  ").PageSize(10).AddChoices(destination.Items.ToArray());
+         return destination;
+     }
+ }
 
 ```
