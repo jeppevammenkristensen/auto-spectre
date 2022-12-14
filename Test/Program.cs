@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.Design;
+using System.Linq;
 using AutoSpectre;
 
 namespace Test
@@ -7,6 +10,8 @@ namespace Test
     {
         static void Main(string[] args)
         {
+            Enumerable.Range(0, 1).ToArray();
+
             ISomeclassSpectreFactory factory = new SomeclassSpectreFactory();
             
             var item = new Someclass();
@@ -19,19 +24,23 @@ namespace Test
     [AutoSpectreForm]
     public class Someclass
     {
-        [Ask(title: "[Green]Enter first name[/]")]
-        public string FirstName { get; set; } = null!;
+        [Ask(Title = "Middle name")]
+        public string? MiddleName { get; set; }
+
+        //[Ask()] public string LastName { get; set; } = null!;
 
         //[Ask()]
-        //public string? MiddleName { get; set; }
+        //public int Age { get; set; }
 
-        [Ask()] public string LastName { get; set; } = null!;
+        [Ask(AskType = AskType.Selection, SelectionSource = nameof(Items))]
+        public string Item { get; set; }
 
-        [Ask()]
+        public List<string> Items { get; } = new List<string>() { "Alpha", "Bravo", "Charlie" };
+
+        [Ask(AskType = AskType.Selection, SelectionSource = nameof(Ages))]
         public int Age { get; set; }
 
-        [Ask(title: "[Yellow]Are you cool?[/]")]
-        public bool? Coolio { get; set; }
+        public IEnumerable<int> Ages => new List<int>() {44, 39};
 
     }
 }

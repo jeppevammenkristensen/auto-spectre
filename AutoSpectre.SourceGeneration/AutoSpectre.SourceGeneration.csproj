@@ -6,8 +6,7 @@
     <Nullable>enable</Nullable>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <IsRoslynComponent>true</IsRoslynComponent>
-    <Version>0.1.6</Version>
-    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking> 
+    <Version>0.2.0.1</Version>
 
 
   </PropertyGroup>

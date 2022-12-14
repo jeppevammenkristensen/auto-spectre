@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Mime;
@@ -14,11 +13,90 @@ using Spectre.Console;
 
 namespace AutoSpectre.SourceGeneration
 {
+    public static class AttributeCode
+    {
+        //public static readonly string AutoSpectreFromAttribute = """
+        //                using System;
+
+        //    namespace AutoSpectre;
+
+        //    /// <summary>
+        //    /// Marker interface. Apply this to a class and a factory will
+        //    /// </summary>
+        //    public class AutoSpectreForm : Attribute
+        //    {
+
+        //    }
+        //    """;
+
+        //public static readonly string AskAttribute = """
+        //                using System;
+
+        //    namespace AutoSpectre
+        //    {
+        //        public class AskAttribute : Attribute
+        //        {
+        //            public AskAttribute()
+        //            {
+
+        //            }
+
+        //            [Obsolete()]
+        //            public AskAttribute(string? title = null)
+        //            {
+
+        //            }
+
+        //            //public AskAttribute(string? title = null, AskType askType = AutoSpectre.AskType.Normal, string? selectionSource = null)
+        //            //{
+        //            //    Title = title;
+        //            //    AskType = askType;
+        //            //    SelectionSource = selectionSource;
+        //            //}
+
+        //            /// <summary>
+        //            /// The title displayed. If nothing is defined a text including property name is displayed
+        //            /// </summary>
+        //            public string? Title { get; set; }
+
+        //            /// <summary>
+        //            /// The type used to ask with
+        //            /// </summary>
+        //            public AskType AskType { get; set; }
+        //            public string? SelectionSource { get; set; }
+        //        }
+
+        //        public enum AskType
+        //        {
+        //            /// <summary>
+        //            /// Default. 
+        //            /// </summary>
+        //            Normal,
+        //            /// <summary>
+        //            /// Presents a selection dialog
+        //            /// </summary>
+        //            Selection
+        //        }
+        //    }
+            
+        //    """;
+
+        
+    }
+
+
     [Generator]
     public class IncrementAutoSpectreGenerator : IIncrementalGenerator
     {
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
+            //context.RegisterPostInitializationOutput(ctx =>
+            //{
+            //    ctx.AddSource("AskAttribute.g.cs",AttributeCode.AskAttribute);
+            //    ctx.AddSource("AutoSpectreForm.g.cs",AttributeCode.AutoSpectreFromAttribute);
+            //});
+
+
             var syntaxNodes = context.SyntaxProvider.ForAttributeWithMetadataName(
                 Constants.AutoSpectreFormAttributeFullyQualifiedName,
                 (node, _) => node is ClassDeclarationSyntax, (syntaxContext, _) => syntaxContext);
@@ -63,7 +141,6 @@ namespace AutoSpectre.SourceGeneration
 
                             productionContext.AddSource($"{namedType}AutoSpectreFactory.Generated.cs", code);
                         }
-
                     }
                     else
                     {
@@ -83,76 +160,6 @@ namespace AutoSpectre.SourceGeneration
                 }
             });
         }
-
-        //internal class CodeBuilder
-        //{
-        //    public ClassDeclarationSyntax ClassDeclarationSyntax { get; }
-        //    public ITypeSymbol Type { get; }
-        //    public INamedTypeSymbol Attribute { get; }
-
-        //    private StringBuilder _builder = new StringBuilder();
-
-        //    public CodeBuilder(ClassDeclarationSyntax classDeclarationSyntax, ITypeSymbol type,
-        //        INamedTypeSymbol attribute)
-        //    {
-        //        ClassDeclarationSyntax = classDeclarationSyntax;
-        //        Type = type;
-        //        Attribute = attribute;
-        //    }
-
-        //    public string Code()
-        //    {
-        //        var name = $"{Type.ContainingNamespace}.{Type.Name}";
-
-        //        _builder.AppendLine("using Spectre.Console;");
-        //        _builder.AppendLine("using System;");
-        //        _builder.AppendLine();
-        //        _builder.AppendLine($"namespace {Type.ContainingNamespace}");
-        //        _builder.AppendLine("{");
-
-        //        _builder.AppendLine($"   public interface I{Type.Name}SpectreFactory");
-        //        _builder.AppendLine("    {");
-        //        _builder.AppendLine($"        {Type.Name} Get({Type.Name} destination = null);");
-        //        _builder.AppendLine("    }");
-
-
-        //        _builder.AppendLine($"   public class {Type.Name}SpectreFactory : I{Type.Name}SpectreFactory");
-        //        _builder.AppendLine("    {");
-        //        _builder.AppendLine($"        public {Type.Name} Get({Type.Name} destination = null)");
-        //        _builder.AppendLine("        {");
-        //        _builder.AppendLine($"           destination ??= new {name}();");
-        //        BuildPropertySetters();
-        //        _builder.AppendLine($"           return destination;");
-
-        //        _builder.AppendLine("        }");
-        //        _builder.AppendLine("    }");
-        //        _builder.AppendLine("}");
-
-        //        return _builder.ToString();
-        //    }
-
-        //    private void BuildPropertySetters()
-        //    {
-        //        var propertySymbols = Type.GetMembers().OfType<IPropertySymbol>().ToList();
-
-        //        foreach (var propertySymbol in propertySymbols.Where(x => x.GetAttributes().Any(AttributePredicate)))
-        //        {
-        //            var attribute = propertySymbol.GetAttributes().First(AttributePredicate);
-        //            var title = attribute.GetValue<string?>(nameof(AskAttribute.Title), 0) ??
-        //                        $"Enter [green]{propertySymbol.Name} [/]";
-        //            _builder.AppendLine(
-        //                $"destination.{propertySymbol.Name} = AnsiConsole.Ask<{propertySymbol.Type.Name}>(\"{title} \");");
-        //        }
-        //    }
-
-        //    private bool AttributePredicate(AttributeData? attributeData)
-        //    {
-        //        if (attributeData?.AttributeClass is not { } attributeClass)
-        //            return false;
-
-        //        return SymbolEqualityComparer.Default.Equals(attributeClass, Attribute);
-        //    }
-        //}
     }
 
     public class PropertyAndAttribute
@@ -173,86 +180,19 @@ namespace AutoSpectre.SourceGeneration
         }
     }
 
-
-    internal class NewCodeBuilder
+    public class CodeBuilderContext
     {
-        public ITypeSymbol Type { get; }
-        public List<PropertyAndAttribute> PropertyAndAttributes { get; }       
-
-        public NewCodeBuilder(INamedTypeSymbol type, List<PropertyAndAttribute> propertyAndAttributes)
-        {
-            Type = type;
-            PropertyAndAttributes = propertyAndAttributes;
-        }
-
-        public string Code()
-        {
-
-
-            var name = $"{Type.ContainingNamespace}.{Type.Name}";
-
-            var propertySetters = BuildPropertySetters();
-
-            var result = $$"""
-using Spectre.Console;
-using System;
-
-namespace {{ Type.ContainingNamespace}}  
-{
-    public interface I{{Type.Name}}SpectreFactory
-    {
-        {{ Type.Name}} Get({{ Type.Name}} destination = null);
     }
 
-    public class {{Type.Name}}SpectreFactory : I{{ Type.Name}}SpectreFactory
+    public abstract class AskBuilder
     {
-        public {{ Type.Name}} Get({{Type.Name}} destination = null)
+        public abstract void Build(StringBuilder builder);
+    }
+
+    public class NormalAskBuilder
+    {
+        public NormalAskBuilder()
         {
-            destination ??= new {{ name}} ();
-{{ propertySetters}}
-            return destination;
         }
     }
-}
-""" ;
-
-            return result;
-        }
-
-
-
-        private string BuildPropertySetters()
-        {
-            var builder = new StringBuilder();
-            
-
-            foreach (var (property, attributeData) in PropertyAndAttributes)
-            {
-                var title = attributeData.GetValue<string?>(nameof(AskAttribute.Title), 0) ??
-                            $"Enter [green]{property.Name} [/]";
-                builder.Append($"\t\t\tdestination.{property.Name} = ");
-                AppendPropertyPrompt(builder, property, title);
-                builder.AppendLine(";");
-                
-            }
-
-            return builder.ToString();
-        }
-
-        private void AppendPropertyPrompt(StringBuilder builder, IPropertySymbol property, string title)
-        {
-            var (isNullable, type) = property.Type.GetTypeWithNullableInformation();
-
-
-            if (type.SpecialType == SpecialType.System_Boolean)
-            {
-                builder.Append($"""AnsiConsole.Confirm("{title}")""");
-
-            }
-            else
-            {
-                builder.Append($"AnsiConsole.Ask<{property.Type.Name}>(\"{title} \")");
-            }
-        }
-    }    
 }
