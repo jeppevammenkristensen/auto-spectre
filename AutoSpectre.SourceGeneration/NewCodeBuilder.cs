@@ -1,5 +1,4 @@
 ﻿using AutoSpectre.SourceGeneration.Extensions;
-using AutoSpectre.SourceGeneration.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -12,12 +11,12 @@ namespace AutoSpectre.SourceGeneration;
 internal class NewCodeBuilder
 {
     public ITypeSymbol Type { get; }
-    public List<PropertyAndAttribute> PropertyAndAttributes { get; }
+    public List<PropertyContext> PropertyContexts { get; }
 
-    public NewCodeBuilder(INamedTypeSymbol type, List<PropertyAndAttribute> propertyAndAttributes)
+    public NewCodeBuilder(INamedTypeSymbol type, List<PropertyContext> propertyContexts)
     {
         Type = type;
-        PropertyAndAttributes = propertyAndAttributes;
+        PropertyContexts = propertyContexts;
     }
 
     public string Code()
@@ -57,67 +56,12 @@ namespace {{ Type.ContainingNamespace}}
     private string BuildPropertySetters()
     {
         StringBuilder builder = new();
-
-
-        foreach (var (property, attributeData) in PropertyAndAttributes)
+        foreach (var propertyAndAttribute in this.PropertyContexts)
         {
-            var title = attributeData.GetValue<string?>("Title") ??
-                        $"Enter [green]{property.Name} [/]";
-            var askType = attributeData.GetValue<AskTypeCopy>("AskType");
-            var selectionType = attributeData.GetValue<string?>("SelectionSource") ?? null;
-
-
-            if (GetPropertyPrompt(property, title, askType, selectionType) is { } prompt)
-            {
-                builder.Append($"\t\t\tdestination.{property.Name} = ");
-                builder.Append(prompt);
-                builder.AppendLine(";");
-            }
-            
+            builder.AppendLine(
+                $"destination.{propertyAndAttribute.PropertyName} = {propertyAndAttribute.BuildContext.GenerateOutput()};");
         }
 
         return builder.ToString();
-    }
-
-    private string? GetPropertyPrompt(IPropertySymbol property, string title,
-        AskTypeCopy askType, string? selectionType)
-    {
-        var (isNullable, type) = property.Type.GetTypeWithNullableInformation();
-
-        var (isEnumerable, underlyingType) = property.Type.IsEnumerableOfType();
-
-        var typeRepresentation = property.DeclaringSyntaxReferences.Select(x => x.GetSyntax()).OfType<PropertyDeclarationSyntax>()
-            .FirstOrDefault()
-            ?.Type.ToString();
-
-        if (!isEnumerable)
-        {
-            if (askType == AskTypeCopy.Normal)
-            {
-                if (type.SpecialType == SpecialType.System_Boolean)
-                {
-                    return $"""AnsiConsole.Confirm("{ title}")""" ;
-                }
-                else
-                {
-                    return $"AnsiConsole.Ask<{typeRepresentation}>(\"{title} \")";
-                }
-            }
-            else if (askType == AskTypeCopy.Selection && selectionType != null)
-            {
-                return $"""
-AnsiConsole.Prompt(
-new SelectionPrompt<{ type}>()
-.Title("{ title}  ")
-.PageSize(10) 
-.AddChoices(destination.{ selectionType}.ToArray()))
-""";
-            }
-            else
-            {
-            }
-        }
-
-        return null;
     }
 }

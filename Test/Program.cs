@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Linq;
 using AutoSpectre;
+using Spectre.Console;
 
 namespace Test
 {
@@ -10,13 +11,11 @@ namespace Test
     {
         static void Main(string[] args)
         {
-            Enumerable.Range(0, 1).ToArray();
+            bool? prompt = AnsiConsole.Prompt(new ConfirmationPrompt("Hello there"));
+            var text = AnsiConsole.Prompt(
+                new TextPrompt<string>("Custom title")
+            );
 
-            ISomeclassSpectreFactory factory = new SomeclassSpectreFactory();
-            
-            var item = new Someclass();
-            factory.Get(item);
-            
             //Console.WriteLine(item.MiddleName);
         }
     }
@@ -49,4 +48,6 @@ namespace Test
         public List<string> Items { get; } = new List<string>() { "Alpha", "Bravo", "Charlie" };
 
     }
+
+    
 }

@@ -31,14 +31,14 @@ namespace AutoSpectre.SourceGeneration.Tests
                     {
                         [Ask]
                         public string Name {get;set;}  
-                        
+
                         [Ask(Title = "Custom title")] 
                         public bool BoolTest {get;set;}
 
-                        [Ask(AskType = AskType.Selection]
+                        [Ask(AskType = AskType.Selection)]
                         public string NoSource {get;set;}
 
-                        [Ask(AskType = AskType.Selection, SelectionSource = nameof("Sources")]
+                        [Ask(AskType = AskType.Selection, SelectionSource = nameof(Sources))]
                         public int Source {get;set;}
 
                         public int[] Sources {get;} = new [] {12,24,36};
@@ -61,16 +61,14 @@ namespace Test
         public TestForm Get(TestForm destination = null)
         {
             destination ??= new Test.TestForm();
-            destination.Name = AnsiConsole.Ask<string>("Enter [green]Name [/] ");
+            destination.Name = AnsiConsole.Prompt(new TextPrompt<string>("Enter [green]Name[/]"));
             destination.BoolTest = AnsiConsole.Confirm("Custom title");
-            destination.Source = AnsiConsole.Prompt(new SelectionPrompt<int>().Title("Enter [green]Source [/]  ").PageSize(10).AddChoices(destination..ToArray()));
+            destination.Source = AnsiConsole.Prompt(new SelectionPrompt<int>().Title("Enter [green]Source[/]").PageSize(10).AddChoices(destination.Sources.ToArray()));
             return destination;
         }
     }
 }
 """);
-
-            
         }
 
         private string GetGeneratedOutput(string source)
@@ -92,7 +90,13 @@ namespace Test
             var compilation = CSharpCompilation.Create("foo", new SyntaxTree[] { syntaxTree }, references, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
             // TODO: Uncomment this line if you want to fail tests when the injected program isn't valid _before_ running generators
-            // var compileDiagnostics = compilation.GetDiagnostics();
+            var compileDiagnostics = compilation.GetDiagnostics();
+
+            foreach (var compileDiagnostic in compileDiagnostics)
+            { 
+                _helper.WriteLine(compileDiagnostic.ToString());
+                
+            }
             // Assert.False(compileDiagnostics.Any(d => d.Severity == DiagnosticSeverity.Error), "Failed: " + compileDiagnostics.FirstOrDefault()?.GetMessage());
 
             var generator = new IncrementAutoSpectreGenerator();
@@ -103,7 +107,10 @@ namespace Test
 
             string output = outputCompilation.SyntaxTrees.Last().ToString();
 
-            _helper.WriteLine(output);
+            foreach (var diagnostic in generateDiagnostics)
+            {
+                _helper.WriteLine(diagnostic.ToString());
+            }
 
             return output;
         }
