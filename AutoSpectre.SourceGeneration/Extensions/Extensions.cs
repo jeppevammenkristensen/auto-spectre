@@ -45,6 +45,16 @@ namespace AutoSpectre.SourceGeneration.Extensions
                 .Where(x => x.SetMethod != null);
         }
 
+        public static (bool isEnumerable, ITypeSymbol underlyingType) IsEnumerableOfTypeButNotString(
+            this ITypeSymbol typeSymbol)
+        {
+            if (typeSymbol == null) throw new ArgumentNullException(nameof(typeSymbol));
+            if (typeSymbol.SpecialType == SpecialType.System_String)
+                return (false, default!);
+
+            return IsEnumerableOfType(typeSymbol);
+        }
+
         public static (bool isEnumerable, ITypeSymbol underlyingType) IsEnumerableOfType(this ITypeSymbol typeSymbol)
         {
             if (typeSymbol is IArrayTypeSymbol arrayType)
@@ -58,7 +68,7 @@ namespace AutoSpectre.SourceGeneration.Extensions
                     return (true, namedType.TypeArguments.First());
 
                 var candidates = namedType.AllInterfaces.Where(x =>
-                    x.OriginalDefinition?.SpecialType == SpecialType.System_Collections_IEnumerable);
+                    x.OriginalDefinition?.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T);
 
                 foreach (var namedTypeSymbol in candidates)
                 {

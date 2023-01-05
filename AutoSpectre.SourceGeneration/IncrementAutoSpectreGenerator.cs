@@ -14,13 +14,6 @@ public class IncrementAutoSpectreGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        //context.RegisterPostInitializationOutput(ctx =>
-        //{
-        //    ctx.AddSource("AskAttribute.g.cs",AttributeCode.AskAttribute);
-        //    ctx.AddSource("AutoSpectreForm.g.cs",AttributeCode.AutoSpectreFromAttribute);
-        //});
-
-
         var syntaxNodes = context.SyntaxProvider.ForAttributeWithMetadataName(
             Constants.AutoSpectreFormAttributeFullyQualifiedName,
             (node, _) => node is ClassDeclarationSyntax, (syntaxContext, _) => syntaxContext);
@@ -65,8 +58,7 @@ public class IncrementAutoSpectreGenerator : IIncrementalGenerator
                                 .FirstOrDefault()
                                 ?.Type.ToString();
 
-                            if (!isEnumerable)
-                            {
+                         
                                 if (attributeData.AskType == AskTypeCopy.Normal)
                                 {
                                     if (type.SpecialType == SpecialType.System_Boolean)
@@ -80,7 +72,8 @@ public class IncrementAutoSpectreGenerator : IIncrementalGenerator
                                             new TextPromptBuildContext(attributeData.Title, type, isNullable)));
                                     }
                                 }
-                                else if (attributeData.AskType == AskTypeCopy.Selection)
+
+                                if (attributeData.AskType == AskTypeCopy.Selection)
                                 {
                                     if (attributeData.SelectionSource != null)
                                     {
@@ -90,7 +83,8 @@ public class IncrementAutoSpectreGenerator : IIncrementalGenerator
                                             .FirstOrDefault(x => x is IMethodSymbol
                                             {
                                                 Parameters.Length: 0
-                                            } or IPropertySymbol { GetMethod: {}});
+                                            } or IPropertySymbol {GetMethod: { }});
+
                                         if (match is { })
                                         {
                                             SelectionPromptSelectionType selectionType = match switch
@@ -99,18 +93,30 @@ public class IncrementAutoSpectreGenerator : IIncrementalGenerator
                                                 IPropertySymbol => SelectionPromptSelectionType.Property,
                                                 _ => throw new NotSupportedException(),
                                             };
-                                            propertyContexts.Add(new PropertyContext(property.Name, property, new SelectionPromptBuildContext(attributeData.Title, type,isNullable, attributeData.SelectionSource, selectionType)));
+                                            if (!isEnumerable)
+                                            {
+                                                propertyContexts.Add(new PropertyContext(property.Name, property,
+                                                    new SelectionPromptBuildContext(attributeData.Title, type, isNullable,
+                                                        attributeData.SelectionSource, selectionType)));
+                                            }
+                                            else
+                                            {
+                                                propertyContexts.Add(new PropertyContext(property.Name, property,new MultiSelectionBuildContext(attributeData.Title, type, isNullable, attributeData.SelectionSource, selectionType)));
+                                            }
+                                            
                                         }
                                         else
                                         {
                                             productionContext.ReportDiagnostic(Diagnostic.Create(
-                                                new DiagnosticDescriptor("AutoSpectre_JJK0005", "Not a valid selection source",
-                                                    $"The selectionsource {attributeData.SelectionSource} was not found on type", "General", DiagnosticSeverity.Warning, true),
+                                                new DiagnosticDescriptor("AutoSpectre_JJK0005",
+                                                    "Not a valid selection source",
+                                                    $"The selectionsource {attributeData.SelectionSource} was not found on type",
+                                                    "General", DiagnosticSeverity.Warning, true),
                                                 property.Locations.FirstOrDefault()));
                                         }
                                     }
                                 }
-                            }
+
                         }
 
 

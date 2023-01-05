@@ -11,12 +11,9 @@ namespace Test
     {
         static void Main(string[] args)
         {
-            bool? prompt = AnsiConsole.Prompt(new ConfirmationPrompt("Hello there"));
-            var text = AnsiConsole.Prompt(
-                new TextPrompt<string>("Custom title")
-            );
-
-            //Console.WriteLine(item.MiddleName);
+            Someclass cls = new();
+            ISomeclassSpectreFactory factory = new SomeclassSpectreFactory();
+            factory.Get(cls);
         }
     }
     
@@ -42,7 +39,7 @@ namespace Test
         public bool Age { get; set; }
 
 
-        [Ask(AskType = AskType.Selection, SelectionSource = nameof(Items))]
+        [Ask(AskType = AskType.Selection, SelectionSource = "Items")]
         public string Item { get; set; }
 
         public List<string> Items { get; } = new List<string>() { "Alpha", "Bravo", "Charlie" };

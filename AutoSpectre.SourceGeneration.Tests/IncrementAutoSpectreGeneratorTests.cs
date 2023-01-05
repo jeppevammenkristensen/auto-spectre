@@ -18,10 +18,56 @@ namespace AutoSpectre.SourceGeneration.Tests
         }
 
         [Fact]
+        public void ValidForm_WithNullArraySelect_GeneratesExpected()
+        {
+            GetGeneratedOutput("""
+                using AutoSpectre;
+                
+                
+                namespace Test  
+                {
+                    [AutoSpectreForm]
+                    public class TestForm
+                    {
+                        [Ask(AskType = AskType.Selection, SelectionSource="MultiSelectSource")]
+                        public int[]? MultiSelect {get;set;}
+
+                        public int[] MultiSelectSource => new [] {1,2,3,4,5}
+                    }                   
+                }                    
+                """).Should().Be("""
+using Spectre.Console;
+using System;
+using System.Linq;
+
+namespace Test
+{
+    public interface ITestFormSpectreFactory
+    {
+        TestForm Get(TestForm destination = null);
+    }
+
+    public class TestFormSpectreFactory : ITestFormSpectreFactory
+    {
+        public TestForm Get(TestForm destination = null)
+        {
+            destination ??= new Test.TestForm();
+            destination.MultiSelect = AnsiConsole.Prompt(new MultiSelectionPrompt<int[]?>().Title("Enter [green]MultiSelect[/]").NotRequired().PageSize(10).AddChoices(destination.MultiSelectSource.ToArray()));
+            return destination;
+        }
+    }
+}
+""");
+        }
+
+
+
+        [Fact]
         public void Assert_Correct_Outputted()
         {
             GetGeneratedOutput("""
                 using AutoSpectre;
+                using System.Collections.Generic;
 
 
                 namespace Test  
@@ -40,6 +86,9 @@ namespace AutoSpectre.SourceGeneration.Tests
 
                         [Ask(AskType = AskType.Selection, SelectionSource = nameof(Sources))]
                         public int Source {get;set;}
+
+                        [Ask(AskType = AskType.Selection, SelectionSource = nameof(Sources))]
+                        public List<int> MultiSelect {get;set;}
 
                         public int[] Sources {get;} = new [] {12,24,36};
                     }
@@ -64,6 +113,7 @@ namespace Test
             destination.Name = AnsiConsole.Prompt(new TextPrompt<string>("Enter [green]Name[/]"));
             destination.BoolTest = AnsiConsole.Confirm("Custom title");
             destination.Source = AnsiConsole.Prompt(new SelectionPrompt<int>().Title("Enter [green]Source[/]").PageSize(10).AddChoices(destination.Sources.ToArray()));
+            destination.MultiSelect = AnsiConsole.Prompt(new MultiSelectionPrompt<System.Collections.Generic.List<int>>().Title("Enter [green]MultiSelect[/]").PageSize(10).AddChoices(destination.Sources.ToArray()));
             return destination;
         }
     }
