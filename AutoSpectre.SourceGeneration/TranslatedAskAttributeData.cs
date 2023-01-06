@@ -4,7 +4,14 @@ namespace AutoSpectre.SourceGeneration;
 
 internal class TranslatedAskAttributeData
 {
-    public string Title { get; set; }
-    public AskTypeCopy AskType { get; set; }
-    public string? SelectionSource { get; set; }
+    public TranslatedAskAttributeData(AskTypeCopy askType, string? selectionSource, string title)
+    {
+        AskType = askType;
+        SelectionSource = selectionSource;
+        Title = title;
+    }
+
+    public string Title { get;  }
+    public AskTypeCopy AskType { get;  }
+    public string? SelectionSource { get; }
 }

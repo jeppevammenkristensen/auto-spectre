@@ -15,22 +15,23 @@ namespace AutoSpectre.SourceGeneration.Extensions
             return source.Equals(nameWithoutAttribute) || source.Equals($"{nameWithoutAttribute}Attribute");
         }
 
-        public  static T? GetValue<T>(this AttributeData attributeData, string name)
+        public static T? GetValue<T>(this AttributeData attributeData, string name)
         {
             if (attributeData == null) throw new ArgumentNullException(nameof(attributeData));
 
-            var named = attributeData.NamedArguments.Select(x => new {  x.Key, Value = x.Value}).FirstOrDefault(x => x.Key == name);
+            var named = attributeData.NamedArguments.Select(x => new {x.Key, Value = x.Value})
+                .FirstOrDefault(x => x.Key == name);
             if (named != null)
             {
                 return named.Value switch
                 {
-                    { Value: not {}} => default(T),
-                    {Kind: TypedConstantKind.Enum} x => (T)Enum.ToObject(typeof(T), x.Value),
+                    {Value: not { }} => default(T),
+                    {Kind: TypedConstantKind.Enum} x => (T) Enum.ToObject(typeof(T), x.Value),
                     _ => (T?) named.Value.Value
 
                 };
 
-                
+
             }
 
             //attributeData.ConstructorArguments.FirstOrDefault(x => x.())
@@ -77,8 +78,70 @@ namespace AutoSpectre.SourceGeneration.Extensions
                 }
             }
 
-            return (false,default!);
+            return (false, default!);
         }
+
+        public static bool In<T>(this T source, params T[] candidates)
+        {
+            if (candidates == null) throw new ArgumentNullException(nameof(candidates));
+            return candidates.Contains(source);
+        }
+
+        public static bool IsIn<TDest, TSource>(this TDest source, IEnumerable<TSource> items, Func<TSource, TDest, bool> predicate)
+        {
+            return items.Any(x => predicate(x,source));
+        }
+
+        public static bool IsOriginalSpecialTypeOf(this ITypeSymbol source, params SpecialType[] specialType)
+        {
+            return source.OriginalDefinition.SpecialType.In(specialType);
+        }
+
+        public static bool IsOriginalOfType(this ITypeSymbol source, ITypeSymbol? type)
+        {
+            if (type == null) return false;
+
+            return source.OriginalDefinition.Equals(type, SymbolEqualityComparer.Default);
+        }
+
+        public static string GetTypePresentation(this ITypeSymbol type)
+        {
+            return type.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax().ToString() ?? type.ToDisplayString();
+        }
+
+        public static IEnumerable<ITypeSymbol> TypeAndInterfaces(this ITypeSymbol source)
+        {
+            yield return source;
+
+            if (source is INamedTypeSymbol namedType)
+            {
+                foreach (var namedTypeSymbol in namedType.AllInterfaces.Distinct<INamedTypeSymbol>(SymbolEqualityComparer.IncludeNullability))
+                {
+                   yield return namedTypeSymbol;
+                }
+            }
+        }
+
+        public static IEnumerable<ITypeSymbol> AllBaseTypes(this ITypeSymbol source)
+        {
+            ITypeSymbol? current = source;
+
+            yield return source;
+
+            while (current is INamedTypeSymbol currentTypeSymbol)
+            {
+                if (currentTypeSymbol.BaseType is { } baseType)
+                {
+                    yield return baseType;
+                    current = baseType;
+                }
+                else
+                {
+                    current = null;
+                }
+            }
+        }
+
 
         public static (bool isNullable, ITypeSymbol type) GetTypeWithNullableInformation(this ITypeSymbol typeSymbol)
         {

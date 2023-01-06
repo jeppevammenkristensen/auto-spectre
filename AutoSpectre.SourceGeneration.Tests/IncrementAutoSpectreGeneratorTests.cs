@@ -39,6 +39,7 @@ namespace AutoSpectre.SourceGeneration.Tests
 using Spectre.Console;
 using System;
 using System.Linq;
+using System.Collections.Immutable;
 
 namespace Test
 {
@@ -52,7 +53,7 @@ namespace Test
         public TestForm Get(TestForm destination = null)
         {
             destination ??= new Test.TestForm();
-            destination.MultiSelect = AnsiConsole.Prompt(new MultiSelectionPrompt<int[]?>().Title("Enter [green]MultiSelect[/]").NotRequired().PageSize(10).AddChoices(destination.MultiSelectSource.ToArray()));
+            destination.MultiSelect = AnsiConsole.Prompt(new MultiSelectionPrompt<int>().Title("Enter [green]MultiSelect[/]").NotRequired().PageSize(10).AddChoices(destination.MultiSelectSource.ToArray())).ToArray();
             return destination;
         }
     }
@@ -68,6 +69,7 @@ namespace Test
             GetGeneratedOutput("""
                 using AutoSpectre;
                 using System.Collections.Generic;
+                using System.Collections.Immutable;
 
 
                 namespace Test  
@@ -90,6 +92,15 @@ namespace Test
                         [Ask(AskType = AskType.Selection, SelectionSource = nameof(Sources))]
                         public List<int> MultiSelect {get;set;}
 
+                        [Ask(AskType = AskType.Selection, SelectionSource = nameof(Sources))]
+                        public IReadOnlyList<int> ReadOnlyList {get;set;}                        
+
+                        [Ask(AskType = AskType.Selection, SelectionSource = nameof(Sources))]
+                        public ImmutableList<int> ReadOnlyList2 {get;set;}
+
+                        [Ask(AskType = AskType.Selection, SelectionSource = nameof(Sources))]
+                        public HashSet<int> HashSet {get;set;}
+
                         public int[] Sources {get;} = new [] {12,24,36};
                     }
                 }
@@ -97,6 +108,7 @@ namespace Test
 using Spectre.Console;
 using System;
 using System.Linq;
+using System.Collections.Immutable;
 
 namespace Test
 {
@@ -113,7 +125,10 @@ namespace Test
             destination.Name = AnsiConsole.Prompt(new TextPrompt<string>("Enter [green]Name[/]"));
             destination.BoolTest = AnsiConsole.Confirm("Custom title");
             destination.Source = AnsiConsole.Prompt(new SelectionPrompt<int>().Title("Enter [green]Source[/]").PageSize(10).AddChoices(destination.Sources.ToArray()));
-            destination.MultiSelect = AnsiConsole.Prompt(new MultiSelectionPrompt<System.Collections.Generic.List<int>>().Title("Enter [green]MultiSelect[/]").PageSize(10).AddChoices(destination.Sources.ToArray()));
+            destination.MultiSelect = AnsiConsole.Prompt(new MultiSelectionPrompt<int>().Title("Enter [green]MultiSelect[/]").PageSize(10).AddChoices(destination.Sources.ToArray()));
+            destination.ReadOnlyList = AnsiConsole.Prompt(new MultiSelectionPrompt<int>().Title("Enter [green]ReadOnlyList[/]").PageSize(10).AddChoices(destination.Sources.ToArray()));
+            destination.ReadOnlyList2 = AnsiConsole.Prompt(new MultiSelectionPrompt<int>().Title("Enter [green]ReadOnlyList2[/]").PageSize(10).AddChoices(destination.Sources.ToArray())).ToImmutableList();
+            destination.HashSet = new System.Collections.Generic.HashSet<int>(AnsiConsole.Prompt(new MultiSelectionPrompt<int>().Title("Enter [green]HashSet[/]").PageSize(10).AddChoices(destination.Sources.ToArray())));
             return destination;
         }
     }

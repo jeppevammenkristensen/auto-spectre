@@ -23,11 +23,7 @@ internal class PropertyAndAskData
                     $"Enter [green]{property.Name}[/]";
         var askType = attributeData.GetValue<AskTypeCopy>("AskType");
         var selectionSource = attributeData.GetValue<string?>("SelectionSource") ?? null;
-        TranslatedAskAttribute = new TranslatedAskAttributeData()
-        {
-            AskType = askType,
-            SelectionSource = selectionSource,
-            Title = title
-        };
+        TranslatedAskAttribute =
+            new TranslatedAskAttributeData(askType: askType, selectionSource: selectionSource, title: title);
     }
 }

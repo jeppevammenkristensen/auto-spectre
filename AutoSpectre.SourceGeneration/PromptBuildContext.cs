@@ -2,5 +2,5 @@
 
 public abstract class PromptBuildContext
 {
-    public abstract string GenerateOutput();
+    public abstract string GenerateOutput(string destination);
 }

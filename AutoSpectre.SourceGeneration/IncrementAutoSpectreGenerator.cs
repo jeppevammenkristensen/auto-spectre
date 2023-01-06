@@ -46,13 +46,15 @@ public class IncrementAutoSpectreGenerator : IIncrementalGenerator
                         
                     if (candidates.Any())
                     {
+                        var types = new Types(syntaxContext.SemanticModel.Compilation);
+
                         List<PropertyContext> propertyContexts = new();
 
                         foreach (var (property, attributeData) in candidates)
                         {
                             var (isNullable, type) = property.Type.GetTypeWithNullableInformation();
 
-                            var (isEnumerable, underlyingType) = property.Type.IsEnumerableOfType();
+                            var (isEnumerable, underlyingType) = property.Type.IsEnumerableOfTypeButNotString();
 
                             var typeRepresentation = property.DeclaringSyntaxReferences.Select(x => x.GetSyntax()).OfType<PropertyDeclarationSyntax>()
                                 .FirstOrDefault()
@@ -101,7 +103,7 @@ public class IncrementAutoSpectreGenerator : IIncrementalGenerator
                                             }
                                             else
                                             {
-                                                propertyContexts.Add(new PropertyContext(property.Name, property,new MultiSelectionBuildContext(attributeData.Title, type, isNullable, attributeData.SelectionSource, selectionType)));
+                                                propertyContexts.Add(new PropertyContext(property.Name, property,new MultiSelectionBuildContext(title: attributeData.Title, typeSymbol: type, underlyingSymbol:underlyingType, nullable: isNullable, selectionTypeName: attributeData.SelectionSource, selectionType: selectionType, types)));
                                             }
                                             
                                         }

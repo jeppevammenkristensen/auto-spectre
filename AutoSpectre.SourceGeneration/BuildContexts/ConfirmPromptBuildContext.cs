@@ -15,8 +15,8 @@ public class ConfirmPromptBuildContext : PromptBuildContext
         IsNullable = isNullable;
     }
 
-    public override string GenerateOutput()
+    public override string GenerateOutput(string destination)
     {
-        return $"""AnsiConsole.Confirm("{Title}")""";
+        return $"""{destination} = AnsiConsole.Confirm("{Title}")""";
     }
 }

@@ -14,20 +14,19 @@ public class SelectionPromptBuildContext : PromptBuildContext
 
     public SelectionPromptBuildContext(string title, ITypeSymbol typeSymbol, bool nullable, string selectionTypeName, SelectionPromptSelectionType selectionType)
     {
-        if (selectionTypeName == null) throw new ArgumentNullException(nameof(selectionTypeName));
         Title = title;
         TypeSymbol = typeSymbol;
         Nullable = nullable;
-        SelectionTypeName = selectionTypeName;
+        SelectionTypeName = selectionTypeName ?? throw new ArgumentNullException(nameof(selectionTypeName));
         SelectionType = selectionType;
     }
 
-    public override string GenerateOutput()
+    public override string GenerateOutput(string destination)
     {
         var type = TypeSymbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax().ToString() ?? TypeSymbol.ToDisplayString();
 
         return $"""
-AnsiConsole.Prompt(
+{destination} = AnsiConsole.Prompt(
 new SelectionPrompt<{type}>()
 .Title("{Title}")
 .PageSize(10) 

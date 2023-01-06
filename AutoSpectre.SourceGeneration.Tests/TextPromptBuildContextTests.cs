@@ -29,9 +29,9 @@ public class TextPromptBuildContextTests
             """);
         
             TextPromptBuildContext sut = new("Custom title", propertyType, false);
-            var generateOutput = sut.GenerateOutput();
+            var generateOutput = sut.GenerateOutput("dest");
             generateOutput.Should().Be("""
-AnsiConsole.Prompt(
+dest = AnsiConsole.Prompt(
 new TextPrompt<string>("Custom title")
 )
 """);
@@ -49,9 +49,9 @@ new TextPrompt<string>("Custom title")
             """);
 
         TextPromptBuildContext sut = new("Custom title", propertyType, true);
-        var generateOutput = sut.GenerateOutput();
+        var generateOutput = sut.GenerateOutput("dest");
         generateOutput.Should().Be("""
-AnsiConsole.Prompt(
+dest = AnsiConsole.Prompt(
 new TextPrompt<string>("Custom title")
 .AllowEmpty()
 )

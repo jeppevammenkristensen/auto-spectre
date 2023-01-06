@@ -17,12 +17,12 @@ public class TextPromptBuildContext : PromptBuildContext
         Nullable = nullable;
     }
 
-    public override string GenerateOutput()
+    public override string GenerateOutput(string destination)
     {
         var syntax = TypeSymbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax().ToString() ?? TypeSymbol.ToDisplayString();
 
         StringBuilder builder = new ();
-        builder.AppendLine("AnsiConsole.Prompt(");
+        builder.AppendLine($"{destination} = AnsiConsole.Prompt(");
         builder.AppendLine($"""new TextPrompt<{syntax}>("{Title}")""");
         if (Nullable)
         {

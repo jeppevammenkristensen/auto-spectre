@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <IsRoslynComponent>true</IsRoslynComponent>
-    <Version>0.2.0.2</Version>
+    <Version>0.3.0.0</Version>
 
 
   </PropertyGroup>
@@ -16,7 +16,7 @@
     <IncludeBuildOutput>false</IncludeBuildOutput> <!-- Do not include the generator as a lib dependency -->
     <Title>AutoSpectre Source Generation</Title>
     <Authors>Jeppe Roi Kristensen</Authors>
-    <Description>A quick and dirty tool to generate a form through with a source generator that can collect data</Description>
+    <Description></Description>
     <PackageProjectUrl>https://github.com/jeppevammenkristensen/auto-spectre</PackageProjectUrl>
     <RepositoryUrl>https://github.com/jeppevammenkristensen/auto-spectre</RepositoryUrl>
     <PackageTags>C#;Source Generator</PackageTags>

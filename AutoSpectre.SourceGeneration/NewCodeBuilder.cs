@@ -29,6 +29,7 @@ internal class NewCodeBuilder
 using Spectre.Console;
 using System;
 using System.Linq;
+using System.Collections.Immutable;
 
 namespace {{ Type.ContainingNamespace}}    
 {
@@ -52,14 +53,13 @@ namespace {{ Type.ContainingNamespace}}
         return SyntaxFactory.ParseCompilationUnit(result).NormalizeWhitespace().ToFullString();
     }
 
-
     private string BuildPropertySetters()
     {
         StringBuilder builder = new();
         foreach (var propertyAndAttribute in this.PropertyContexts)
         {
             builder.AppendLine(
-                $"destination.{propertyAndAttribute.PropertyName} = {propertyAndAttribute.BuildContext.GenerateOutput()};");
+                $"{propertyAndAttribute.BuildContext.GenerateOutput($"destination.{propertyAndAttribute.PropertyName}")};");
         }
 
         return builder.ToString();
