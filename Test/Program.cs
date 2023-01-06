@@ -11,20 +11,18 @@ namespace Test
     {
         static void Main(string[] args)
         {
-            var factory = new CollectionSampleSpectreFactory();
-            var item = new CollectionSample();
+            ISomeClassSpectreFactory factory = new SomeClassSpectreFactory();
+            var item = factory.Get();
+            // or 
+            SomeClass someclass = new();
+            factory.Get(someclass);
 
-            factory.Get(item);
-            
-
-            
-            
             int i = 0;
         }
     }
 
     [AutoSpectreForm]
-    public class TestForm
+    public class SomeClass
     {
         [Ask]
         public string Name { get; set; }
@@ -51,8 +49,6 @@ namespace Test
         public int[] Numbers { get; } = new[] {1, 2, 3};
        
         public List<string> Items { get; } = new List<string>() { "Alpha", "Bravo", "Charlie" };
-
-        
 
     }
 
