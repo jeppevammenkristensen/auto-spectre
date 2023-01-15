@@ -17,10 +17,24 @@ namespace Test
     }
 
     [AutoSpectreForm]
-    public class SomeClass
+    public class Someclass
     {
+        [Ask(Title = "Enter first name")]
+        public string? FirstName { get; set; }
+
         [Ask]
-        public string Name { get; set; }
+        public bool LeftHanded { get; set; }
+
+        [Ask]
+        public bool Age { get; set; }
+
+        [Ask(AskType = AskType.Selection, SelectionSource = nameof(Items))]
+        public string Item { get; set; } = string.Empty;
+
+        public List<string> Items { get; } = new List<string>() { "Alpha", "Bravo", "Charlie" };
+
+        [Ask(AskType = AskType.Normal)] public int[] IntItems { get; set; } = Array.Empty<int>();
+
     }
 
     [AutoSpectreForm]

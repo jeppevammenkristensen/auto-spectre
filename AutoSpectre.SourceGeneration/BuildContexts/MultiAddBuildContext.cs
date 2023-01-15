@@ -25,6 +25,7 @@ public class MultiAddBuildContext : PromptBuildContext
     public override string GenerateOutput(string destination)
     {
         StringBuilder builder = new();
+        builder.AppendLine($"// Prompt for values for {destination}");
         builder.AppendLine("{");
         builder.AppendLine(PromptPart());
         builder.AppendLine($"{destination} = result;");
@@ -37,7 +38,7 @@ public class MultiAddBuildContext : PromptBuildContext
         var type = _underlyingType.GetTypePresentation();
         StringBuilder builder = new();
 
-        builder.AppendLine($$"""
+        builder.AppendLine($$"""            
             List<{{type}}> items = new List<{{type}}>();
                 bool continuePrompting = true;
 
