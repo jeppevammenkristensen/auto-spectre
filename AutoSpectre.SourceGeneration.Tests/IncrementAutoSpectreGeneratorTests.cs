@@ -59,6 +59,7 @@ namespace Test
         public TestForm Get(TestForm destination = null)
         {
             destination ??= new Test.TestForm();
+            // Prompt for values for destination.MultiSelect
             {
                 List<int> items = new List<int>();
                 bool continuePrompting = true;
@@ -73,6 +74,7 @@ namespace Test
                 destination.MultiSelect = result;
             }
 
+            // Prompt for values for destination.Items
             {
                 List<string> items = new List<string>();
                 bool continuePrompting = true;
@@ -87,6 +89,7 @@ namespace Test
                 destination.Items = result;
             }
 
+            // Prompt for values for destination.BooleanValues
             {
                 List<bool> items = new List<bool>();
                 bool continuePrompting = true;
