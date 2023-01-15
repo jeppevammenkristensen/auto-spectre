@@ -34,7 +34,6 @@ namespace Test
         public List<string> Items { get; } = new List<string>() { "Alpha", "Bravo", "Charlie" };
 
         [Ask(AskType = AskType.Normal)] public int[] IntItems { get; set; } = Array.Empty<int>();
-
     }
 
     [AutoSpectreForm]
