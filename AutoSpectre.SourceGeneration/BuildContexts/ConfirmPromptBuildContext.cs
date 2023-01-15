@@ -17,6 +17,11 @@ public class ConfirmPromptBuildContext : PromptBuildContext
 
     public override string GenerateOutput(string destination)
     {
-        return $"""{destination} = AnsiConsole.Confirm("{Title}")""";
+        return $"""{destination} = {PromptPart()};""";
+    }
+
+    public override string PromptPart()
+    {
+        return $"""AnsiConsole.Confirm("{Title}")""";
     }
 }

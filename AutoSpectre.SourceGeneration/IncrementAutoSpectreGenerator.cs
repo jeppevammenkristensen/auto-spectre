@@ -43,7 +43,8 @@ public class IncrementAutoSpectreGenerator : IIncrementalGenerator
                         })
                         .Where(x => x.Attribute != null)
                         .Select(x => new PropertyAndAskData(x.Property, x.Attribute!)).ToList();
-                        
+
+                    // Check if there are any candidates
                     if (candidates.Any())
                     {
                         var types = new Types(syntaxContext.SemanticModel.Compilation);
@@ -53,15 +54,11 @@ public class IncrementAutoSpectreGenerator : IIncrementalGenerator
                         foreach (var (property, attributeData) in candidates)
                         {
                             var (isNullable, type) = property.Type.GetTypeWithNullableInformation();
-
                             var (isEnumerable, underlyingType) = property.Type.IsEnumerableOfTypeButNotString();
 
-                            var typeRepresentation = property.DeclaringSyntaxReferences.Select(x => x.GetSyntax()).OfType<PropertyDeclarationSyntax>()
-                                .FirstOrDefault()
-                                ?.Type.ToString();
-
-                         
-                                if (attributeData.AskType == AskTypeCopy.Normal)
+                            if (attributeData.AskType == AskTypeCopy.Normal)
+                            {
+                                if (!isEnumerable)
                                 {
                                     if (type.SpecialType == SpecialType.System_Boolean)
                                     {
@@ -74,51 +71,70 @@ public class IncrementAutoSpectreGenerator : IIncrementalGenerator
                                             new TextPromptBuildContext(attributeData.Title, type, isNullable)));
                                     }
                                 }
-
-                                if (attributeData.AskType == AskTypeCopy.Selection)
+                                else
                                 {
-                                    if (attributeData.SelectionSource != null)
+                                    if (underlyingType.SpecialType == SpecialType.System_Boolean)
                                     {
-                                        var match = namedType
-                                            .GetMembers()
-                                            .Where(x => x.Name == attributeData.SelectionSource)
-                                            .FirstOrDefault(x => x is IMethodSymbol
-                                            {
-                                                Parameters.Length: 0
-                                            } or IPropertySymbol {GetMethod: { }});
-
-                                        if (match is { })
-                                        {
-                                            SelectionPromptSelectionType selectionType = match switch
-                                            {
-                                                IMethodSymbol => SelectionPromptSelectionType.Method,
-                                                IPropertySymbol => SelectionPromptSelectionType.Property,
-                                                _ => throw new NotSupportedException(),
-                                            };
-                                            if (!isEnumerable)
-                                            {
-                                                propertyContexts.Add(new PropertyContext(property.Name, property,
-                                                    new SelectionPromptBuildContext(attributeData.Title, type, isNullable,
-                                                        attributeData.SelectionSource, selectionType)));
-                                            }
-                                            else
-                                            {
-                                                propertyContexts.Add(new PropertyContext(property.Name, property,new MultiSelectionBuildContext(title: attributeData.Title, typeSymbol: type, underlyingSymbol:underlyingType, nullable: isNullable, selectionTypeName: attributeData.SelectionSource, selectionType: selectionType, types)));
-                                            }
-                                            
-                                        }
-                                        else
-                                        {
-                                            productionContext.ReportDiagnostic(Diagnostic.Create(
-                                                new DiagnosticDescriptor("AutoSpectre_JJK0005",
-                                                    "Not a valid selection source",
-                                                    $"The selectionsource {attributeData.SelectionSource} was not found on type",
-                                                    "General", DiagnosticSeverity.Warning, true),
-                                                property.Locations.FirstOrDefault()));
-                                        }
+                                        propertyContexts.Add(new PropertyContext(property.Name, property,
+                                            new MultiAddBuildContext(type,underlyingType,types,new ConfirmPromptBuildContext(attributeData.Title, underlyingType, isNullable))));
+                                    }
+                                    else
+                                    {
+                                        propertyContexts.Add(new PropertyContext(property.Name, property,
+                                            new MultiAddBuildContext(type,underlyingType,types,new TextPromptBuildContext(attributeData.Title, underlyingType, isNullable))));
                                     }
                                 }
 
+                                
+                            }
+
+                            if (attributeData.AskType == AskTypeCopy.Selection)
+                            {
+                                if (attributeData.SelectionSource is {})
+                                {
+                                    var match = namedType
+                                        .GetMembers()
+                                        .Where(x => x.Name == attributeData.SelectionSource)
+                                        .FirstOrDefault(x => x is IMethodSymbol
+                                        {
+                                            Parameters.Length: 0
+                                        } or IPropertySymbol {GetMethod: { }});
+
+                                    if (match is { })
+                                    {
+                                        SelectionPromptSelectionType selectionType = match switch
+                                        {
+                                            IMethodSymbol => SelectionPromptSelectionType.Method,
+                                            IPropertySymbol => SelectionPromptSelectionType.Property,
+                                            _ => throw new NotSupportedException(),
+                                        };
+                                        if (!isEnumerable)
+                                        {
+                                            propertyContexts.Add(new PropertyContext(property.Name, property,
+                                                new SelectionPromptBuildContext(attributeData.Title, type, isNullable,
+                                                    attributeData.SelectionSource, selectionType)));
+                                        }
+                                        else
+                                        {
+                                            propertyContexts.Add(new PropertyContext(property.Name, property,
+                                                new MultiSelectionBuildContext(title: attributeData.Title,
+                                                    typeSymbol: type, underlyingSymbol: underlyingType,
+                                                    nullable: isNullable,
+                                                    selectionTypeName: attributeData.SelectionSource,
+                                                    selectionType: selectionType, types)));
+                                        }
+                                    }
+                                    else
+                                    {
+                                        productionContext.ReportDiagnostic(Diagnostic.Create(
+                                            new DiagnosticDescriptor("AutoSpectre_JJK0005",
+                                                "Not a valid selection source",
+                                                $"The selectionsource {attributeData.SelectionSource} was not found on type",
+                                                "General", DiagnosticSeverity.Warning, true),
+                                            property.Locations.FirstOrDefault()));
+                                    }
+                                }
+                            }
                         }
 
 

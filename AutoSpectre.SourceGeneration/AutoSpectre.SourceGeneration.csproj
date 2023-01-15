@@ -20,7 +20,7 @@
     <PackageProjectUrl>https://github.com/jeppevammenkristensen/auto-spectre</PackageProjectUrl>
     <RepositoryUrl>https://github.com/jeppevammenkristensen/auto-spectre</RepositoryUrl>
     <PackageTags>C#;Source Generator</PackageTags>
-    <PackageReleaseNotes>Fixed minor issue so that no set operation is generated if it's not possible to create a valid setter</PackageReleaseNotes> 
+    <PackageReleaseNotes>Added support multiselect on simple types</PackageReleaseNotes> 
   </PropertyGroup>
   
   <ItemGroup>

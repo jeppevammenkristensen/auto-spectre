@@ -1,71 +1,68 @@
 ﻿using System;
-using System.Linq;
 using System.Text;
-using AutoSpectre.SourceGeneration.Extensions;
 using Microsoft.CodeAnalysis;
+using System.Linq;
+using AutoSpectre.SourceGeneration.Extensions;
+using static AutoSpectre.SourceGeneration.BuildContexts.MultiSelectionBuildContext;
 
 namespace AutoSpectre.SourceGeneration.BuildContexts;
 
-public class MultiSelectionBuildContext : PromptBuildContext
+public class MultiAddBuildContext : PromptBuildContext
 {
+    private readonly ITypeSymbol _type;
+    private readonly ITypeSymbol _underlyingType;
     private readonly Types _types;
+    private readonly PromptBuildContext _buildContext;
 
-    public delegate void ConverterDelegate(StringBuilder builder, string prompt);
-
-    public MultiSelectionBuildContext(string title, ITypeSymbol typeSymbol, ITypeSymbol underlyingSymbol, bool nullable, string selectionTypeName, SelectionPromptSelectionType selectionType, Types types)
+    public MultiAddBuildContext(ITypeSymbol type, ITypeSymbol underlyingType,Types types, PromptBuildContext buildContext)
     {
+        _type = type;
+        _underlyingType = underlyingType;
         _types = types;
-        Title = title;
-        TypeSymbol = typeSymbol;
-        UnderlyingSymbol = underlyingSymbol;
-        Nullable = nullable;
-        SelectionTypeName = selectionTypeName;
-        SelectionType = selectionType;
+        _buildContext = buildContext;
     }
-
-    public string Title { get; }
-    public ITypeSymbol TypeSymbol { get; }
-    public ITypeSymbol UnderlyingSymbol { get; }
-    public bool Nullable { get; }
-
-    public string SelectionTypeName { get; set; }
-    public SelectionPromptSelectionType SelectionType { get; }
-    
-
 
     public override string GenerateOutput(string destination)
     {
-        StringBuilder builder = new ();
-        builder.Append($"{destination} = ");
-        builder.Append(PromptPart());
-
+        StringBuilder builder = new();
+        builder.AppendLine("{");
+        builder.AppendLine(PromptPart());
+        builder.AppendLine($"{destination} = result;");
+        builder.AppendLine("}");
         return builder.ToString();
     }
 
     public override string PromptPart()
     {
-        var type = UnderlyingSymbol.GetTypePresentation();
+        var type = _underlyingType.GetTypePresentation();
+        StringBuilder builder = new();
 
-        var conversion = NeedsConversion(TypeSymbol);
+        builder.AppendLine($$"""
+            List<{{type}}> items = new List<{{type}}>();
+                bool continuePrompting = true;
 
-        var prompt = $"""
-AnsiConsole.Prompt(
-new MultiSelectionPrompt<{type}>()
-.Title("{Title}")
-{GenerateRequired()}
-.PageSize(10) 
-.AddChoices(destination.{GetSelector()}.ToArray()))
-""";
-        var builder = new StringBuilder(150);
+                do 
+                {
+                    var item = {{_buildContext.PromptPart()}};
+                    items.Add(item);
 
-        if (conversion is { })
-            conversion(builder, prompt);
+                    continuePrompting = AnsiConsole.Confirm("Add more items?");
+                    
+                } while (continuePrompting);      
+            """);
+
+        builder.Append($"{_type.GetTypePresentation()} result =");
+
+        if (NeedsConversion(_type) is { } converter)
+        {
+            converter(builder, "items");
+        }
         else
         {
-            builder.Append(prompt);
+            builder.Append("items");
         }
 
-        builder.Append(";");
+        builder.AppendLine(";");
         return builder.ToString();
     }
 
@@ -122,17 +119,4 @@ new MultiSelectionPrompt<{type}>()
     {
         return (stringBuilder, prompt) => stringBuilder.Append($"""new {type}({prompt})""");
     }
-
-
-    private string GenerateRequired()
-    {
-        return Nullable ? ".NotRequired()" : string.Empty;
-    }
-
-    private string GetSelector() => SelectionType switch
-    {
-        SelectionPromptSelectionType.Method => $"{SelectionTypeName}()",
-        SelectionPromptSelectionType.Property => SelectionTypeName,
-        _ => throw new InvalidOperationException("Unsupported SelectionType")
-    };
 }

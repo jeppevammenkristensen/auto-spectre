@@ -23,15 +23,21 @@ public class SelectionPromptBuildContext : PromptBuildContext
 
     public override string GenerateOutput(string destination)
     {
+        return $"{destination} = {PromptPart()};";
+
+    }
+
+    public override string PromptPart()
+    {
         var type = TypeSymbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax().ToString() ?? TypeSymbol.ToDisplayString();
 
         return $"""
-{destination} = AnsiConsole.Prompt(
-new SelectionPrompt<{type}>()
-.Title("{Title}")
-.PageSize(10) 
-.AddChoices(destination.{GetSelector()}.ToArray()))
-""";
+        AnsiConsole.Prompt(
+        new SelectionPrompt<{type}>()
+            .Title("{Title}")
+            .PageSize(10) 
+            .AddChoices(destination.{GetSelector()}.ToArray()))
+        """;
     }
 
     private string GetSelector() => SelectionType switch

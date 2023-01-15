@@ -11,13 +11,8 @@ namespace Test
     {
         static void Main(string[] args)
         {
-            ISomeClassSpectreFactory factory = new SomeClassSpectreFactory();
-            var item = factory.Get();
-            // or 
-            SomeClass someclass = new();
-            factory.Get(someclass);
-
-            int i = 0;
+            IItems2SpectreFactory fact = new Items2SpectreFactory();
+            fact.Get();
         }
     }
 
@@ -28,7 +23,13 @@ namespace Test
         public string Name { get; set; }
     }
 
-
+    [AutoSpectreForm]
+    public class Items2
+    {
+        [Ask]
+        public HashSet<string> Items { get; set; }
+    }
+    
 
     [AutoSpectreForm]
     public class CollectionSample

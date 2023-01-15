@@ -33,7 +33,7 @@ public class TextPromptBuildContextTests
             generateOutput.Should().Be("""
 dest = AnsiConsole.Prompt(
 new TextPrompt<string>("Custom title")
-)
+);
 """);
             
     }
@@ -54,7 +54,7 @@ new TextPrompt<string>("Custom title")
 dest = AnsiConsole.Prompt(
 new TextPrompt<string>("Custom title")
 .AllowEmpty()
-)
+);
 """);
     }
 

@@ -18,10 +18,11 @@ namespace AutoSpectre.SourceGeneration.Tests
         }
 
         [Fact]
-        public void ValidForm_WithNullArraySelect_GeneratesExpected()
+        public void ValidForm_WithArrayNormal_GeneratesExpected()
         {
             GetGeneratedOutput("""
                 using AutoSpectre;
+                using System.Collections.Generic;
                 
                 
                 namespace Test  
@@ -29,15 +30,20 @@ namespace AutoSpectre.SourceGeneration.Tests
                     [AutoSpectreForm]
                     public class TestForm
                     {
-                        [Ask(AskType = AskType.Selection, SelectionSource="MultiSelectSource")]
+                        [Ask()]
                         public int[]? MultiSelect {get;set;}
 
-                        public int[] MultiSelectSource => new [] {1,2,3,4,5}
+                        [Ask()]
+                        public List<string> Items {get;set;}
+
+                        [Ask()]
+                        public HashSet<bool> BooleanValues {get;set;}
                     }                   
                 }                    
                 """).Should().Be("""
 using Spectre.Console;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Collections.Immutable;
 
@@ -53,14 +59,54 @@ namespace Test
         public TestForm Get(TestForm destination = null)
         {
             destination ??= new Test.TestForm();
-            destination.MultiSelect = AnsiConsole.Prompt(new MultiSelectionPrompt<int>().Title("Enter [green]MultiSelect[/]").NotRequired().PageSize(10).AddChoices(destination.MultiSelectSource.ToArray())).ToArray();
+            {
+                List<int> items = new List<int>();
+                bool continuePrompting = true;
+                do
+                {
+                    var item = AnsiConsole.Prompt(new TextPrompt<int>("Enter [green]MultiSelect[/]").AllowEmpty());
+                    items.Add(item);
+                    continuePrompting = AnsiConsole.Confirm("Add more items?");
+                }
+                while (continuePrompting);
+                int[]? result = items.ToArray();
+                destination.MultiSelect = result;
+            }
+
+            {
+                List<string> items = new List<string>();
+                bool continuePrompting = true;
+                do
+                {
+                    var item = AnsiConsole.Prompt(new TextPrompt<string>("Enter [green]Items[/]"));
+                    items.Add(item);
+                    continuePrompting = AnsiConsole.Confirm("Add more items?");
+                }
+                while (continuePrompting);
+                System.Collections.Generic.List<string> result = items;
+                destination.Items = result;
+            }
+
+            {
+                List<bool> items = new List<bool>();
+                bool continuePrompting = true;
+                do
+                {
+                    var item = AnsiConsole.Confirm("Enter [green]BooleanValues[/]");
+                    items.Add(item);
+                    continuePrompting = AnsiConsole.Confirm("Add more items?");
+                }
+                while (continuePrompting);
+                System.Collections.Generic.HashSet<bool> result = new System.Collections.Generic.HashSet<bool>(items);
+                destination.BooleanValues = result;
+            }
+
             return destination;
         }
     }
 }
 """);
         }
-
 
 
         [Fact]
@@ -107,6 +153,7 @@ namespace Test
                 """).Should().Be("""
 using Spectre.Console;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Collections.Immutable;
 

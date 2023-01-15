@@ -28,6 +28,7 @@ internal class NewCodeBuilder
         var result = $$"""
 using Spectre.Console;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Collections.Immutable;
 
@@ -59,7 +60,7 @@ namespace {{ Type.ContainingNamespace}}
         foreach (var propertyAndAttribute in this.PropertyContexts)
         {
             builder.AppendLine(
-                $"{propertyAndAttribute.BuildContext.GenerateOutput($"destination.{propertyAndAttribute.PropertyName}")};");
+                $"{propertyAndAttribute.BuildContext.GenerateOutput($"destination.{propertyAndAttribute.PropertyName}")}");
         }
 
         return builder.ToString();

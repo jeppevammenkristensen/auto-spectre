@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Spectre.Console;
 
 namespace AutoSpectre.SourceGeneration.BuildContexts;
 
@@ -19,10 +20,14 @@ public class TextPromptBuildContext : PromptBuildContext
 
     public override string GenerateOutput(string destination)
     {
-        var syntax = TypeSymbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax().ToString() ?? TypeSymbol.ToDisplayString();
+        return $"{destination} = {PromptPart()};";
+    }
 
-        StringBuilder builder = new ();
-        builder.AppendLine($"{destination} = AnsiConsole.Prompt(");
+    public override string PromptPart()
+    {
+        var syntax = TypeSymbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax().ToString() ?? TypeSymbol.ToDisplayString();
+        StringBuilder builder = new();
+        builder.AppendLine("AnsiConsole.Prompt(");
         builder.AppendLine($"""new TextPrompt<{syntax}>("{Title}")""");
         if (Nullable)
         {
@@ -30,7 +35,6 @@ public class TextPromptBuildContext : PromptBuildContext
         }
 
         builder.Append(")");
-
         return builder.ToString();
     }
 }

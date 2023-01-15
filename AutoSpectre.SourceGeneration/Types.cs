@@ -3,6 +3,9 @@ using Microsoft.CodeAnalysis;
 
 namespace AutoSpectre.SourceGeneration;
 
+/// <summary>
+/// Wrapper class that supports lazily retrieving types
+/// </summary>
 public class Types
 {
     private readonly Compilation _compilation;
