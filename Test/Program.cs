@@ -11,14 +11,18 @@ namespace Test
     {
         static void Main(string[] args)
         {
-            IItems2SpectreFactory fact = new Items2SpectreFactory();
-            fact.Get();
+            var someclass = new SomeclassSpectreFactory();
+            var someclass1 = someclass.Get();
+            int i = 0;
         }
     }
 
     [AutoSpectreForm]
     public class Someclass
     {
+        [Ask]
+        public Items2 Other { get; set; }
+
         [Ask(Title = "Enter first name")]
         public string? FirstName { get; set; }
 
