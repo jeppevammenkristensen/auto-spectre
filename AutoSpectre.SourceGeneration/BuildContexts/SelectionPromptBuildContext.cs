@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using AutoSpectre.SourceGeneration.Extensions;
 using Microsoft.CodeAnalysis;
 
 namespace AutoSpectre.SourceGeneration.BuildContexts;
@@ -29,7 +30,7 @@ public class SelectionPromptBuildContext : PromptBuildContext
 
     public override string PromptPart()
     {
-        var type = TypeSymbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax().ToString() ?? TypeSymbol.ToDisplayString();
+        var type = TypeSymbol.GetTypePresentation();
 
         return $"""
         AnsiConsole.Prompt(

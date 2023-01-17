@@ -6,15 +6,47 @@ using Microsoft.CodeAnalysis;
 
 namespace AutoSpectre.SourceGeneration.BuildContexts;
 
+public class EnumPromptBuildContext : PromptBuildContext
+{
+    public string Title { get; }
+    public ITypeSymbol Type { get; }
+    public bool IsNullable { get; }
+
+    public EnumPromptBuildContext(string title, ITypeSymbol type, bool isNullable)
+    {
+        Title = title;
+        Type = type;
+        IsNullable = isNullable;
+    }
+
+    public override string GenerateOutput(string destination)
+    {
+        return $"{destination} = {PromptPart()}";
+    }
+
+    public override string PromptPart()
+    {
+        var type = Type.GetTypePresentation();
+
+        return $"""
+        AnsiConsole.Prompt(
+        new SelectionPrompt<{type}>()
+            .Title("{Title}")
+            .PageSize(10) 
+            .AddChoices(Enum.GetValues<{type}>()))
+        """;
+    }
+}
+
 public class MultiSelectionBuildContext : PromptBuildContext
 {
-    private readonly Types _types;
+    private readonly LazyTypes _lazyTypes;
 
     public delegate void ConverterDelegate(StringBuilder builder, string prompt);
 
-    public MultiSelectionBuildContext(string title, ITypeSymbol typeSymbol, ITypeSymbol underlyingSymbol, bool nullable, string selectionTypeName, SelectionPromptSelectionType selectionType, Types types)
+    public MultiSelectionBuildContext(string title, ITypeSymbol typeSymbol, ITypeSymbol underlyingSymbol, bool nullable, string selectionTypeName, SelectionPromptSelectionType selectionType, LazyTypes lazyTypes)
     {
-        _types = types;
+        _lazyTypes = lazyTypes;
         Title = title;
         TypeSymbol = typeSymbol;
         UnderlyingSymbol = underlyingSymbol;
@@ -83,7 +115,7 @@ new MultiSelectionPrompt<{type}>()
                 SpecialType.System_Collections_Generic_IReadOnlyCollection_T))
             return null;
         // Check if the symbol is a List of T
-        if (typeSymbol.OriginalDefinition.Equals(_types.ListGeneric, SymbolEqualityComparer.Default))
+        if (typeSymbol.OriginalDefinition.Equals(_lazyTypes.ListGeneric, SymbolEqualityComparer.Default))
             return null;
 
         // May be a$$ biter. If the class is in the immutable namespace, we assume we can To{immutablenameofclass}
@@ -96,10 +128,10 @@ new MultiSelectionPrompt<{type}>()
 
         // Check this is inherited from List
         if (typeSymbol.AllBaseTypes()
-            .Any(x => x.OriginalDefinition.Equals(_types.ListGeneric, SymbolEqualityComparer.Default)))
+            .Any(x => x.OriginalDefinition.Equals(_lazyTypes.ListGeneric, SymbolEqualityComparer.Default)))
             return null;
 
-        if (typeSymbol.IsIn(new [] { _types.Collection, _types.HashSet}, (x,y) => x is {} && y.IsOriginalOfType(x)))
+        if (typeSymbol.IsIn(new [] { _lazyTypes.Collection, _lazyTypes.HashSet}, (x,y) => x is {} && y.IsOriginalOfType(x)))
             return Wrappable(typeSymbol);
 
         return null;

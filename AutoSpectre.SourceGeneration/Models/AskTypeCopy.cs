@@ -1,6 +1,6 @@
 ﻿namespace AutoSpectre.SourceGeneration.Models;
 
-internal enum AskTypeCopy
+public enum AskTypeCopy
 {
     /// <summary>
     /// Default. 
