@@ -161,7 +161,7 @@ namespace Test
             IOtherClassSpectreFactory OtherClassSpectreFactory = new OtherClassSpectreFactory();
             destination ??= new Test.TestForm();
             {
-                AnsiConsole.Markup("Enter [green]Other[/]");
+                AnsiConsole.MarkupLine("Enter [green]Other[/]");
                 var item = OtherClassSpectreFactory.Get();
                 destination.Other = item;
             }

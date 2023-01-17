@@ -43,7 +43,7 @@ public class ReuseExistingAutoSpectreFactoryPromptBuildContext : PromptBuildCont
     public override string PromptPart()
     {
         return $"""
-            AnsiConsole.Markup("{Title}");
+            AnsiConsole.MarkupLine("{Title}");
             var item = {VariableName}.Get();
             """;
     }
