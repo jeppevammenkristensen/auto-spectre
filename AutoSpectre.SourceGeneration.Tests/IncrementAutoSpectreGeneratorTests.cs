@@ -113,6 +113,67 @@ namespace Test
 
 
         [Fact]
+        public void ValidForm_ReferencesOther_GeneratesExpected()
+        {
+            GetGeneratedOutput("""
+                using AutoSpectre;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+
+
+                namespace Test  
+                {
+                    [AutoSpectreForm]
+                    public class TestForm 
+                    {
+                        [Ask]
+                        public OtherTest.OtherClass Other {get;set;}
+                    }                   
+                }
+
+                namespace OtherTest 
+                {
+                    [AutoSpectreForm]
+                    public class OtherClass
+                    {
+                        
+                    }
+                }
+                """).Should().Be("""
+using Spectre.Console;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Collections.Immutable;
+using OtherTest;
+
+namespace Test
+{
+    public interface ITestFormSpectreFactory
+    {
+        TestForm Get(TestForm destination = null);
+    }
+
+    public class TestFormSpectreFactory : ITestFormSpectreFactory
+    {
+        public TestForm Get(TestForm destination = null)
+        {
+            IOtherClassSpectreFactory OtherClassSpectreFactory = new OtherClassSpectreFactory();
+            destination ??= new Test.TestForm();
+            {
+                AnsiConsole.Markup("Enter [green]Other[/]");
+                var item = OtherClassSpectreFactory.Get();
+                destination.Other = item;
+            }
+
+            return destination;
+        }
+    }
+}
+""");
+        }
+
+        [Fact]
         public void Assert_Correct_Outputted()
         {
             GetGeneratedOutput("""
@@ -185,6 +246,7 @@ namespace Test
 }
 """);
         }
+
 
         private string GetGeneratedOutput(string source)
         {

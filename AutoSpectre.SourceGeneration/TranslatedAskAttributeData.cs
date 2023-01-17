@@ -2,7 +2,7 @@
 
 namespace AutoSpectre.SourceGeneration;
 
-internal class TranslatedAskAttributeData
+public class TranslatedAskAttributeData
 {
     public TranslatedAskAttributeData(AskTypeCopy askType, string? selectionSource, string title)
     {

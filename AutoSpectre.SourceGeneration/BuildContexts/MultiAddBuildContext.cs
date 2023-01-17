@@ -11,14 +11,14 @@ public class MultiAddBuildContext : PromptBuildContext
 {
     private readonly ITypeSymbol _type;
     private readonly ITypeSymbol _underlyingType;
-    private readonly Types _types;
+    private readonly LazyTypes _lazyTypes;
     private readonly PromptBuildContext _buildContext;
 
-    public MultiAddBuildContext(ITypeSymbol type, ITypeSymbol underlyingType,Types types, PromptBuildContext buildContext)
+    public MultiAddBuildContext(ITypeSymbol type, ITypeSymbol underlyingType,LazyTypes lazyTypes, PromptBuildContext buildContext)
     {
         _type = type;
         _underlyingType = underlyingType;
-        _types = types;
+        _lazyTypes = lazyTypes;
         _buildContext = buildContext;
     }
 
@@ -81,7 +81,7 @@ public class MultiAddBuildContext : PromptBuildContext
                 SpecialType.System_Collections_Generic_IReadOnlyCollection_T))
             return null;
         // Check if the symbol is a List of T
-        if (typeSymbol.OriginalDefinition.Equals(_types.ListGeneric, SymbolEqualityComparer.Default))
+        if (typeSymbol.OriginalDefinition.Equals(_lazyTypes.ListGeneric, SymbolEqualityComparer.Default))
             return null;
 
         // May be a$$ biter. If the class is in the immutable namespace, we assume we can To{immutablenameofclass}
@@ -94,10 +94,10 @@ public class MultiAddBuildContext : PromptBuildContext
 
         // Check this is inherited from List
         if (typeSymbol.AllBaseTypes()
-            .Any(x => x.OriginalDefinition.Equals(_types.ListGeneric, SymbolEqualityComparer.Default)))
+            .Any(x => x.OriginalDefinition.Equals(_lazyTypes.ListGeneric, SymbolEqualityComparer.Default)))
             return null;
 
-        if (typeSymbol.IsIn(new [] { _types.Collection, _types.HashSet}, (x,y) => x is {} && y.IsOriginalOfType(x)))
+        if (typeSymbol.IsIn(new [] { _lazyTypes.Collection, _lazyTypes.HashSet}, (x,y) => x is {} && y.IsOriginalOfType(x)))
             return Wrappable(typeSymbol);
 
         return null;

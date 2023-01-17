@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis;
 
 namespace AutoSpectre.SourceGeneration;
 
-internal class PropertyAndAskData
+public class PropertyWithAskAttributeData
 {
     public void Deconstruct(out IPropertySymbol property, out TranslatedAskAttributeData attributeData)
     {
@@ -15,7 +15,7 @@ internal class PropertyAndAskData
     public IPropertySymbol Property { get; }
     public TranslatedAskAttributeData TranslatedAskAttribute { get; }
 
-    public PropertyAndAskData(IPropertySymbol property, AttributeData attributeData)
+    public PropertyWithAskAttributeData(IPropertySymbol property, AttributeData attributeData)
     {
         Property = property;
            

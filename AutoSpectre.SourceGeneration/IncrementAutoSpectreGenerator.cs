@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using AutoSpectre.SourceGeneration.BuildContexts;
 using AutoSpectre.SourceGeneration.Extensions;
 using AutoSpectre.SourceGeneration.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Spectre.Console.Rendering;
 
 namespace AutoSpectre.SourceGeneration;
 
@@ -22,9 +21,9 @@ public class IncrementAutoSpectreGenerator : IIncrementalGenerator
         {
             try
             {
-                if (syntaxContext.TargetSymbol is INamedTypeSymbol namedType)
+                if (syntaxContext.TargetSymbol is INamedTypeSymbol targetNamedType)
                 {
-                    var candidates = namedType
+                    var candidates = targetNamedType
                         .GetPropertiesWithSetter()
                         .Select(x =>
                         {
@@ -42,119 +41,30 @@ public class IncrementAutoSpectreGenerator : IIncrementalGenerator
                             };
                         })
                         .Where(x => x.Attribute != null)
-                        .Select(x => new PropertyAndAskData(x.Property, x.Attribute!)).ToList();
+                        .Select(x => new PropertyWithAskAttributeData(x.Property, x.Attribute!)).ToList();
 
                     // Check if there are any candidates
                     if (candidates.Any())
                     {
-                        var types = new Types(syntaxContext.SemanticModel.Compilation);
+                        var propertyContexts = PropertyContextBuilderOperation.GetPropertyContexts(syntaxContext, candidates, targetNamedType, productionContext);
 
-                        List<PropertyContext> propertyContexts = new();
-
-                        foreach (var (property, attributeData) in candidates)
-                        {
-                            var (isNullable, type) = property.Type.GetTypeWithNullableInformation();
-                            var (isEnumerable, underlyingType) = property.Type.IsEnumerableOfTypeButNotString();
-
-                            if (attributeData.AskType == AskTypeCopy.Normal)
-                            {
-                                if (!isEnumerable)
-                                {
-                                    if (type.SpecialType == SpecialType.System_Boolean)
-                                    {
-                                        propertyContexts.Add(new PropertyContext(property.Name, property,
-                                            new ConfirmPromptBuildContext(attributeData.Title, type, isNullable)));
-                                    }
-                                    else
-                                    {
-                                        propertyContexts.Add(new PropertyContext(property.Name, property,
-                                            new TextPromptBuildContext(attributeData.Title, type, isNullable)));
-                                    }
-                                }
-                                else
-                                {
-                                    if (underlyingType.SpecialType == SpecialType.System_Boolean)
-                                    {
-                                        propertyContexts.Add(new PropertyContext(property.Name, property,
-                                            new MultiAddBuildContext(type,underlyingType,types,new ConfirmPromptBuildContext(attributeData.Title, underlyingType, isNullable))));
-                                    }
-                                    else
-                                    {
-                                        propertyContexts.Add(new PropertyContext(property.Name, property,
-                                            new MultiAddBuildContext(type,underlyingType,types,new TextPromptBuildContext(attributeData.Title, underlyingType, isNullable))));
-                                    }
-                                }
-
-                                
-                            }
-
-                            if (attributeData.AskType == AskTypeCopy.Selection)
-                            {
-                                if (attributeData.SelectionSource is {})
-                                {
-                                    var match = namedType
-                                        .GetMembers()
-                                        .Where(x => x.Name == attributeData.SelectionSource)
-                                        .FirstOrDefault(x => x is IMethodSymbol
-                                        {
-                                            Parameters.Length: 0
-                                        } or IPropertySymbol {GetMethod: { }});
-
-                                    if (match is { })
-                                    {
-                                        SelectionPromptSelectionType selectionType = match switch
-                                        {
-                                            IMethodSymbol => SelectionPromptSelectionType.Method,
-                                            IPropertySymbol => SelectionPromptSelectionType.Property,
-                                            _ => throw new NotSupportedException(),
-                                        };
-                                        if (!isEnumerable)
-                                        {
-                                            propertyContexts.Add(new PropertyContext(property.Name, property,
-                                                new SelectionPromptBuildContext(attributeData.Title, type, isNullable,
-                                                    attributeData.SelectionSource, selectionType)));
-                                        }
-                                        else
-                                        {
-                                            propertyContexts.Add(new PropertyContext(property.Name, property,
-                                                new MultiSelectionBuildContext(title: attributeData.Title,
-                                                    typeSymbol: type, underlyingSymbol: underlyingType,
-                                                    nullable: isNullable,
-                                                    selectionTypeName: attributeData.SelectionSource,
-                                                    selectionType: selectionType, types)));
-                                        }
-                                    }
-                                    else
-                                    {
-                                        productionContext.ReportDiagnostic(Diagnostic.Create(
-                                            new DiagnosticDescriptor("AutoSpectre_JJK0005",
-                                                "Not a valid selection source",
-                                                $"The selectionsource {attributeData.SelectionSource} was not found on type",
-                                                "General", DiagnosticSeverity.Warning, true),
-                                            property.Locations.FirstOrDefault()));
-                                    }
-                                }
-                            }
-                        }
-
-
-                        var builder = new NewCodeBuilder(namedType, propertyContexts);
+                        var builder = new NewCodeBuilder(targetNamedType, propertyContexts);
                         var code = builder.Code();
                         if (string.IsNullOrWhiteSpace(code))
                         {
                             productionContext.ReportDiagnostic(Diagnostic.Create(
-                                new DiagnosticDescriptor("AutoSpectre_JJK0003", "Code was empty",
+                                new("AutoSpectre_JJK0003", "Code was empty",
                                     "No code was generated", "General", DiagnosticSeverity.Warning, true),
                                 syntaxContext.TargetSymbol.Locations.FirstOrDefault()));
                         }
 
-                        productionContext.AddSource($"{namedType}AutoSpectreFactory.Generated.cs", code);
+                        productionContext.AddSource($"{targetNamedType}AutoSpectreFactory.Generated.cs", code);
                     }
                 }
                 else
                 {
                     productionContext.ReportDiagnostic(Diagnostic.Create(
-                        new DiagnosticDescriptor("AutoSpectre_JJK0001", "No properties are marked with attributes",
+                        new("AutoSpectre_JJK0001", "No properties are marked with attributes",
                             "No properties were marked with attributes", "General", DiagnosticSeverity.Warning,
                             true),
                         syntaxContext.TargetSymbol.Locations.FirstOrDefault()));
@@ -163,7 +73,7 @@ public class IncrementAutoSpectreGenerator : IIncrementalGenerator
             catch (Exception ex)
             {
                 productionContext.ReportDiagnostic(Diagnostic.Create(
-                    new DiagnosticDescriptor("AutoSpectre_JJK0002", "Error on processing", ex.Message, "General",
+                    new("AutoSpectre_JJK0002", "Error on processing", ex.Message, "General",
                         DiagnosticSeverity.Error, true, ex.ToString()),
                     syntaxContext.TargetSymbol.Locations.FirstOrDefault()));
             }
