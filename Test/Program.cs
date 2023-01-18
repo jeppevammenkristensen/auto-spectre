@@ -17,11 +17,26 @@ namespace Test
         }
     }
 
+    public enum Someenum
+    {
+        Red,
+        Green,
+        Refactor
+    }
+
+    [AutoSpectreForm]
+    public interface ITesty
+    {
+        [Ask]
+        public string ProofOfConcept { get; set; }
+
+    }
+
     [AutoSpectreForm]
     public class Someclass
     {
-        [Ask]
-        public Items2 Other { get; set; }
+        //[Ask(Title = "Choose your [red]Weapon[/]")]
+        //public Someenum Other { get; set; }
 
         [Ask(Title = "Enter first name")]
         public string? FirstName { get; set; }

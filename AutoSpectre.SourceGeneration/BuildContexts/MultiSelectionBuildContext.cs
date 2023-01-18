@@ -6,38 +6,6 @@ using Microsoft.CodeAnalysis;
 
 namespace AutoSpectre.SourceGeneration.BuildContexts;
 
-public class EnumPromptBuildContext : PromptBuildContext
-{
-    public string Title { get; }
-    public ITypeSymbol Type { get; }
-    public bool IsNullable { get; }
-
-    public EnumPromptBuildContext(string title, ITypeSymbol type, bool isNullable)
-    {
-        Title = title;
-        Type = type;
-        IsNullable = isNullable;
-    }
-
-    public override string GenerateOutput(string destination)
-    {
-        return $"{destination} = {PromptPart()}";
-    }
-
-    public override string PromptPart()
-    {
-        var type = Type.GetTypePresentation();
-
-        return $"""
-        AnsiConsole.Prompt(
-        new SelectionPrompt<{type}>()
-            .Title("{Title}")
-            .PageSize(10) 
-            .AddChoices(Enum.GetValues<{type}>()))
-        """;
-    }
-}
-
 public class MultiSelectionBuildContext : PromptBuildContext
 {
     private readonly LazyTypes _lazyTypes;

@@ -129,7 +129,7 @@ internal class PropertyContextBuilderOperation
         {
             return new ConfirmPromptBuildContext(title, type, isNullable);
         }
-        else if (type.SpecialType == SpecialType.System_Enum)
+        else if (type.TypeKind == TypeKind.Enum)
         {
             return new EnumPromptBuildContext(title, type, isNullable);
         }
@@ -137,8 +137,6 @@ internal class PropertyContextBuilderOperation
         {
             if (type is INamedTypeSymbol namedType)
             {
-                
-
                 if (namedType.GetAttributes().FirstOrDefault(x =>
                         SymbolEqualityComparer.Default.Equals(x.AttributeClass,Types.AutoSpectreForm)) is { })
                 {
@@ -158,7 +156,7 @@ internal class PropertyContextBuilderOperation
                 ProductionContext.ReportDiagnostic(Diagnostic.Create(
                     new("AutoSpectre_JJK0006", "Unsupported type",
                         $"Type {type} is not supported", "General", DiagnosticSeverity.Warning, true),
-                    type.Locations.FirstOrDefault()));
+                    property.Locations.FirstOrDefault()));
                 return null;
             }
         }
