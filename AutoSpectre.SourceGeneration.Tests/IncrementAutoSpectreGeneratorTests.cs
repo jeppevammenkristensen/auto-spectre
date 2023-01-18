@@ -247,6 +247,57 @@ namespace Test
 """);
         }
 
+        [Fact]
+        public void ValidForm_UseEnum_CorrectlyOutputted()
+        {
+            GetGeneratedOutput("""
+                using AutoSpectre;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+
+
+                namespace Test  
+                {
+                    public enum TestEnum
+                    {
+                        Red,
+                        Green,
+                        Refactor
+                    }
+
+                    [AutoSpectreForm]
+                    public class TestForm 
+                    {
+                        [Ask]
+                        public TestEnum Name {get;set;}                          
+                    }
+                }
+                """).Should().Be("""
+using Spectre.Console;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Collections.Immutable;
+
+namespace Test
+{
+    public interface ITestFormSpectreFactory
+    {
+        TestForm Get(TestForm destination = null);
+    }
+
+    public class TestFormSpectreFactory : ITestFormSpectreFactory
+    {
+        public TestForm Get(TestForm destination = null)
+        {
+            destination ??= new Test.TestForm();
+            destination.Name = AnsiConsole.Prompt(new SelectionPrompt<TestEnum>().Title("Enter [green]Name[/]").PageSize(10).AddChoices(Enum.GetValues<TestEnum>()));
+            return destination;
+        }
+    }
+}
+""");
+        }
 
         private string GetGeneratedOutput(string source)
         {
