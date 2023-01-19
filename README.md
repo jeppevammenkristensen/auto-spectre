@@ -98,7 +98,7 @@ destination.ArrayMultiSelect = AnsiConsole.Prompt(new MultiSelectionPrompt<strin
 
 With the prompt below
 
-![Alt text](doc/multi-select.png?raw=true)
+![Alt text](/doc/multi-select.png?raw=true)
 
 ### Strategy
 
