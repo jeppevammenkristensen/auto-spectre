@@ -128,6 +128,9 @@ namespace Test
                     {
                         [Ask]
                         public OtherTest.OtherClass Other {get;set;}
+
+                        [Ask]
+                        public List<OtherTest.OtherClass> ListOfOther {get;set;} = new ();
                     }                   
                 }
 
@@ -164,6 +167,25 @@ namespace Test
                 AnsiConsole.MarkupLine("Enter [green]Other[/]");
                 var item = OtherClassSpectreFactory.Get();
                 destination.Other = item;
+            }
+
+            // Prompt for values for destination.ListOfOther
+            {
+                List<OtherClass> items = new List<OtherClass>();
+                bool continuePrompting = true;
+                do
+                {
+                    {
+                        AnsiConsole.MarkupLine("Enter [green]ListOfOther[/]");
+                        var newItem = OtherClassSpectreFactory.Get();
+                        items.Add(newItem);
+                    }
+
+                    continuePrompting = AnsiConsole.Confirm("Add more items?");
+                }
+                while (continuePrompting);
+                System.Collections.Generic.List<OtherTest.OtherClass> result = items;
+                destination.ListOfOther = result;
             }
 
             return destination;

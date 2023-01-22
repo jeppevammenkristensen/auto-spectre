@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
+using System.Reflection.Metadata.Ecma335;
 using AutoSpectre;
 using Spectre.Console;
 
@@ -25,18 +26,29 @@ namespace Test
     }
 
     [AutoSpectreForm]
-    public interface ITesty
+    public class Name
     {
         [Ask]
-        public string ProofOfConcept { get; set; }
+        public string FirstName { get; set; }
+
+        [Ask]
+        public string LastName { get; set; }
 
     }
 
     [AutoSpectreForm]
     public class Someclass
     {
-        //[Ask(Title = "Choose your [red]Weapon[/]")]
-        //public Someenum Other { get; set; }
+        [Ask(AskType = AskType.Normal, Title = "Add item")] public int[] IntItems { get; set; } = Array.Empty<int>();
+
+        [Ask]
+        public Name Owner { get; set; }
+
+        [Ask]
+        public IReadOnlyList<Name> Investors { get; set; } = new List<Name>();
+
+        [Ask(Title = "Choose your [red]Weapon[/]")]
+        public Someenum Other { get; set; }
 
         [Ask(Title = "Enter first name")]
         public string? FirstName { get; set; }
@@ -45,14 +57,12 @@ namespace Test
         public bool LeftHanded { get; set; }
 
         [Ask]
-        public bool Age { get; set; }
+        public DateTime DateOfBirth { get; set; }
 
         [Ask(AskType = AskType.Selection, SelectionSource = nameof(Items))]
         public string Item { get; set; } = string.Empty;
 
         public List<string> Items { get; } = new List<string>() { "Alpha", "Bravo", "Charlie" };
-
-        [Ask(AskType = AskType.Normal)] public int[] IntItems { get; set; } = Array.Empty<int>();
     }
 
     [AutoSpectreForm]
@@ -84,6 +94,8 @@ namespace Test
         public List<string> Items { get; } = new List<string>() { "Alpha", "Bravo", "Charlie" };
 
     }
+
+
 
 
 }

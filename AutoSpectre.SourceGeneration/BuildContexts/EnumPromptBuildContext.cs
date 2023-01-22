@@ -18,10 +18,10 @@ public class EnumPromptBuildContext : PromptBuildContext
 
     public override string GenerateOutput(string destination)
     {
-        return $"{destination} = {PromptPart()};    ";
+        return $"{destination} = {PromptPart(null)};    ";
     }
 
-    public override string PromptPart()
+    public override string PromptPart(string? variableName = null)
     {
         var type = Type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
         return $"""

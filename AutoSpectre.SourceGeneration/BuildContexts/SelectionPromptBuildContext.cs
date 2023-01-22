@@ -28,7 +28,7 @@ public class SelectionPromptBuildContext : PromptBuildContext
 
     }
 
-    public override string PromptPart()
+    public override string PromptPart(string? variableName = null)
     {
         var type = TypeSymbol.GetTypePresentation();
 
