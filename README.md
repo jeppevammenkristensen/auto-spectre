@@ -9,63 +9,96 @@ Decorate a class with the AutoSpectreForm attribute and then decorate the proper
 ### Example input
 
 ```csharp
-[AutoSpectreForm]
-public class Someclass
-{
-   [Ask(Title = "Enter first name")]
-   public string? FirstName { get; set; }
+ [AutoSpectreForm]
+ public class Someclass
+ {
+     [Ask(AskType = AskType.Normal, Title = "Add item")] 
+     public int[] IntItems { get; set; } = Array.Empty<int>();
 
-   [Ask]
-   public bool LeftHanded { get; set; }
+     [Ask(Title = "Enter first name")]
+     public string? FirstName { get; set; }
 
-   [Ask]
-   public bool Age { get; set; }
+     [Ask]
+     public bool LeftHanded { get; set; }
 
-   [Ask(AskType = AskType.Selection, SelectionSource = nameof(Items))]
-   public string Item { get; set; } = string.Empty;
+     [Ask(Title = "Choose your [red]value[/]")]
+     public SomeEnum Other { get; set; }
 
-   public List<string> Items { get; } = new List<string>() { "Alpha", "Bravo", "Charlie" };
+     [Ask] 
+     public Name Owner { get; set; } = new Name(); 
 
-   [Ask(AskType = AskType.Normal)] public int[] IntItems { get; set; } = Array.Empty<int>();
-}
+     [Ask]
+     public IReadOnlyList<Name> Investors { get; set; } = new List<Name>();
+
+     [Ask(AskType = AskType.Selection, SelectionSource = nameof(Items))]
+     public string Item { get; set; } = string.Empty;
+
+     public List<string> Items { get; } = new List<string>() { "Alpha", "Bravo", "Charlie" };
+ }
 ```
 
 Behind the scenes this will generate an interface factory and implentation using `Spectre.Console` to prompt for the values. 
 
 ### Example output ###
 ```csharp
-public interface ISomeclassSpectreFactory
-{
-  Someclass Get(Someclass destination = null);
-}
+ public interface ISomeclassSpectreFactory
+ {
+     Someclass Get(Someclass destination = null);
+ }
 
-public class SomeclassSpectreFactory : ISomeclassSpectreFactory
-{
-   public Someclass Get(Someclass destination = null)
-   {
-      destination ??= new Test.Someclass();
-      destination.FirstName = AnsiConsole.Prompt(new TextPrompt<string?>("Enter first name").AllowEmpty());
-      destination.LeftHanded = AnsiConsole.Confirm("Enter [green]LeftHanded[/]");
-      destination.Age = AnsiConsole.Confirm("Enter [green]Age[/]");
-      destination.Item = AnsiConsole.Prompt(new SelectionPrompt<string>().Title("Enter [green]Item[/]").PageSize(10).AddChoices(destination.Items.ToArray()));
-      // Prompt for values for destination.IntItems
-      {
-          List<int> items = new List<int>();
-          bool continuePrompting = true;
-          do
-          {
-              var item = AnsiConsole.Prompt(new TextPrompt<int>("Enter [green]IntItems[/]"));
-              items.Add(item);
-              continuePrompting = AnsiConsole.Confirm("Add more items?");
-          }
-          while (continuePrompting);
-          int[] result = items.ToArray();
-          destination.IntItems = result;
-      }
+ public class SomeclassSpectreFactory : ISomeclassSpectreFactory
+ {
+     public Someclass Get(Someclass destination = null)
+     {
+         INameSpectreFactory NameSpectreFactory = new NameSpectreFactory();
+         destination ??= new Test.Someclass();
+         // Prompt for values for destination.IntItems
+         {
+             List<int> items = new List<int>();
+             bool continuePrompting = true;
+             do
+             {
+                 var item = AnsiConsole.Prompt(new TextPrompt<int>("Add item"));
+                 items.Add(item);
+                 continuePrompting = AnsiConsole.Confirm("Add more items?");
+             }
+             while (continuePrompting);
+             int[] result = items.ToArray();
+             destination.IntItems = result;
+         }
 
-      return destination;
-   }
-}
+         destination.FirstName = AnsiConsole.Prompt(new TextPrompt<string?>("Enter first name").AllowEmpty());
+         destination.LeftHanded = AnsiConsole.Confirm("Enter [green]LeftHanded[/]");
+         destination.Other = AnsiConsole.Prompt(new SelectionPrompt<SomeEnum>().Title("Choose your [red]value[/]").PageSize(10).AddChoices(Enum.GetValues<SomeEnum>()));
+         {
+             AnsiConsole.MarkupLine("Enter [green]Owner[/]");
+             var item = NameSpectreFactory.Get();
+             destination.Owner = item;
+         }
+
+         // Prompt for values for destination.Investors
+         {
+             List<Name> items = new List<Name>();
+             bool continuePrompting = true;
+             do
+             {
+                 {
+                     AnsiConsole.MarkupLine("Enter [green]Investors[/]");
+                     var newItem = NameSpectreFactory.Get();
+                     items.Add(newItem);
+                 }
+
+                 continuePrompting = AnsiConsole.Confirm("Add more items?");
+             }
+             while (continuePrompting);
+             System.Collections.Generic.IReadOnlyList<Test.Name> result = items;
+             destination.Investors = result;
+         }
+
+         destination.Item = AnsiConsole.Prompt(new SelectionPrompt<string>().Title("Enter [green]Item[/]").PageSize(10).AddChoices(destination.Items.ToArray()));
+         return destination;
+     }
+ }
 ```
 
 ### How to call ###
