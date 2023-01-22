@@ -7,6 +7,8 @@ namespace AutoSpectre.SourceGeneration.BuildContexts;
 
 public class ReuseExistingAutoSpectreFactoryPromptBuildContext : PromptBuildContext
 {
+    public override bool DeclaresVariable => true;
+
     public string Title { get; }
     public INamedTypeSymbol NamedTypeSymbol { get; }
     public bool IsNullable { get; }
@@ -40,11 +42,11 @@ public class ReuseExistingAutoSpectreFactoryPromptBuildContext : PromptBuildCont
         return builder.ToString();
     }
 
-    public override string PromptPart()
+    public override string PromptPart(string? variableName = null)
     {
         return $"""
             AnsiConsole.MarkupLine("{Title}");
-            var item = {VariableName}.Get();
+            var {variableName ?? "item"} = {VariableName}.Get();
             """;
     }
 

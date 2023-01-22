@@ -9,6 +9,8 @@ namespace AutoSpectre.SourceGeneration.BuildContexts;
 
 public class MultiAddBuildContext : PromptBuildContext
 {
+    public override bool DeclaresVariable => true;
+
     private readonly ITypeSymbol _type;
     private readonly ITypeSymbol _underlyingType;
     private readonly LazyTypes _lazyTypes;
@@ -33,9 +35,9 @@ public class MultiAddBuildContext : PromptBuildContext
         return builder.ToString();
     }
 
-    public override string PromptPart()
+    public override string PromptPart(string? variable = null)
     {
-        var type = _underlyingType.GetTypePresentation();
+        var type = _underlyingType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
         StringBuilder builder = new();
 
         builder.AppendLine($$"""            
@@ -44,9 +46,7 @@ public class MultiAddBuildContext : PromptBuildContext
 
                 do 
                 {
-                    var item = {{_buildContext.PromptPart()}};
-                    items.Add(item);
-
+                    {{ GenerateAssignment() }}
                     continuePrompting = AnsiConsole.Confirm("Add more items?");
                     
                 } while (continuePrompting);      
@@ -65,6 +65,27 @@ public class MultiAddBuildContext : PromptBuildContext
 
         builder.AppendLine(";");
         return builder.ToString();
+    }
+
+    private string GenerateAssignment()
+    {
+        if (_buildContext.DeclaresVariable)
+        {
+            return $$"""
+            {
+                {{_buildContext.PromptPart("newItem")}}
+                items.Add(newItem);
+            }
+            """;
+        }
+        else
+        {
+            return $"""
+                var item = {_buildContext.PromptPart()};
+                items.Add(item);
+                """;
+        }
+        
     }
 
     private ConverterDelegate? NeedsConversion(ITypeSymbol typeSymbol)

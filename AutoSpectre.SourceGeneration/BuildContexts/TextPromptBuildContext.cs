@@ -23,7 +23,7 @@ public class TextPromptBuildContext : PromptBuildContext
         return $"{destination} = {PromptPart()};";
     }
 
-    public override string PromptPart()
+    public override string PromptPart(string? variableName = null)
     {
         var syntax = TypeSymbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax().ToString() ?? TypeSymbol.ToDisplayString();
         StringBuilder builder = new();

@@ -20,7 +20,7 @@ public class ConfirmPromptBuildContext : PromptBuildContext
         return $"""{destination} = {PromptPart()};""";
     }
 
-    public override string PromptPart()
+    public override string PromptPart(string? variableName = null)
     {
         return $"""AnsiConsole.Confirm("{Title}")""";
     }

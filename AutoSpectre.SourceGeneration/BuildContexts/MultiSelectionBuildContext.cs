@@ -42,7 +42,7 @@ public class MultiSelectionBuildContext : PromptBuildContext
         return builder.ToString();
     }
 
-    public override string PromptPart()
+    public override string PromptPart(string? variableName = null)
     {
         var type = UnderlyingSymbol.GetTypePresentation();
 
