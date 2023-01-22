@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <IsRoslynComponent>true</IsRoslynComponent>
-    <Version>0.3.1.0</Version>
+    <Version>0.3.2.0</Version>
 
 
   </PropertyGroup>
@@ -20,7 +20,7 @@
     <PackageProjectUrl>https://github.com/jeppevammenkristensen/auto-spectre</PackageProjectUrl>
     <RepositoryUrl>https://github.com/jeppevammenkristensen/auto-spectre</RepositoryUrl>
     <PackageTags>C#;Source Generator</PackageTags>
-    <PackageReleaseNotes>Added repeated prompt for list types where Normal is set to SelectionMode</PackageReleaseNotes> 
+    <PackageReleaseNotes>Added using class decorated with AutoSpectreForm as child element and better enum handling</PackageReleaseNotes> 
   </PropertyGroup>
   
   <ItemGroup>

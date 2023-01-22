@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
-using System.Reflection.Metadata.Ecma335;
 using AutoSpectre;
-using Spectre.Console;
 
 namespace Test
 {
@@ -18,7 +15,7 @@ namespace Test
         }
     }
 
-    public enum Someenum
+    public enum SomeEnum
     {
         Red,
         Green,
@@ -39,16 +36,8 @@ namespace Test
     [AutoSpectreForm]
     public class Someclass
     {
-        [Ask(AskType = AskType.Normal, Title = "Add item")] public int[] IntItems { get; set; } = Array.Empty<int>();
-
-        [Ask]
-        public Name Owner { get; set; }
-
-        [Ask]
-        public IReadOnlyList<Name> Investors { get; set; } = new List<Name>();
-
-        [Ask(Title = "Choose your [red]Weapon[/]")]
-        public Someenum Other { get; set; }
+        [Ask(AskType = AskType.Normal, Title = "Add item")] 
+        public int[] IntItems { get; set; } = Array.Empty<int>();
 
         [Ask(Title = "Enter first name")]
         public string? FirstName { get; set; }
@@ -56,8 +45,14 @@ namespace Test
         [Ask]
         public bool LeftHanded { get; set; }
 
+        [Ask(Title = "Choose your [red]value[/]")]
+        public SomeEnum Other { get; set; }
+
+        [Ask] 
+        public Name Owner { get; set; } = new Name(); 
+
         [Ask]
-        public DateTime DateOfBirth { get; set; }
+        public IReadOnlyList<Name> Investors { get; set; } = new List<Name>();
 
         [Ask(AskType = AskType.Selection, SelectionSource = nameof(Items))]
         public string Item { get; set; } = string.Empty;
