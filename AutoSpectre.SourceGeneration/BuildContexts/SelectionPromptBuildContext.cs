@@ -5,19 +5,22 @@ using Microsoft.CodeAnalysis;
 
 namespace AutoSpectre.SourceGeneration.BuildContexts;
 
-public class SelectionPromptBuildContext : PromptBuildContext
+internal class SelectionPromptBuildContext : PromptBuildContext
 {
+    private readonly SinglePropertyEvaluationContext _context;
     public string Title { get; }
     public ITypeSymbol TypeSymbol { get; }
     public bool Nullable { get; }
     public string SelectionTypeName { get; set; }
     public SelectionPromptSelectionType SelectionType { get; }
 
-    public SelectionPromptBuildContext(string title, ITypeSymbol typeSymbol, bool nullable, string selectionTypeName, SelectionPromptSelectionType selectionType)
+
+    public SelectionPromptBuildContext(string title, SinglePropertyEvaluationContext context, string selectionTypeName, SelectionPromptSelectionType selectionType)
     {
+        _context = context;
         Title = title;
-        TypeSymbol = typeSymbol;
-        Nullable = nullable;
+        TypeSymbol = context.Type;
+        Nullable = context.IsNullable;
         SelectionTypeName = selectionTypeName ?? throw new ArgumentNullException(nameof(selectionTypeName));
         SelectionType = selectionType;
     }
@@ -30,15 +33,25 @@ public class SelectionPromptBuildContext : PromptBuildContext
 
     public override string PromptPart(string? variableName = null)
     {
-        var type = TypeSymbol.GetTypePresentation();
+        var type = TypeSymbol.ToDisplayString();
 
         return $"""
         AnsiConsole.Prompt(
         new SelectionPrompt<{type}>()
-            .Title("{Title}")
+            .Title("{Title}"){GenerateConverter()}
             .PageSize(10) 
             .AddChoices(destination.{GetSelector()}.ToArray()))
         """;
+    }
+
+    private string GenerateConverter()
+    {
+        if (_context.ConfirmedConverter is { } converter)
+        {
+            return $"{Environment.NewLine}.UseConverter({converter.Converter})";
+        }
+
+        return string.Empty;
     }
 
     private string GetSelector() => SelectionType switch

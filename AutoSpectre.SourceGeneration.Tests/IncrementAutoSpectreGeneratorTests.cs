@@ -113,6 +113,45 @@ namespace Test
 
 
         [Fact]
+        public void FormWithMatchedConverterShouldGenerateCorrectCode()
+        {
+            var output = GetGeneratedOutput("""
+                using AutoSpectre;
+                using System.Collections.Generic;               
+
+
+                namespace Test  
+                {
+                    [AutoSpectreForm]
+                    public class TestForm 
+                    {
+                        [Ask(AskType = AskType.Selection, Converter=nameof(OtherStringConverter), SelectionSource = nameof(ListOfOther))]
+                        public OtherTest.OtherClass Other {get;set;}
+
+                        public string OtherStringConverter(OtherTest.OtherClass other)
+                        {
+                            return other.ToString();
+                        }
+
+                       
+                        public List<OtherTest.OtherClass> ListOfOther {get;set;} = new ();
+                    }                   
+                }
+
+                namespace OtherTest 
+                {                    
+                    public class OtherClass
+                    {
+
+                    }
+                }
+
+                """).Should().Contain(".UseConverter(OtherStringConverter)");
+
+        }
+
+
+        [Fact]
         public void ValidForm_ReferencesOther_GeneratesExpected()
         {
             GetGeneratedOutput("""

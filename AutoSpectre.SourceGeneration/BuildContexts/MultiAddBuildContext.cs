@@ -88,7 +88,7 @@ public class MultiAddBuildContext : PromptBuildContext
         
     }
 
-    private ConverterDelegate? NeedsConversion(ITypeSymbol typeSymbol)
+    private ConversionDelegate? NeedsConversion(ITypeSymbol typeSymbol)
     {
         if (typeSymbol.TypeKind is TypeKind.Array)
             return ToArray;
@@ -127,7 +127,7 @@ public class MultiAddBuildContext : PromptBuildContext
 
     }
 
-    private ConverterDelegate Immutable(ITypeSymbol typeSymbol)
+    private ConversionDelegate Immutable(ITypeSymbol typeSymbol)
     {
         return (builder, prompt) => builder.Append($"{prompt}.To{typeSymbol.Name}()");
     }
@@ -137,7 +137,7 @@ public class MultiAddBuildContext : PromptBuildContext
         builder.Append($"{prompt}.ToArray()");
     }
 
-    private ConverterDelegate Wrappable(ITypeSymbol type)
+    private ConversionDelegate Wrappable(ITypeSymbol type)
     {
         return (stringBuilder, prompt) => stringBuilder.Append($"""new {type}({prompt})""");
     }

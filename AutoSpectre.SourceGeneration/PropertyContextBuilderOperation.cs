@@ -8,6 +8,36 @@ using Microsoft.CodeAnalysis;
 
 namespace AutoSpectre.SourceGeneration;
 
+internal class SinglePropertyEvaluationContext
+{
+    public SinglePropertyEvaluationContext(IPropertySymbol property, bool isNullable, ITypeSymbol type, bool isEnumerable, ITypeSymbol underlyingType)
+    {
+        Property = property;
+        IsNullable = isNullable;
+        Type = type;
+        IsEnumerable = isEnumerable;
+        UnderlyingType = underlyingType;
+    }
+
+    public IPropertySymbol Property { get; }
+    public bool IsNullable { get; }
+    public ITypeSymbol Type { get; }
+    public bool IsEnumerable { get; }
+    public ITypeSymbol? UnderlyingType { get; }
+    
+    public ConfirmedConverter? ConfirmedConverter { get; set; }
+}
+
+internal class ConfirmedConverter
+{
+    public string Converter { get; }
+
+    public ConfirmedConverter(string converter)
+    {
+        Converter = converter;
+    }
+}
+
 internal class PropertyContextBuilderOperation
 {
     public GeneratorAttributeSyntaxContext SyntaxContext { get; }
@@ -47,14 +77,17 @@ internal class PropertyContextBuilderOperation
 
         foreach (var (property, attributeData) in PropertyCandidates)
         {
-            var (isNullable, type) = property.Type.GetTypeWithNullableInformation();
-            var (isEnumerable, underlyingType) = property.Type.IsEnumerableOfTypeButNotString();
+            var (nullable, originalType) = property.Type.GetTypeWithNullableInformation();
+            var (enumerable, underlying) = property.Type.IsEnumerableOfTypeButNotString();
+            
+            var  propertyEvaluationContext =
+                new SinglePropertyEvaluationContext(property: property,isNullable: nullable, type: originalType, isEnumerable: enumerable, underlyingType: underlying);
 
             if (attributeData.AskType == AskTypeCopy.Normal)
             {
-                if (!isEnumerable)
+                if (!propertyEvaluationContext.IsEnumerable)
                 {
-                    if (GetNormalPromptBuildContext(attributeData.Title, type, isNullable, property) is
+                    if (GetNormalPromptBuildContext(attributeData.Title, propertyEvaluationContext) is
                         { } promptBuildContext)
                     {
                         propertyContexts.Add(new(property.Name, property,
@@ -63,16 +96,18 @@ internal class PropertyContextBuilderOperation
                 }
                 else
                 {
-                    if (GetNormalPromptBuildContext(attributeData.Title, underlyingType, isNullable, property) is
+                    if (GetNormalPromptBuildContext(attributeData.Title, propertyEvaluationContext) is
                         { } promptBuildContext)
                     {
-                        propertyContexts.Add(new(property.Name, property, new MultiAddBuildContext(type, underlyingType, types, promptBuildContext)));
+                        propertyContexts.Add(new(property.Name, property, new MultiAddBuildContext(propertyEvaluationContext.Type, propertyEvaluationContext.UnderlyingType, types, promptBuildContext)));
                     }
                 }
             }
 
             if (attributeData.AskType == AskTypeCopy.Selection)
             {
+                EvaluateSelectionConverter(attributeData, propertyEvaluationContext);
+                
                 if (attributeData.SelectionSource is { })
                 {
                     var match = TargetType
@@ -91,18 +126,17 @@ internal class PropertyContextBuilderOperation
                             IPropertySymbol => SelectionPromptSelectionType.Property,
                             _ => throw new NotSupportedException(),
                         };
-                        if (!isEnumerable)
+                        if (!propertyEvaluationContext.IsEnumerable)
                         {
                             propertyContexts.Add(new(property.Name, property,
-                                new SelectionPromptBuildContext(attributeData.Title, type, isNullable,
+                                new SelectionPromptBuildContext(attributeData.Title, propertyEvaluationContext,
                                     attributeData.SelectionSource, selectionType)));
                         }
                         else
                         {
                             propertyContexts.Add(new(property.Name, property,
                                 new MultiSelectionBuildContext(title: attributeData.Title,
-                                    typeSymbol: type, underlyingSymbol: underlyingType,
-                                    nullable: isNullable,
+                                    propertyEvaluationContext,
                                     selectionTypeName: attributeData.SelectionSource,
                                     selectionType: selectionType, types)));
                         }
@@ -123,15 +157,70 @@ internal class PropertyContextBuilderOperation
         return propertyContexts;
     }
 
-    public PromptBuildContext? GetNormalPromptBuildContext(string title, ITypeSymbol type, bool isNullable, IPropertySymbol property)
+    /// <summary>
+    /// Evalutes the Converter set on the attributeData. If it's correct a valid converter is set on the context.
+    /// if it is set but not valid a warning is reported.
+    /// </summary>
+    /// <param name="attributeData"></param>
+    /// <param name="context"></param>
+    private void EvaluateSelectionConverter(TranslatedAskAttributeData attributeData, SinglePropertyEvaluationContext context)
     {
+        if (attributeData.Converter == null)
+            return;
+
+        bool ConverterMethodOrProperty(ISymbol symbol)
+        {
+            if (symbol is IMethodSymbol method)
+            {
+                if (method.Parameters.FirstOrDefault() is { } parameter)
+                {
+                    if (SymbolEqualityComparer.Default.Equals(parameter.Type,context.UnderlyingType ?? context.Type))
+                    {
+                        if (method.ReturnType.SpecialType == SpecialType.System_String)
+                        {
+                            return true;
+                        }   
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        var match = TargetType
+            .GetMembers()
+            .Where(x => x.Name == attributeData.Converter)
+            .FirstOrDefault(ConverterMethodOrProperty);
+
+        if (match is { })
+        {
+            context.ConfirmedConverter = new ConfirmedConverter(attributeData.Converter);
+        }
+        else
+        {
+            ProductionContext.ReportDiagnostic(Diagnostic.Create(
+                new("AutoSpectre_JJK0008", $"Converter {attributeData.Converter} should be a method taking a {context.UnderlyingType} as input and return string on the class",
+                    $"Could not find a correct method to match {attributeData.Converter} supported", "General", DiagnosticSeverity.Warning, true),
+                context.Property.Locations.FirstOrDefault()));
+            return;
+        }
+
+    }
+
+     
+
+    
+    public PromptBuildContext? GetNormalPromptBuildContext(string title, SinglePropertyEvaluationContext evaluationContext)
+    {
+        var type = evaluationContext.IsEnumerable ? evaluationContext.UnderlyingType : evaluationContext.Type;
+        
         if (type.SpecialType == SpecialType.System_Boolean)
         {
-            return new ConfirmPromptBuildContext(title, type, isNullable);
+            return new ConfirmPromptBuildContext(title, type, evaluationContext.IsNullable);
         }
         else if (type.TypeKind == TypeKind.Enum)
         {
-            return new EnumPromptBuildContext(title, type, isNullable);
+            return new EnumPromptBuildContext(title, type, evaluationContext.IsNullable);
         }
         else if (type.SpecialType == SpecialType.None)
         {
@@ -140,14 +229,14 @@ internal class PropertyContextBuilderOperation
                 if (namedType.GetAttributes().FirstOrDefault(x =>
                         SymbolEqualityComparer.Default.Equals(x.AttributeClass,Types.AutoSpectreForm)) is { })
                 {
-                    return new ReuseExistingAutoSpectreFactoryPromptBuildContext(title, namedType, isNullable);
+                    return new ReuseExistingAutoSpectreFactoryPromptBuildContext(title, namedType, evaluationContext.IsNullable);
                 }
                 else
                 {
                     ProductionContext.ReportDiagnostic(Diagnostic.Create(
                         new("AutoSpectre_JJK0007", $"Type currently not supported",
                             $"Only classes with {Constants.AutoSpectreFormAttributeFullyQualifiedName} supported", "General", DiagnosticSeverity.Warning, true),
-                        property.Locations.FirstOrDefault()));
+                        evaluationContext.Property.Locations.FirstOrDefault()));
                     return null;
                 }
             }
@@ -155,15 +244,15 @@ internal class PropertyContextBuilderOperation
             {
                 ProductionContext.ReportDiagnostic(Diagnostic.Create(
                     new("AutoSpectre_JJK0006", "Unsupported type",
-                        $"Type {type} is not supported", "General", DiagnosticSeverity.Warning, true),
-                    property.Locations.FirstOrDefault()));
+                        $"Type {evaluationContext.Type} is not supported", "General", DiagnosticSeverity.Warning, true),
+                    evaluationContext.Property.Locations.FirstOrDefault()));
                 return null;
             }
         }
 
         else 
         {
-            return new TextPromptBuildContext(title, type, isNullable);
+            return new TextPromptBuildContext(title, type,evaluationContext.IsNullable);
         }
     }
 }

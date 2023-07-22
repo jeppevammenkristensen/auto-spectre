@@ -6,19 +6,21 @@ using Microsoft.CodeAnalysis;
 
 namespace AutoSpectre.SourceGeneration.BuildContexts;
 
-public class MultiSelectionBuildContext : PromptBuildContext
+internal class MultiSelectionBuildContext : PromptBuildContext
 {
+    private readonly SinglePropertyEvaluationContext _context;
     private readonly LazyTypes _lazyTypes;
 
-    public delegate void ConverterDelegate(StringBuilder builder, string prompt);
+    public delegate void ConversionDelegate(StringBuilder builder, string prompt);
 
-    public MultiSelectionBuildContext(string title, ITypeSymbol typeSymbol, ITypeSymbol underlyingSymbol, bool nullable, string selectionTypeName, SelectionPromptSelectionType selectionType, LazyTypes lazyTypes)
+    public MultiSelectionBuildContext(string title, SinglePropertyEvaluationContext context, string selectionTypeName, SelectionPromptSelectionType selectionType, LazyTypes lazyTypes)
     {
+        _context = context;
         _lazyTypes = lazyTypes;
         Title = title;
-        TypeSymbol = typeSymbol;
-        UnderlyingSymbol = underlyingSymbol;
-        Nullable = nullable;
+        TypeSymbol = context.Type;
+        UnderlyingSymbol = context.UnderlyingType;
+        Nullable = context.IsNullable;
         SelectionTypeName = selectionTypeName;
         SelectionType = selectionType;
     }
@@ -69,7 +71,7 @@ new MultiSelectionPrompt<{type}>()
         return builder.ToString();
     }
 
-    private ConverterDelegate? NeedsConversion(ITypeSymbol typeSymbol)
+    private ConversionDelegate? NeedsConversion(ITypeSymbol typeSymbol)
     {
         if (typeSymbol.TypeKind is TypeKind.Array)
             return ToArray;
@@ -108,7 +110,7 @@ new MultiSelectionPrompt<{type}>()
 
     }
 
-    private ConverterDelegate Immutable(ITypeSymbol typeSymbol)
+    private ConversionDelegate Immutable(ITypeSymbol typeSymbol)
     {
         return (builder, prompt) => builder.Append($"{prompt}.To{typeSymbol.Name}()");
     }
@@ -118,7 +120,7 @@ new MultiSelectionPrompt<{type}>()
         builder.Append($"{prompt}.ToArray()");
     }
 
-    private ConverterDelegate Wrappable(ITypeSymbol type)
+    private ConversionDelegate Wrappable(ITypeSymbol type)
     {
         return (stringBuilder, prompt) => stringBuilder.Append($"""new {type}({prompt})""");
     }
