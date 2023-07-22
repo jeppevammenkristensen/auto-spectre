@@ -45,7 +45,7 @@ public class ExtensionsTests
 
         var tree = syntaxTree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().First();
         var enclosingSymbol = semanticModel.GetDeclaredSymbol(tree);
-        foreach (var propertySymbol in enclosingSymbol.GetMembers().OfType<IPropertySymbol>())
+        foreach (var propertySymbol in enclosingSymbol?.GetMembers().OfType<IPropertySymbol>() ?? Enumerable.Empty<IPropertySymbol>())
         {
             propertySymbol.Type.IsEnumerableOfType().isEnumerable.Should().BeTrue(propertySymbol.DeclaringSyntaxReferences.First().ToString());
         }

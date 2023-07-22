@@ -6,13 +6,8 @@ namespace AutoSpectre.SourceGeneration;
 
 public class PropertyWithAskAttributeData
 {
-    public void Deconstruct(out IPropertySymbol property, out TranslatedAskAttributeData attributeData)
-    {
-        property = Property;
-        attributeData = TranslatedAskAttribute;
-    }
-
     public IPropertySymbol Property { get; }
+
     public TranslatedAskAttributeData TranslatedAskAttribute { get; }
 
     public PropertyWithAskAttributeData(IPropertySymbol property, AttributeData attributeData)
@@ -23,7 +18,16 @@ public class PropertyWithAskAttributeData
                     $"Enter [green]{property.Name}[/]";
         var askType = attributeData.GetValue<AskTypeCopy>("AskType");
         var selectionSource = attributeData.GetValue<string?>("SelectionSource") ?? null;
+        var converter = attributeData.GetValue<string?>("Converter") ?? null;
+        
+        
         TranslatedAskAttribute =
-            new TranslatedAskAttributeData(askType: askType, selectionSource: selectionSource, title: title);
+            new TranslatedAskAttributeData(askType: askType, selectionSource: selectionSource, title: title, converter: converter);
+    }
+
+    public void Deconstruct(out IPropertySymbol property, out TranslatedAskAttributeData attributeData)
+    {
+        property = Property;
+        attributeData = TranslatedAskAttribute;
     }
 }

@@ -32,6 +32,8 @@ namespace AutoSpectre
         /// </summary>
         public AskType AskType { get; set; }
         public string? SelectionSource { get; set; }
+
+        public string? Converter { get; set; }
     }
 
     public enum AskType
