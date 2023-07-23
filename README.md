@@ -190,4 +190,50 @@ public class CollectionSampleSpectreFactory : ICollectionSampleSpectreFactory
 }
 ```
 
+## Converter
+
+You add a converter method that will transform a given class to a string. This can be used when the AskType is Selection to give a string representation of a class. Currently the converter
+must be a method on the class with the [AutoSpectreForm] attribute on and it must be at least public or internal. The method should take the given type as input parameter and return a string.
+
+### Example
+
+#### Code
+
+```csharp
+public record Person(string FirstName, string LastName);
+
+[AutoSpectreForm]
+public class ConverterForms
+{
+    [Ask(Title = "Select person", SelectionSource = nameof(GetPersons), AskType = AskType.Selection, Converter = nameof(PersonToString))]
+    public Person? Person { get; set; }
+
+    [Ask(Title = "Select persons", SelectionSource = nameof(GetPersons), AskType = AskType.Selection, Converter = nameof(PersonToString))] 
+    public List<Person> Persons { get; set; } = new List<Person>();
+    
+    public string PersonToString(Person person) => $"{person.FirstName} {person.LastName}";
+    
+    public IEnumerable<Person> GetPersons()
+    {
+        yield return new Person("John", "Doe");
+        yield return new Person("Jane", "Doe");
+        yield return new Person("John", "Smith");
+        yield return new Person("Jane", "Smith");
+    }
+}
+```
+
+#### Generated
+```csharp
+public class ConverterFormsSpectreFactory : IConverterFormsSpectreFactory
+{
+    public ConverterForms Get(ConverterForms destination = null)
+    {
+        destination ??= new ConsoleApp1.ConverterForms();
+        destination.Person = AnsiConsole.Prompt(new SelectionPrompt<ConsoleApp1.Person?>().Title("Select person").UseConverter(destination.PersonToString).PageSize(10).AddChoices(destination.GetPersons().ToArray()));
+        destination.Persons = AnsiConsole.Prompt(new MultiSelectionPrompt<ConsoleApp1.Person>().Title("Select persons").UseConverter(destination.PersonToString).PageSize(10).AddChoices(destination.GetPersons().ToArray()));
+        return destination;
+    }
+}
+```
 
