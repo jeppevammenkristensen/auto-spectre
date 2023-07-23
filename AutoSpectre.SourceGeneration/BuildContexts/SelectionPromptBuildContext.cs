@@ -5,9 +5,8 @@ using Microsoft.CodeAnalysis;
 
 namespace AutoSpectre.SourceGeneration.BuildContexts;
 
-internal class SelectionPromptBuildContext : PromptBuildContext
+internal class SelectionPromptBuildContext : PromptBuilderContextWithPropertyContext
 {
-    private readonly SinglePropertyEvaluationContext _context;
     public string Title { get; }
     public ITypeSymbol TypeSymbol { get; }
     public bool Nullable { get; }
@@ -15,9 +14,8 @@ internal class SelectionPromptBuildContext : PromptBuildContext
     public SelectionPromptSelectionType SelectionType { get; }
 
 
-    public SelectionPromptBuildContext(string title, SinglePropertyEvaluationContext context, string selectionTypeName, SelectionPromptSelectionType selectionType)
+    public SelectionPromptBuildContext(string title, SinglePropertyEvaluationContext context, string selectionTypeName, SelectionPromptSelectionType selectionType) : base(context)
     {
-        _context = context;
         Title = title;
         TypeSymbol = context.Type;
         Nullable = context.IsNullable;
@@ -44,15 +42,7 @@ internal class SelectionPromptBuildContext : PromptBuildContext
         """;
     }
 
-    private string GenerateConverter()
-    {
-        if (_context.ConfirmedConverter is { } converter)
-        {
-            return $"{Environment.NewLine}.UseConverter({converter.Converter})";
-        }
-
-        return string.Empty;
-    }
+    
 
     private string GetSelector() => SelectionType switch
     {
