@@ -6,14 +6,14 @@ using Microsoft.CodeAnalysis;
 
 namespace AutoSpectre.SourceGeneration.BuildContexts;
 
-internal class MultiSelectionBuildContext : PromptBuildContext
+internal class MultiSelectionBuildContext : PromptBuilderContextWithPropertyContext
 {
     private readonly SinglePropertyEvaluationContext _context;
     private readonly LazyTypes _lazyTypes;
 
     public delegate void ConversionDelegate(StringBuilder builder, string prompt);
 
-    public MultiSelectionBuildContext(string title, SinglePropertyEvaluationContext context, string selectionTypeName, SelectionPromptSelectionType selectionType, LazyTypes lazyTypes)
+    public MultiSelectionBuildContext(string title, SinglePropertyEvaluationContext context, string selectionTypeName, SelectionPromptSelectionType selectionType, LazyTypes lazyTypes) : base(context)
     {
         _context = context;
         _lazyTypes = lazyTypes;
@@ -46,14 +46,14 @@ internal class MultiSelectionBuildContext : PromptBuildContext
 
     public override string PromptPart(string? variableName = null)
     {
-        var type = UnderlyingSymbol.GetTypePresentation();
+        var type = UnderlyingSymbol.ToDisplayString();
 
         var conversion = NeedsConversion(TypeSymbol);
 
         var prompt = $"""
 AnsiConsole.Prompt(
 new MultiSelectionPrompt<{type}>()
-.Title("{Title}")
+.Title("{Title}"){GenerateConverter()}
 {GenerateRequired()}
 .PageSize(10) 
 .AddChoices(destination.{GetSelector()}.ToArray()))

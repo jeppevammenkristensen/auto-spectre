@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Dynamic;
 using AutoSpectre;
 
 namespace Test
@@ -9,8 +10,8 @@ namespace Test
     {
         static void Main(string[] args)
         {
-            var someclass = new SomeclassSpectreFactory();
-            var someclass1 = someclass.Get();
+            var converter = new ConverterFormSpectreFactory();
+            var converterForm = converter.Get();
             int i = 0;
         }
     }
@@ -34,6 +35,32 @@ namespace Test
     }
 
     [AutoSpectreForm]
+    public class ConverterForm
+    {
+        [Ask(Title = "[green]Select person[/]", AskType = AskType.Selection, SelectionSource = nameof(Persons), Converter = nameof(Converter))]
+        public Person? Person { get; set; }
+
+        [Ask(Title = "[green]Select persons[/]", AskType = AskType.Selection, SelectionSource = nameof(Persons), Converter = nameof(Converter))]
+        public List<Person> SelectedPersons { get; set; } = new List<Person>();
+
+        public string Converter(Person value) => $"{value.FirstName} {value.LastName}";
+
+        public List<Person> Persons()
+        {
+            return new List<Person>()
+            {
+                new Person("John", "Doe"),
+                new Person("Jane", "Doe"),
+                new Person("John", "Smith"),
+                new Person("Jane", "Smith"),
+                new Person("John", "Jones")
+            };
+        }
+    }
+    
+
+
+    [AutoSpectreForm]
     public class Someclass
     {
         [Ask(AskType = AskType.Normal, Title = "Add item")] 
@@ -44,6 +71,13 @@ namespace Test
 
         [Ask]
         public bool LeftHanded { get; set; }
+
+        [Ask(AskType = AskType.Selection, SelectionSource = "Persons", Converter = nameof(PersonConvert))]
+        public Person? Person { get; set; }
+
+        
+
+        public string PersonConvert(Person person) => $"{person.FirstName} {person.LastName}";
 
         [Ask(Title = "Choose your [red]value[/]")]
         public SomeEnum Other { get; set; }
@@ -58,6 +92,16 @@ namespace Test
         public string Item { get; set; } = string.Empty;
 
         public List<string> Items { get; } = new List<string>() { "Alpha", "Bravo", "Charlie" };
+
+        public List<Person> Persons()
+        {
+            return new List<Person>()
+            {
+                new Person("John", "Doe"),
+                new Person("Jane", "Doe"),
+                new Person("John", "Smith"),
+            };
+        }
     }
 
     [AutoSpectreForm]
@@ -66,7 +110,14 @@ namespace Test
         [Ask]
         public HashSet<string> Items { get; set; }
     }
-    
+
+
+    public record Person(string FirstName, string LastName)
+    {
+
+    }
+
+
 
     [AutoSpectreForm]
     public class CollectionSample
