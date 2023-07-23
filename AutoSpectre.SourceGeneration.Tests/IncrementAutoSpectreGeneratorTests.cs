@@ -151,6 +151,32 @@ namespace Test
         }
 
         [Fact]
+        public void CollectionPropertyOfOtherAutoformTypeGeneratesCorrectCode()
+        {
+            GetGeneratedOutput("""
+using AutoSpectre;
+using System.Collections.Generic;
+
+namespace Test;
+
+[AutoSpectreForm]
+    public class Other
+    {
+        [Ask]
+        public string Name { get; set; }
+    }
+
+    [AutoSpectreForm]
+    public class ConverterForms
+    {
+        [Ask] public List<Other> Other { get; set; }
+    }               
+
+""").Should().Contain("IOtherSpectreFactory OtherSpectreFactory = new OtherSpectreFactory();").And
+                .Contain("var newItem = OtherSpectreFactory.Get();");
+        }
+        
+        [Fact]
         public void CollectionPropertyWithMatchedConverterShouldGenerateCorrectCode()
         {
             var output = GetGeneratedOutput("""

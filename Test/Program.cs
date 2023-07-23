@@ -10,7 +10,7 @@ namespace Test
     {
         static void Main(string[] args)
         {
-            var converter = new ConverterFormSpectreFactory();
+            var converter = new ConverterForms2SpectreFactory();
             var converterForm = converter.Get();
             int i = 0;
         }
@@ -22,6 +22,20 @@ namespace Test
         Green,
         Refactor
     }
+
+    [AutoSpectreForm]
+    public class Other
+    {
+        [Ask]
+        public string Name { get; set; }
+    }
+
+    [AutoSpectreForm]
+    public class ConverterForms2
+    {
+        [Ask] public List<Other> Others { get; set; }
+    }
+
 
     [AutoSpectreForm]
     public class Name

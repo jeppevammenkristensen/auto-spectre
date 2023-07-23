@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using System.Linq;
@@ -140,5 +141,10 @@ public class MultiAddBuildContext : PromptBuildContext
     private ConversionDelegate Wrappable(ITypeSymbol type)
     {
         return (stringBuilder, prompt) => stringBuilder.Append($"""new {type}({prompt})""");
+    }
+
+    public override IEnumerable<string> CodeInitializing()
+    {
+        return this._buildContext.CodeInitializing();
     }
 }
