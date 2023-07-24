@@ -213,6 +213,43 @@ namespace Test;
                 """).Should().Contain(".UseConverter(destination.OtherStringConverter)").And.Contain("MultiSelectionPrompt<OtherTest.OtherClass>");
 
         }
+        
+        [Fact]
+        public void CollectionPropertyWithMatchedConverterFromConventionShouldGenerateCorrectCode()
+        {
+            var output = GetGeneratedOutput("""
+                using AutoSpectre;
+                using System.Collections.Generic;
+
+                namespace Test  
+                {
+                    [AutoSpectreForm]
+                    public class TestForm 
+                    {
+                        [Ask(AskType = AskType.Selection, SelectionSource = nameof(ListOfOther))]
+                        public List<OtherTest.OtherClass> Other {get;set;}
+
+                        public string OtherConverter(OtherTest.OtherClass other)
+                        {
+                            return other.ToString();
+                        }
+
+                       
+                        public List<OtherTest.OtherClass> ListOfOther {get;set;} = new ();
+                    }                   
+                }
+
+                namespace OtherTest 
+                {                    
+                    public class OtherClass
+                    {
+
+                    }
+                }
+
+                """).Should().Contain(".UseConverter(destination.OtherConverter)").And.Contain("MultiSelectionPrompt<OtherTest.OtherClass>");
+
+        }
 
 
         [Fact]

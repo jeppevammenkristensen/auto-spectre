@@ -165,9 +165,9 @@ internal class PropertyContextBuilderOperation
     /// <param name="context"></param>
     private void EvaluateSelectionConverter(TranslatedAskAttributeData attributeData, SinglePropertyEvaluationContext context)
     {
-        if (attributeData.Converter == null)
-            return;
-
+        bool guessed = attributeData.Converter == null;
+        var converterName = attributeData.Converter ?? $"{context.Property.Name}Converter";
+        
         bool ConverterMethodOrProperty(ISymbol symbol)
         {
             if (symbol is IMethodSymbol method)
@@ -189,26 +189,21 @@ internal class PropertyContextBuilderOperation
 
         var match = TargetType
             .GetMembers()
-            .Where(x => x.Name == attributeData.Converter)
+            .Where(x => x.Name == converterName)
             .FirstOrDefault(ConverterMethodOrProperty);
 
         if (match is { })
         {
-            context.ConfirmedConverter = new ConfirmedConverter(attributeData.Converter);
+            context.ConfirmedConverter = new ConfirmedConverter(converterName);
         }
-        else
+        else if (!guessed)
         {
             ProductionContext.ReportDiagnostic(Diagnostic.Create(
                 new("AutoSpectre_JJK0008", $"Converter {attributeData.Converter} should be a method taking a {context.UnderlyingType} as input and return string on the class",
                     $"Could not find a correct method to match {attributeData.Converter} supported", "General", DiagnosticSeverity.Warning, true),
                 context.Property.Locations.FirstOrDefault()));
-            return;
         }
-
     }
-
-     
-
     
     public PromptBuildContext? GetNormalPromptBuildContext(string title, SinglePropertyEvaluationContext evaluationContext)
     {

@@ -27,7 +27,7 @@ internal class MultiSelectionBuildContext : PromptBuilderContextWithPropertyCont
 
     public string Title { get; }
     public ITypeSymbol TypeSymbol { get; }
-    public ITypeSymbol UnderlyingSymbol { get; }
+    public ITypeSymbol? UnderlyingSymbol { get; }
     public bool Nullable { get; }
 
     public string SelectionTypeName { get; set; }

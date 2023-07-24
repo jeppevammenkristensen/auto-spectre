@@ -23,7 +23,7 @@ namespace Test
         Refactor
     }
 
-    [AutoSpectreForm]
+   
     public class Other
     {
         [Ask]
@@ -33,7 +33,18 @@ namespace Test
     [AutoSpectreForm]
     public class ConverterForms2
     {
-        [Ask] public List<Other> Others { get; set; }
+        [Ask(AskType = AskType.Selection, SelectionSource = nameof(OtherSource), Converter = nameof(Other2Converter))] 
+        public List<Other> Other { get; set; }
+
+        public List<Other> OtherSource => new List<Other>()
+        {
+            new Other() { Name = "Jeppe" }
+        };
+
+        public string Other2Converter(Other other)
+        {
+            return string.Empty;
+        }
     }
 
 
