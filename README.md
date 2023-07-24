@@ -1,10 +1,12 @@
 [![Nuget](https://img.shields.io/nuget/v/AutoSpectre.SourceGeneration?style=flat-square)](https://www.nuget.org/packages/AutoSpectre.SourceGeneration)
 
 # Auto Spectre
+
 Source generator project to generate classes that can be used in a console to prompt for values using Spectre.Console
 
 ## Short Guide
-Decorate a class with the AutoSpectreForm attribute and then decorate the properties (must be settable) with AskAttribute. 
+
+Decorate a class with the AutoSpectreForm attribute and then decorate the properties (must be settable) with AskAttribute.
 
 ### Example input
 
@@ -37,9 +39,10 @@ Decorate a class with the AutoSpectreForm attribute and then decorate the proper
  }
 ```
 
-Behind the scenes this will generate an interface factory and implentation using `Spectre.Console` to prompt for the values. 
+Behind the scenes this will generate an interface factory and implentation using `Spectre.Console` to prompt for the values.
 
-### Example output ###
+### Example output
+
 ```csharp
  public interface ISomeclassSpectreFactory
  {
@@ -101,7 +104,7 @@ Behind the scenes this will generate an interface factory and implentation using
  }
 ```
 
-### How to call ###
+### How to call
 
 ```csharp
 ISomeClassSpectreFactory factory = new SomeClassSpectreFactory();
@@ -115,7 +118,7 @@ factory.Get(someclass);
 
 ### Multiselect
 
-if you use the AskType.Selection combined with a IEnumerable type the user will be presented with a multiselect. 
+if you use the AskType.Selection combined with a IEnumerable type the user will be presented with a multiselect.
 
 This property
 
@@ -125,6 +128,7 @@ public string[] ArrayMultiSelect { get; set; } = Array.Empty<string>();
 ```
 
 Will become
+
 ```csharp
 destination.ArrayMultiSelect = AnsiConsole.Prompt(new MultiSelectionPrompt<string>().Title("Enter [green]ArrayMultiSelect[/]").PageSize(10).AddChoices(destination.Items.ToArray())).ToArray();
 ```
@@ -135,10 +139,11 @@ With the prompt below
 
 ### Strategy
 
-The multiselection prompt always returns List of given type. In the above example (`List<string>`) But AutoSpectre will attempt to adjust to the property type. 
+The multiselection prompt always returns List of given type. In the above example (`List<string>`) But AutoSpectre will attempt to adjust to the property type.
+
 * Array will result in a ToList()
 * HashSet will be initalized with new HashSet<>
-* Immutable collection types will append ToImmutable{Type}() 
+* Immutable collection types will append ToImmutable{Type}()
 * Interfaces like `IList<T>` `ICollection<T>` `IEnumerable<T>` `IReadOnlyCollection<T>` `IReadOnlyList<T>` have their values directly set as `List<T>` inherit directly from them
 
 ### Example
@@ -170,6 +175,7 @@ public class CollectionSample
 ```
 
 #### Generated
+
 ```csharp
 public interface ICollectionSampleSpectreFactory
 {
@@ -224,6 +230,7 @@ public class ConverterForms
 ```
 
 #### Generated
+
 ```csharp
 public class ConverterFormsSpectreFactory : IConverterFormsSpectreFactory
 {
@@ -237,3 +244,37 @@ public class ConverterFormsSpectreFactory : IConverterFormsSpectreFactory
 }
 ```
 
+## Conventions
+
+The following conventions come into play
+
+### SelectionSource
+
+You can leave out the SelectionSource in the Ask Attribute if you have a property or method that is named {NameOfProperty}Source and have the correct structure ( No input parameters and returns an enumerable of the type of the given property)
+
+#### Example
+
+```csharp
+[Ask(AskType = AskType.Selection)]
+public string Name { get; set; }
+
+public IEnumerable<string> NameSource()
+{
+    yield return "John Doe";
+    yield return "Jane Doe";
+    yield return "John Smith";
+}
+```
+
+### Converter
+
+You can also leave out the Converter in the Ask Attribute if you have a method with the name {NameOfProperty}Converter and the correct structure (One parameter of the same type as the property and returning a string)
+
+#### Example
+
+```csharp
+[Ask(AskType = AskType.Selection)]
+public FullName Name { get; set; }
+
+public string NameConverter(FullName name) => $"{name.FirstName} {name.LastName}";
+```

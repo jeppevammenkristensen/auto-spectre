@@ -226,7 +226,7 @@ namespace Test;
                     [AutoSpectreForm]
                     public class TestForm 
                     {
-                        [Ask(AskType = AskType.Selection, SelectionSource = nameof(ListOfOther))]
+                        [Ask(AskType = AskType.Selection)]
                         public List<OtherTest.OtherClass> Other {get;set;}
 
                         public string OtherConverter(OtherTest.OtherClass other)
@@ -235,7 +235,7 @@ namespace Test;
                         }
 
                        
-                        public List<OtherTest.OtherClass> ListOfOther {get;set;} = new ();
+                        public List<OtherTest.OtherClass> OtherSource {get;set;} = new ();
                     }                   
                 }
 

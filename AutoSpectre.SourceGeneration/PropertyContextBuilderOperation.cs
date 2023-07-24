@@ -77,17 +77,13 @@ internal class PropertyContextBuilderOperation
 
         foreach (var (property, attributeData) in PropertyCandidates)
         {
-            var (nullable, originalType) = property.Type.GetTypeWithNullableInformation();
-            var (enumerable, underlying) = property.Type.IsEnumerableOfTypeButNotString();
-            
-            var  propertyEvaluationContext =
-                new SinglePropertyEvaluationContext(property: property,isNullable: nullable, type: originalType, isEnumerable: enumerable, underlyingType: underlying);
+            var propertyContext = GenerateSinglePropertyEvaluationContext(property);
 
             if (attributeData.AskType == AskTypeCopy.Normal)
             {
-                if (!propertyEvaluationContext.IsEnumerable)
+                if (!propertyContext.IsEnumerable)
                 {
-                    if (GetNormalPromptBuildContext(attributeData.Title, propertyEvaluationContext) is
+                    if (GetNormalPromptBuildContext(attributeData.Title, propertyContext) is
                         { } promptBuildContext)
                     {
                         propertyContexts.Add(new(property.Name, property,
@@ -96,65 +92,76 @@ internal class PropertyContextBuilderOperation
                 }
                 else
                 {
-                    if (GetNormalPromptBuildContext(attributeData.Title, propertyEvaluationContext) is
+                    if (GetNormalPromptBuildContext(attributeData.Title, propertyContext) is
                         { } promptBuildContext)
                     {
-                        propertyContexts.Add(new(property.Name, property, new MultiAddBuildContext(propertyEvaluationContext.Type, propertyEvaluationContext.UnderlyingType, types, promptBuildContext)));
+                        propertyContexts.Add(new(property.Name, property, new MultiAddBuildContext(propertyContext.Type, propertyContext.UnderlyingType, types, promptBuildContext)));
                     }
                 }
             }
 
             if (attributeData.AskType == AskTypeCopy.Selection)
             {
-                EvaluateSelectionConverter(attributeData, propertyEvaluationContext);
-                
-                if (attributeData.SelectionSource is { })
-                {
-                    var match = TargetType
-                        .GetMembers()
-                        .Where(x => x.Name == attributeData.SelectionSource)
-                        .FirstOrDefault(x => x is IMethodSymbol
-                        {
-                            Parameters.Length: 0
-                        } or IPropertySymbol {GetMethod: { }});
+                EvaluateSelectionConverter(attributeData, propertyContext);
 
-                    if (match is { })
+                var selectionSource = attributeData.SelectionSource ?? $"{propertyContext.Property.Name}Source";
+
+                var match = TargetType
+                    .GetMembers()
+                    .Where(x => x.Name == selectionSource)
+                    .FirstOrDefault(x => x is IMethodSymbol
                     {
-                        SelectionPromptSelectionType selectionType = match switch
-                        {
-                            IMethodSymbol => SelectionPromptSelectionType.Method,
-                            IPropertySymbol => SelectionPromptSelectionType.Property,
-                            _ => throw new NotSupportedException(),
-                        };
-                        if (!propertyEvaluationContext.IsEnumerable)
-                        {
-                            propertyContexts.Add(new(property.Name, property,
-                                new SelectionPromptBuildContext(attributeData.Title, propertyEvaluationContext,
-                                    attributeData.SelectionSource, selectionType)));
-                        }
-                        else
-                        {
-                            propertyContexts.Add(new(property.Name, property,
-                                new MultiSelectionBuildContext(title: attributeData.Title,
-                                    propertyEvaluationContext,
-                                    selectionTypeName: attributeData.SelectionSource,
-                                    selectionType: selectionType, types)));
-                        }
+                        Parameters.Length: 0
+                    } or IPropertySymbol { GetMethod: { } });
+
+                if (match is { })
+                {
+                    SelectionPromptSelectionType selectionType = match switch
+                    {
+                        IMethodSymbol => SelectionPromptSelectionType.Method,
+                        IPropertySymbol => SelectionPromptSelectionType.Property,
+                        _ => throw new NotSupportedException(),
+                    };
+                    if (!propertyContext.IsEnumerable)
+                    {
+                        propertyContexts.Add(new(property.Name, property,
+                            new SelectionPromptBuildContext(attributeData.Title, propertyContext,
+                                selectionSource, selectionType)));
                     }
-                    else
+                    else 
                     {
-                        ProductionContext.ReportDiagnostic(Diagnostic.Create(
-                            new("AutoSpectre_JJK0005",
-                                "Not a valid selection source",
-                                $"The selectionsource {attributeData.SelectionSource} was not found on type",
-                                "General", DiagnosticSeverity.Warning, true),
-                            property.Locations.FirstOrDefault()));
+                        propertyContexts.Add(new(property.Name, property,
+                            new MultiSelectionBuildContext(title: attributeData.Title,
+                                propertyContext,
+                                selectionTypeName: selectionSource,
+                                selectionType: selectionType, types)));
                     }
                 }
+                else
+                {
+                    ProductionContext.ReportDiagnostic(Diagnostic.Create(
+                        new("AutoSpectre_JJK0005",
+                            "Not a valid selection source",
+                            $"The selectionsource {attributeData.SelectionSource} was not found on type",
+                            "General", DiagnosticSeverity.Warning, true),
+                        property.Locations.FirstOrDefault()));
+                }
+
             }
         }
 
         return propertyContexts;
+    }
+
+    private static SinglePropertyEvaluationContext GenerateSinglePropertyEvaluationContext(IPropertySymbol property)
+    {
+        var (nullable, originalType) = property.Type.GetTypeWithNullableInformation();
+        var (enumerable, underlying) = property.Type.IsEnumerableOfTypeButNotString();
+
+        var propertyEvaluationContext =
+            new SinglePropertyEvaluationContext(property: property, isNullable: nullable, type: originalType,
+                isEnumerable: enumerable, underlyingType: underlying);
+        return propertyEvaluationContext;
     }
 
     /// <summary>
