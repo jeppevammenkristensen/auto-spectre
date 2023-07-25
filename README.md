@@ -244,6 +244,85 @@ public class ConverterFormsSpectreFactory : IConverterFormsSpectreFactory
 }
 ```
 
+## Validation
+
+You can define validation by using the `Validator` property on the `AskAttribute` or by following the {PropertyName}Validator convention. Validation will only take effect on AskType normal.
+
+The method being pointed to should return a nullable string. If validation is succesfull `null` should be returned, otherwise the validation error text message should be returned.
+
+Based on the return type there are two types of parameters needed
+
+* Single property. It's expected that the method has one parameter that is the same as the property
+* Enumerable property. It's expected that the first parameter is an IEnumerable of the property type and the second parameter is the type
+
+### Example
+
+```csharp
+[Ask(Validator = nameof(ValidateAge))]
+public int Age { get; set; }
+
+[Ask()]
+public int[] Ages { get; set; } = Array.Empty<int>();
+
+public string? AgesValidator(List<int> items, int item)
+{
+    if (ValidateAge(item) is { } error)
+        return error;
+    
+    if (items?.Contains(item) == true)
+    {
+        return $"{item} allready added";
+    }
+
+    return null;
+}
+
+public string? ValidateAge(int age)
+{
+    return age >= 18 ? null : "Age must be at least 18";
+}
+```
+
+### Generated
+
+```csharp
+destination.Age = AnsiConsole.Prompt(new TextPrompt<int>("Enter [green]Age[/]").Validate(
+ctx =>
+{
+    var result = destination.ValidateAge(ctx);
+    return result == null ? ValidationResult.Success() : ValidationResult.Error(result);
+}));
+// Prompt for values for destination.Ages
+{
+    List<int> items = new List<int>();
+    bool continuePrompting = true;
+    do
+    {
+        bool valid = false;
+        while (!valid)
+        {
+            var item = AnsiConsole.Prompt(new TextPrompt<int>("Enter [green]Ages[/]"));
+            var validationResult = destination.AgesValidator(items, item);
+            if (validationResult is { } error)
+            {
+                AnsiConsole.MarkupLine($"[red]{error}[/]");
+                valid = false;
+            }
+            else
+            {
+                valid = true;
+                items.Add(item);
+            }
+        }
+
+        continuePrompting = AnsiConsole.Confirm("Add more items?");
+    }
+    while (continuePrompting);
+    int[] result = items.ToArray();
+    destination.Ages = result;
+}
+```
+
 ## Conventions
 
 The following conventions come into play
@@ -268,7 +347,7 @@ public IEnumerable<string> NameSource()
 
 ### Converter
 
-You can also leave out the Converter in the Ask Attribute if you have a method with the name {NameOfProperty}Converter and the correct structure (One parameter of the same type as the property and returning a string)
+You can also leave out the `Converter` in the `AskAttribute` if you have a method with the name {NameOfProperty}Converter and the correct structure (One parameter of the same type as the property and returning a string)
 
 #### Example
 
@@ -278,3 +357,20 @@ public FullName Name { get; set; }
 
 public string NameConverter(FullName name) => $"{name.FirstName} {name.LastName}";
 ```
+
+### Validation
+
+It's possible to leave out the `Validator` in the `AskAttribute` if you have a method with the name {NameOfProperty}Validator and the correct structure (see the part about Validation)
+
+#### Example
+
+```csharp
+[Ask]
+public int Age {get;set;}
+
+public string? AgeValidator(int age)
+{
+    return age >= 18 ? null : "Age must be at least 18";
+}
+```
+
