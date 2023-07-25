@@ -21,14 +21,14 @@ public class TextPromptBuildContextTests
     [Fact]
     public void StringTypeNotNullGeneratesExpectedOutput()
     {
-        var propertyType = FindFirstPropertyAndReturnTypeAsITypeSymbol("""
+        var propertyContext = FindFirstPropertyAndReturnTypeAsITypeSymbol("""
             public class TestClass 
             {
                 public string Somestring {get;set;}
             }
             """);
         
-            TextPromptBuildContext sut = new("Custom title", propertyType, false);
+            TextPromptBuildContext sut = new("Custom title", propertyContext.Type, false, propertyContext);
             var generateOutput = sut.GenerateOutput("dest");
             generateOutput.Should().Be("""
 dest = AnsiConsole.Prompt(
@@ -44,15 +44,15 @@ new TextPrompt<string>("Custom title")
         var propertyType = FindFirstPropertyAndReturnTypeAsITypeSymbol("""
             public class TestClass 
             {
-                public string Somestring {get;set;}
+                public string? Somestring {get;set;}
             }
             """);
 
-        TextPromptBuildContext sut = new("Custom title", propertyType, true);
+        TextPromptBuildContext sut = new("Custom title", propertyType.Type, propertyType.IsNullable, propertyType);
         var generateOutput = sut.GenerateOutput("dest");
         generateOutput.Should().Be("""
 dest = AnsiConsole.Prompt(
-new TextPrompt<string>("Custom title")
+new TextPrompt<string?>("Custom title")
 .AllowEmpty()
 );
 """);
@@ -78,9 +78,8 @@ new TextPrompt<string>("Custom title")
         syntaxNode = syntaxTree.GetRoot();
     }
 
-    private ITypeSymbol FindFirstPropertyAndReturnTypeAsITypeSymbol(string code)
+    private SinglePropertyEvaluationContext FindFirstPropertyAndReturnTypeAsITypeSymbol(string code)
     {
-
         Test(code, out var semanticModel, out var syntaxNode);
 
         var firstProperty = syntaxNode.DescendantNodes().OfType<PropertyDeclarationSyntax>()
@@ -89,7 +88,7 @@ new TextPrompt<string>("Custom title")
 
         if (semanticModel.GetDeclaredSymbol(firstProperty!) is { } property)
         {
-            return property.Type;
+            return SinglePropertyEvaluationContext.GenerateFromPropertySymbol(property);
         }
 
         Assert.Fail($"Could not retrieve property from {code}");

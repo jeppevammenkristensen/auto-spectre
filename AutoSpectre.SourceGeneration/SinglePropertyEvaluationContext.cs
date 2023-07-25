@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using AutoSpectre.SourceGeneration.Extensions;
+using Microsoft.CodeAnalysis;
 
 namespace AutoSpectre.SourceGeneration;
 
@@ -22,4 +23,15 @@ internal class SinglePropertyEvaluationContext
     public ConfirmedConverter? ConfirmedConverter { get; set; }
     
     public ConfirmedValidator? ConfirmedValidator { get; set; }
+    
+    public static SinglePropertyEvaluationContext GenerateFromPropertySymbol(IPropertySymbol property)
+    {
+        var (nullable, originalType) = property.Type.GetTypeWithNullableInformation();
+        var (enumerable, underlying) = property.Type.IsEnumerableOfTypeButNotString();
+
+        var propertyEvaluationContext =
+            new SinglePropertyEvaluationContext(property: property, isNullable: nullable, type: originalType,
+                isEnumerable: enumerable, underlyingType: underlying);
+        return propertyEvaluationContext;
+    }
 }

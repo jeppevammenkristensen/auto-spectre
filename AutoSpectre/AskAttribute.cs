@@ -49,6 +49,8 @@ namespace AutoSpectre
         /// Converter
         /// </summary>
         public string? Converter { get; set; }
+        
+        public string? Validator { get; set; }
     }
 
     public enum AskType
