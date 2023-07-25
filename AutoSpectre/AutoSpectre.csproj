@@ -10,7 +10,7 @@
     <Authors>Jeppe Roi Kristensen</Authors>
     <RepositoryUrl>https://github.com/jeppevammenkristensen/auto-spectre</RepositoryUrl>
     <PackageReleaseNotes>Added better summaries for classes</PackageReleaseNotes>
-    <PackageReadmeFile>README.md</PackageReadmeFile>    
+    <PackageReadmeFile>Readme.md</PackageReadmeFile>    
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
