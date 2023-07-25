@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Dynamic;
+using System.Linq;
 using AutoSpectre;
+using Spectre.Console;
 
 namespace Test
 {
@@ -10,12 +12,15 @@ namespace Test
     {
         static void Main(string[] args)
         {
-            var converter = new ConverterForms2SpectreFactory();
-            var converterForm = converter.Get();
+            var forms = new ValidateClassSpectreFactory();
+            var other = forms.Get();
             int i = 0;
         }
     }
 
+ 
+
+   
     public enum SomeEnum
     {
         Red,
@@ -23,41 +28,85 @@ namespace Test
         Refactor
     }
 
-   
-    public class Other
+    public class ValidateClassSpectreFactory
     {
-        [Ask]
-        public string Name { get; set; }
+        public ValidateClass Get(ValidateClass destination = null)
+        {
+            destination ??= new Test.ValidateClass();
+            // Prompt for values for destination.Name
+            {
+                List<string> items = new List<string>();
+                bool continuePrompting = true;
+                do
+                {
+                    bool valid = false;
+                    while (!valid)
+                    {
+                        var item = AnsiConsole.Prompt(new TextPrompt<string>("Enter [green]Name[/]"));
+                        var validationResult = destination.ValidateName(items, item);
+                        if (validationResult is { } error)
+                        {
+                            AnsiConsole.MarkupLine($"[red]{error}[/]");
+                            valid = false;
+                        }
+                        else
+                        {
+                            valid = true;
+                            items.Add(item);
+                        }
+                    }
+
+                    continuePrompting = AnsiConsole.Confirm("Add more items?");
+                }
+                while (continuePrompting);
+                string[] result = items.ToArray();
+                destination.Name = result;
+            }
+
+            return destination;
+        }
     }
 
-    [AutoSpectreForm]
-    public class ConverterForms2
+    public class ValidateClass
     {
-        [Ask(AskType = AskType.Selection, SelectionSource = nameof(OtherSource), Converter = nameof(Other2Converter))] 
-        public List<Other> Other { get; set; }
+        [Ask(Validator=nameof(ValidateName))]
+        public string[] Name { get; set;}
 
-        public List<Other> OtherSource => new List<Other>()
+        public string? ValidateName(List<string> items,string name)
         {
-            new Other() { Name = "Jeppe" }
-        };
+            if (items.Contains(name))
+                return $"{name} exists";
 
-        public string Other2Converter(Other other)
-        {
-            return string.Empty;
+            return null;
         }
     }
 
 
-    [AutoSpectreForm]
-    public class Name
-    {
-        [Ask]
-        public string FirstName { get; set; }
+    //[AutoSpectreForm]
+    //public class Name
+    //{
+    //    [Ask(Validator = nameof(FirstNameValidator))]
+    //    public string[] Names { get; set; }
 
-        [Ask]
-        public string LastName { get; set; }
+    //    public string? FirstNameValidator(string firstName)
+    //    {
+    //        if (Names?.Contains(firstName) == true)
+    //        {
+    //            return $"{firstName} has allready been added";
+    //        }
 
-    }
+    //        return null;
+    //    }
+
+    //    public string? FirstNameValidator(IReadOnlyList<string> collection, string name)
+    //    {
+
+    //    }
+
+    //    [Ask]
+    //    public string LastName { get; set; }
+
+    //}
 
     [AutoSpectreForm]
     public class ConverterForm
@@ -107,11 +156,11 @@ namespace Test
         [Ask(Title = "Choose your [red]value[/]")]
         public SomeEnum Other { get; set; }
 
-        [Ask] 
-        public Name Owner { get; set; } = new Name(); 
+        //[Ask] 
+        //public Name Owner { get; set; } = new Name(); 
 
-        [Ask]
-        public IReadOnlyList<Name> Investors { get; set; } = new List<Name>();
+        //[Ask]
+        //public IReadOnlyList<Name> Investors { get; set; } = new List<Name>();
 
         [Ask(AskType = AskType.Selection, SelectionSource = nameof(Items))]
         public string Item { get; set; } = string.Empty;

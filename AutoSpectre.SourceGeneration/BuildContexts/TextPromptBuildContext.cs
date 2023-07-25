@@ -5,17 +5,18 @@ using Spectre.Console;
 
 namespace AutoSpectre.SourceGeneration.BuildContexts;
 
-public class TextPromptBuildContext : PromptBuildContext
+internal class TextPromptBuildContext : PromptBuilderContextWithPropertyContext
 {
     public string Title { get; }
     public ITypeSymbol TypeSymbol { get; }
     public bool Nullable { get; }
 
-    public TextPromptBuildContext(string title, ITypeSymbol typeSymbol, bool nullable)
+    public TextPromptBuildContext(string title, ITypeSymbol typeSymbol, bool nullable,
+        SinglePropertyEvaluationContext context) : base(context)
     {
         Title = title;
         TypeSymbol = typeSymbol;
-        Nullable = nullable;
+        Nullable = context.IsNullable;
     }
 
     public override string GenerateOutput(string destination)
@@ -32,6 +33,17 @@ public class TextPromptBuildContext : PromptBuildContext
         if (Nullable)
         {
             builder.AppendLine(".AllowEmpty()");
+        }
+
+        if (Context.ConfirmedValidator is { SingleValidation:true })
+        {
+            builder.AppendLine(
+                $$"""
+.Validate(ctx => {
+    var result = destination.{{Context.ConfirmedValidator.Name}}(ctx);
+    return result == null ? ValidationResult.Success() : ValidationResult.Error(result);
+})
+""");
         }
 
         builder.Append(")");

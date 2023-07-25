@@ -19,10 +19,15 @@ public class PropertyWithAskAttributeData
         var askType = attributeData.GetValue<AskTypeCopy>("AskType");
         var selectionSource = attributeData.GetValue<string?>("SelectionSource") ?? null;
         var converter = attributeData.GetValue<string?>("Converter") ?? null;
-        
+        var validator = attributeData.GetValue<string>(nameof(AskAttribute.Validator));
         
         TranslatedAskAttribute =
-            new TranslatedAskAttributeData(askType: askType, selectionSource: selectionSource, title: title, converter: converter);
+            new TranslatedAskAttributeData(
+                askType: askType,
+                selectionSource: selectionSource,
+                title: title,
+                converter: converter,
+                validator: validator);
     }
 
     public void Deconstruct(out IPropertySymbol property, out TranslatedAskAttributeData attributeData)

@@ -8,36 +8,6 @@ using Microsoft.CodeAnalysis;
 
 namespace AutoSpectre.SourceGeneration;
 
-internal class SinglePropertyEvaluationContext
-{
-    public SinglePropertyEvaluationContext(IPropertySymbol property, bool isNullable, ITypeSymbol type, bool isEnumerable, ITypeSymbol underlyingType)
-    {
-        Property = property;
-        IsNullable = isNullable;
-        Type = type;
-        IsEnumerable = isEnumerable;
-        UnderlyingType = underlyingType;
-    }
-
-    public IPropertySymbol Property { get; }
-    public bool IsNullable { get; }
-    public ITypeSymbol Type { get; }
-    public bool IsEnumerable { get; }
-    public ITypeSymbol? UnderlyingType { get; }
-    
-    public ConfirmedConverter? ConfirmedConverter { get; set; }
-}
-
-internal class ConfirmedConverter
-{
-    public string Converter { get; }
-
-    public ConfirmedConverter(string converter)
-    {
-        Converter = converter;
-    }
-}
-
 internal class PropertyContextBuilderOperation
 {
     public GeneratorAttributeSyntaxContext SyntaxContext { get; }
@@ -77,10 +47,12 @@ internal class PropertyContextBuilderOperation
 
         foreach (var (property, attributeData) in PropertyCandidates)
         {
-            var propertyContext = GenerateSinglePropertyEvaluationContext(property);
+            var propertyContext = SinglePropertyEvaluationContext.GenerateFromPropertySymbol(property);
 
             if (attributeData.AskType == AskTypeCopy.Normal)
             {
+                EvaluateValidation(propertyContext, attributeData);
+                
                 if (!propertyContext.IsEnumerable)
                 {
                     if (GetNormalPromptBuildContext(attributeData.Title, propertyContext) is
@@ -153,17 +125,6 @@ internal class PropertyContextBuilderOperation
         return propertyContexts;
     }
 
-    private static SinglePropertyEvaluationContext GenerateSinglePropertyEvaluationContext(IPropertySymbol property)
-    {
-        var (nullable, originalType) = property.Type.GetTypeWithNullableInformation();
-        var (enumerable, underlying) = property.Type.IsEnumerableOfTypeButNotString();
-
-        var propertyEvaluationContext =
-            new SinglePropertyEvaluationContext(property: property, isNullable: nullable, type: originalType,
-                isEnumerable: enumerable, underlyingType: underlying);
-        return propertyEvaluationContext;
-    }
-
     /// <summary>
     /// Evalutes the Converter set on the attributeData. If it's correct a valid converter is set on the context.
     /// if it is set but not valid a warning is reported.
@@ -194,16 +155,18 @@ internal class PropertyContextBuilderOperation
             return false;
         }
 
-        var match = TargetType
+        var candidates = TargetType
             .GetMembers()
             .Where(x => x.Name == converterName)
-            .FirstOrDefault(ConverterMethodOrProperty);
-
+            .ToList();
+        
+        var match = candidates.FirstOrDefault(ConverterMethodOrProperty);
+        
         if (match is { })
         {
             context.ConfirmedConverter = new ConfirmedConverter(converterName);
         }
-        else if (!guessed)
+        else if (!guessed || candidates.Count > 0)
         {
             ProductionContext.ReportDiagnostic(Diagnostic.Create(
                 new("AutoSpectre_JJK0008", $"Converter {attributeData.Converter} should be a method taking a {context.UnderlyingType} as input and return string on the class",
@@ -211,7 +174,7 @@ internal class PropertyContextBuilderOperation
                 context.Property.Locations.FirstOrDefault()));
         }
     }
-    
+
     public PromptBuildContext? GetNormalPromptBuildContext(string title, SinglePropertyEvaluationContext evaluationContext)
     {
         var type = evaluationContext.IsEnumerable ? evaluationContext.UnderlyingType : evaluationContext.Type;
@@ -254,7 +217,83 @@ internal class PropertyContextBuilderOperation
 
         else 
         {
-            return new TextPromptBuildContext(title, type,evaluationContext.IsNullable);
+            return new TextPromptBuildContext(title, type,evaluationContext.IsNullable, evaluationContext);
         }
     }
+
+    private void EvaluateValidation(SinglePropertyEvaluationContext propertyContext,
+        TranslatedAskAttributeData attributeData)
+    {
+        bool isGuess = attributeData.Validator == null;
+        string validator = attributeData.Validator ?? $"{propertyContext.Property.Name}Validator";
+        var type = propertyContext.IsEnumerable ? propertyContext.UnderlyingType : propertyContext.Type;
+
+        bool IsMethodMatch(ISymbol symbol)
+        {
+            if (symbol is IMethodSymbol methodSymbol)
+            {
+                if (propertyContext.IsEnumerable)
+                {
+                    if (methodSymbol.Parameters.Length == 2)
+                    {
+                        var first = methodSymbol.Parameters[0];
+                        var second = methodSymbol.Parameters[1];
+
+                        var (isEnumerable, underlyingType) = first.Type.IsEnumerableOfTypeButNotString();
+                        if (isEnumerable && SymbolEqualityComparer.Default.Equals(underlyingType, type))
+                        {
+                            if (SymbolEqualityComparer.Default.Equals(second.Type, type))
+                            {
+                                if (methodSymbol.ReturnType.SpecialType == SpecialType.System_String)
+                                {
+                                    return true;
+                                }    
+                            }
+                        }
+                    }
+                }
+                else if (methodSymbol.Parameters.FirstOrDefault() is { } firstParameter)
+                {
+                    if (SymbolEqualityComparer.Default.Equals(firstParameter.Type,
+                            type))
+                    {
+                        if (methodSymbol.ReturnType.SpecialType == SpecialType.System_String)
+                        {
+                            return true;
+                        }
+                    }
+                    
+                }
+            }
+
+            return false;
+        }
+
+        var candidates = 
+            TargetType.GetMembers(validator)
+                .ToList();
+
+        var match = candidates.FirstOrDefault(IsMethodMatch);
+
+        if (match is { })
+        {
+            propertyContext.ConfirmedValidator = new ConfirmedValidator(validator, !propertyContext.IsEnumerable);
+        }
+        else if (candidates.Count > 0)
+        {
+            ProductionContext.ReportDiagnostic(Diagnostic.Create(
+                new(DiagnosticIds.Id0008_ValidatorNameMatchInvalid, $"Found name matches for {validator} but they were not valid",
+                    $"{candidates.Count} matches where found. But they did not match having a parameter of type {propertyContext.Type} and return type string", "General", DiagnosticSeverity.Warning, true),
+                propertyContext.Property.Locations.FirstOrDefault()));
+        }
+        else if (!isGuess)
+        {
+            ProductionContext.ReportDiagnostic(Diagnostic.Create(
+                new(DiagnosticIds.Id0009_ValidatorNameNotFound, $"Did not find name matches for {validator}",
+                    $"No candiates where found with name {validator}", "General", DiagnosticSeverity.Warning, true),
+                propertyContext.Property.Locations.FirstOrDefault()));
+        }
+    }
+    
+    
 }

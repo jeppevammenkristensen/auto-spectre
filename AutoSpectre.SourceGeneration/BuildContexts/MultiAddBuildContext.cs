@@ -17,12 +17,18 @@ public class MultiAddBuildContext : PromptBuildContext
     private readonly LazyTypes _lazyTypes;
     private readonly PromptBuildContext _buildContext;
 
+    private readonly SinglePropertyEvaluationContext? _childEvaluationContext;
+
     public MultiAddBuildContext(ITypeSymbol type, ITypeSymbol underlyingType,LazyTypes lazyTypes, PromptBuildContext buildContext)
     {
         _type = type;
         _underlyingType = underlyingType;
         _lazyTypes = lazyTypes;
         _buildContext = buildContext;
+        if (buildContext is PromptBuilderContextWithPropertyContext withContext)
+        {
+            _childEvaluationContext = withContext.Context;
+        }
     }
 
     public override string GenerateOutput(string destination)
@@ -72,19 +78,72 @@ public class MultiAddBuildContext : PromptBuildContext
     {
         if (_buildContext.DeclaresVariable)
         {
-            return $$"""
+            if (_childEvaluationContext?.ConfirmedValidator is {SingleValidation: false} validator)
+            {
+                return $$"""
+                    bool valid = false;
+
+                    while (!valid) {
+
+                        {{_buildContext.PromptPart("newItem")}};
+                        var validationResult = destination.{{validator.Name}}(items,newItem);
+                        if (validationResult is {} error)
+                        {
+                            AnsiConsole.MarkupLine($"[red]{error}[/]");
+                            valid = false;
+                        }
+                        else 
+                        {
+                            valid = true;
+                            items.Add(newItem);
+                        }
+                    }
+                    """;
+            }
+            else
+            {
+                return $$"""
             {
                 {{_buildContext.PromptPart("newItem")}}
                 items.Add(newItem);
             }
             """;
+            }
+            
         }
         else
         {
-            return $"""
+            if (_childEvaluationContext?.ConfirmedValidator is {SingleValidation: false} validator)
+            {
+                return $$"""
+                    bool valid = false;
+
+                    while (!valid) {
+
+                        var item = {{_buildContext.PromptPart()}};
+                        var validationResult = destination.{{validator.Name}}(items,item);
+                        if (validationResult is {} error)
+                        {
+                            AnsiConsole.MarkupLine($"[red]{error}[/]");
+                            valid = false;
+                        }
+                        else 
+                        {
+                            valid = true;
+                            items.Add(item);
+                        }
+                    }
+                    """;
+            }
+            else
+            {
+                return $"""
                 var item = {_buildContext.PromptPart()};
                 items.Add(item);
                 """;
+            }
+
+            
         }
         
     }
