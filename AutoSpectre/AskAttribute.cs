@@ -50,6 +50,9 @@ namespace AutoSpectre
         /// </summary>
         public string? Converter { get; set; }
         
+        /// <summary>
+        /// Point to a validator
+        /// </summary>
         public string? Validator { get; set; }
         
         /// <summary>
