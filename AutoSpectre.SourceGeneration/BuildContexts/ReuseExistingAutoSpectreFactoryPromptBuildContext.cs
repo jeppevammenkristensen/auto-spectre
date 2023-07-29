@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
+using System.Net.Mime;
 using System.Text;
 using AutoSpectre.SourceGeneration.Extensions;
 using Microsoft.CodeAnalysis;
 
 namespace AutoSpectre.SourceGeneration.BuildContexts;
 
-public class ReuseExistingAutoSpectreFactoryPromptBuildContext : PromptBuildContext
+internal class ReuseExistingAutoSpectreFactoryPromptBuildContext : PromptBuilderContextWithPropertyContext
 {
     public override bool DeclaresVariable => true;
 
@@ -20,7 +21,8 @@ public class ReuseExistingAutoSpectreFactoryPromptBuildContext : PromptBuildCont
     public string VariableName { get; set; }
 
 
-    public ReuseExistingAutoSpectreFactoryPromptBuildContext(string title, INamedTypeSymbol namedTypeSymbol, bool isNullable)
+    public ReuseExistingAutoSpectreFactoryPromptBuildContext(string title, INamedTypeSymbol namedTypeSymbol,
+        bool isNullable, SinglePropertyEvaluationContext context) : base(context)
     {
         Title = title;
         NamedTypeSymbol = namedTypeSymbol;
@@ -44,19 +46,46 @@ public class ReuseExistingAutoSpectreFactoryPromptBuildContext : PromptBuildCont
 
     public override string PromptPart(string? variableName = null)
     {
-        return $"""
+        if (Context.ConfirmedValidator == null || !Context.ConfirmedValidator.SingleValidation)
+        {
+            return $"""
             AnsiConsole.MarkupLine("{Title}");
             var {variableName ?? "item"} = {VariableName}.Get();
             """;
+        }
+        else
+        {
+            var usedVariable = variableName ?? "item";
+            return $$"""
+            {{Context.Type.ToDisplayString()}}? {{usedVariable}} = null;
+            bool isValid = false;
+
+            while (!isValid)
+            { 
+                AnsiConsole.MarkupLine("{{Title}}");
+                {{usedVariable}} = {{VariableName}}.Get();
+
+                if (destination.{{Context.ConfirmedValidator.Name}}({{usedVariable}}) is {} error)
+                {
+                    AnsiConsole.Markup("[red]{error}[/]");
+                    isValid = false;
+                }
+                else 
+                {
+                    isValid = true;
+                }
+            }
+            """;
+        }
     }
 
     public override IEnumerable<string> Namespaces()
     {
-        yield return TypeNamespace;
-    }
+            yield return TypeNamespace;
+                }
 
     public override IEnumerable<string> CodeInitializing()
     {
-        yield return $"""{FactoryInterface} {VariableName} = new {FactoryClassName}();""";
+            yield return $"""{FactoryInterface} {VariableName} = new {FactoryClassName}();""";
     }
 }

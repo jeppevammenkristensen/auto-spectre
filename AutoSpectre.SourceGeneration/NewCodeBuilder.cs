@@ -68,7 +68,7 @@ namespace {{ Type.ContainingNamespace}}
     {
         var builder = new StringBuilder();
 
-        foreach (var code in PropertyContexts.SelectMany(x => x.BuildContext.CodeInitializing()).Distinct())
+         foreach (var code in PropertyContexts.SelectMany(x => x.BuildContext.CodeInitializing()).Distinct())
         {
             builder.AppendLine(code);
         }

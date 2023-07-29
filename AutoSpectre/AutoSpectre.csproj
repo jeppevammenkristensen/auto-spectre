@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>0.2.3.0</Version>
+    <Version>0.2.3.2</Version>
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
@@ -9,7 +9,8 @@
     <Description>Classes used by the AutoSpectre.SourceGeneration package</Description>
     <Authors>Jeppe Roi Kristensen</Authors>
     <RepositoryUrl>https://github.com/jeppevammenkristensen/auto-spectre</RepositoryUrl>
-    <PackageReleaseNotes>Added better summaries for classes</PackageReleaseNotes>
+    <PackageReleaseNotes>Added icon</PackageReleaseNotes>
+    <PackageIcon>ghost.png</PackageIcon>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>    
   </PropertyGroup>
 
@@ -18,6 +19,10 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include="docs\Readme.md" Pack="true" PackagePath="\">
+    </None>
+    <None Include="images\ghost.png">
+      <Pack>true</Pack>
+      <PackagePath>\</PackagePath>
     </None>
   </ItemGroup>
 

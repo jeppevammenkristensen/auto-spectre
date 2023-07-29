@@ -194,7 +194,7 @@ internal class PropertyContextBuilderOperation
                 if (namedType.GetAttributes().FirstOrDefault(x =>
                         SymbolEqualityComparer.Default.Equals(x.AttributeClass,Types.AutoSpectreForm)) is { })
                 {
-                    return new ReuseExistingAutoSpectreFactoryPromptBuildContext(title, namedType, evaluationContext.IsNullable);
+                    return new ReuseExistingAutoSpectreFactoryPromptBuildContext(title, namedType, evaluationContext.IsNullable, evaluationContext);
                 }
                 else
                 {
@@ -273,7 +273,7 @@ internal class PropertyContextBuilderOperation
             TargetType.GetMembers(validator)
                 .ToList();
 
-        var match = candidates.FirstOrDefault(IsMethodMatch);
+         var match = candidates.FirstOrDefault(IsMethodMatch);
 
         if (match is { })
         {

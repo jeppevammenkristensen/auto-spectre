@@ -86,6 +86,96 @@ public class Example
                             items.Add(item);
                         }");
     }
+
+    [Fact]
+    public void PropertyPointingToEnumerableOfOtherClassDecoratedWithAutoSpectreFromReturnsExpected()
+    {
+        GetGeneratedOutput("""
+using AutoSpectre;
+using System.Collections.Generic;
+
+namespace Test;
+
+[AutoSpectreForm]
+public class Inner 
+{
+    [Ask]
+    public string Title {get;set;}
+}
+
+[AutoSpectreForm]
+public class Example
+{
+    [Ask()]
+    public Inner[] InnerItems { get; set; } = Array.Empty<Inner>();
+
+    public string? InnerItemsValidator(List<Inner> items, Inner item)
+    {
+        return null;
+    }   
+}
+""").Should().Contain("var validationResult = destination.InnerItemsValidator(items, newItem);");
+    }
+    
+    [Fact]
+    public void PropertyPointingToOtherClassDecoratedWithAutoSpectreFromReturnsExpected()
+    {
+        GetGeneratedOutput("""
+using AutoSpectre;
+using System.Collections.Generic;
+
+namespace Test;
+
+[AutoSpectreForm]
+public class Inner 
+{
+    [Ask]
+    public string Title {get;set;}
+}
+[AutoSpectreForm]
+public class Example
+{
+    [Ask()]
+    public Inner InnerItem { get; set; }
+
+    public string? InnerItemValidator(Inner item)
+    {
+        return null;
+    }   
+}
+""").Should().Contain("destination.InnerItemValidator(item)");
+    }
+    
+    [Fact]
+    public void PropertyPointingToListWithOtherClassDecoratedWithAutoSpectreFromReturnsExpected()
+    {
+        GetGeneratedOutput("""
+using AutoSpectre;
+using System.Collections.Generic;
+
+namespace Test;
+
+[AutoSpectreForm]
+public class Inner 
+{
+    [Ask]
+    public string Title {get;set;}
+}
+[AutoSpectreForm]
+public class Example
+{
+    [Ask()]
+    public Inner[] InnerItem { get; set; }
+
+    public string? InnerItemValidator(Inner[] items, Inner item)
+    {
+        return null;
+    }   
+}
+""").Should().Contain("destination.InnerItemValidator(items, newItem)");
+    }
+
+    
     
     [Fact]
     public void PropertyWithEnumerableResultValidatorByConventionReturnsExpected()

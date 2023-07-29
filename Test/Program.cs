@@ -12,59 +12,34 @@ namespace Test
     {
         static void Main(string[] args)
         {
-            var forms = new ValidateClassSpectreFactory();
-            var other = forms.Get();
-            int i = 0;
         }
     }
 
- 
 
+    [AutoSpectreForm]
+    public class MainForm
+    {
+        [Ask]
+        public TestClass Main { get; set; }
+
+        public string? MainValidator(TestClass main)
+        {
+            return string.Empty; 
+        }
+    }
+
+    [AutoSpectreForm]
+    public class TestClass
+    {
+        [Ask]
+        public string Name { get; set; }
+    }
    
     public enum SomeEnum
     {
         Red,
         Green,
         Refactor
-    }
-
-    public class ValidateClassSpectreFactory
-    {
-        public ValidateClass Get(ValidateClass destination = null)
-        {
-            destination ??= new Test.ValidateClass();
-            // Prompt for values for destination.Name
-            {
-                List<string> items = new List<string>();
-                bool continuePrompting = true;
-                do
-                {
-                    bool valid = false;
-                    while (!valid)
-                    {
-                        var item = AnsiConsole.Prompt(new TextPrompt<string>("Enter [green]Name[/]"));
-                        var validationResult = destination.ValidateName(items, item);
-                        if (validationResult is { } error)
-                        {
-                            AnsiConsole.MarkupLine($"[red]{error}[/]");
-                            valid = false;
-                        }
-                        else
-                        {
-                            valid = true;
-                            items.Add(item);
-                        }
-                    }
-
-                    continuePrompting = AnsiConsole.Confirm("Add more items?");
-                }
-                while (continuePrompting);
-                string[] result = items.ToArray();
-                destination.Name = result;
-            }
-
-            return destination;
-        }
     }
 
     public class ValidateClass

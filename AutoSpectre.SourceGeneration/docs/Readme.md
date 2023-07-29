@@ -97,3 +97,7 @@ This allows you to decorate a class with the `AutoSpectreForm` attribute and pro
      }
  }
 ```
+
+## Credits
+
+[Fear icons created by Smashicons - Flaticon](https://www.flaticon.com/free-icons/fear "fear icons")

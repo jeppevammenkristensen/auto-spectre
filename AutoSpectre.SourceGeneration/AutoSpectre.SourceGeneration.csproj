@@ -6,19 +6,20 @@
     <Nullable>enable</Nullable>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <IsRoslynComponent>true</IsRoslynComponent>
-    <Version>0.3.6.1</Version>
+    <Version>0.3.7.2</Version>
   </PropertyGroup>
 
   <PropertyGroup>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild> <!-- Generates a package at build -->
     <IncludeBuildOutput>false</IncludeBuildOutput> <!-- Do not include the generator as a lib dependency -->
     <Title>AutoSpectre Source Generation</Title>
+    <PackageIcon>ghost.png</PackageIcon>
     <Authors>Jeppe Roi Kristensen</Authors>
     <Description>A quick and dirty tool to generate a form through with a source generator that can collect data</Description>
     <PackageProjectUrl>https://github.com/jeppevammenkristensen/auto-spectre</PackageProjectUrl>
     <RepositoryUrl>https://github.com/jeppevammenkristensen/auto-spectre</RepositoryUrl>
     <PackageTags>C#;Source Generator</PackageTags>
-    <PackageReleaseNotes>Add conventions for Converter and SelectionSource</PackageReleaseNotes>
+    <PackageReleaseNotes>Fixed so validation also works when using a class decorated with AutoSpectreForm in another form</PackageReleaseNotes>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>
   </PropertyGroup>
   
@@ -27,6 +28,8 @@
     <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <InternalsVisibleTo Include="AutoSpectre.SourceGeneration.Tests" />
     <None Include="docs\Readme.md" Pack="true" PackagePath="\">      
+    </None>
+    <None Include="images\ghost.png" Pack="true" PackagePath="\">
     </None>
   </ItemGroup>
 
