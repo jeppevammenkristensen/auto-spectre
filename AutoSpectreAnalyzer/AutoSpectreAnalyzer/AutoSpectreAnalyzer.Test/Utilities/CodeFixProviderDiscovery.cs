@@ -20,7 +20,7 @@ namespace AutoSpectreAnalyzer.Test.Utilities
                 {
                     var discovery = new AttributedPartDiscovery(Resolver.DefaultInstance, isNonPublicSupported: true);
                     var parts = Task
-                        .Run(() => discovery.CreatePartsAsync(typeof(AutoSpectreAnalyzerCodeFixProvider).Assembly))
+                        .Run(() => discovery.CreatePartsAsync(typeof(AskAnalyzerCodeFixProvider).Assembly))
                         .GetAwaiter().GetResult();
                     var catalog = ComposableCatalog.Create(Resolver.DefaultInstance).AddParts(parts);
 

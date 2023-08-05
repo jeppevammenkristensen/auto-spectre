@@ -50,9 +50,6 @@ namespace Test;
 [AutoSpectreForm]
 public class Example
 {
-    // [Ask(Validator = nameof(ValidateAge) )]
-    // public int Age { get; set; }
-
     [Ask(Validator = nameof(ValidateAges))]
     public int[] Ages { get; set; } = Array.Empty<int>();
 
@@ -63,7 +60,7 @@ public class Example
         
         if (items?.Contains(item) == true)
         {
-            return $"{item} allready added";
+            return $"{item} already added";
         }
 
         return null;

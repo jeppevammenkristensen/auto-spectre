@@ -5,4 +5,6 @@
 
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
-AutospectreJJK_0001 | Ask | Info | AutoSpectreAnalyzerAnalyzer
+AS_0001 | Ask | Info | MissingAskAttributeAnalyzer
+AS_0002 | Ask | Info | MissingValidationAnalyzer
+

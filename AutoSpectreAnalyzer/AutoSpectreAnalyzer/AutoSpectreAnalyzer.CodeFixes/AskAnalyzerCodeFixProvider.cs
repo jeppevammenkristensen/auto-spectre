@@ -13,14 +13,14 @@ using Microsoft.CodeAnalysis.Formatting;
 
 namespace AutoSpectreAnalyzer
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(AutoSpectreAnalyzerCodeFixProvider)), Shared]
-    public class AutoSpectreAnalyzerCodeFixProvider : CodeFixProvider
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(AskAnalyzerCodeFixProvider)), Shared]
+    public class AskAnalyzerCodeFixProvider : CodeFixProvider
     {
         private static string CodeFixTitle = "Add ask attribute";
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            get { return ImmutableArray.Create(AutoSpectreAnalyzerAnalyzer.DiagnosticId); }
+            get { return ImmutableArray.Create(MissingAskAttributeAnalyzer.DiagnosticId); }
         }
 
         public sealed override FixAllProvider GetFixAllProvider()
