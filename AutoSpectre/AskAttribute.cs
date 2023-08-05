@@ -51,6 +51,14 @@ namespace AutoSpectre
         public string? Converter { get; set; }
         
         public string? Validator { get; set; }
+        
+        /// <summary>
+        ///  A reference to an boolean property or method to determine if the current ask attribute should be
+        /// presented to the user
+        /// </summary>
+        public string? Condition { get; set; }
+        
+        public bool NegateCondition { get; set; }
     }
 
     public enum AskType

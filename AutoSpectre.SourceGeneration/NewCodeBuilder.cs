@@ -1,4 +1,5 @@
-﻿using AutoSpectre.SourceGeneration.Extensions;
+﻿using System;
+using AutoSpectre.SourceGeneration.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -92,8 +93,46 @@ namespace {{ Type.ContainingNamespace}}
         StringBuilder builder = new();
         foreach (var propertyAndAttribute in this.PropertyContexts)
         {
-            builder.AppendLine(
-                $"{propertyAndAttribute.BuildContext.GenerateOutput($"destination.{propertyAndAttribute.PropertyName}")}");
+            void AddLine()
+            {
+                builder.AppendLine(
+                    $"{propertyAndAttribute.BuildContext.GenerateOutput($"destination.{propertyAndAttribute.PropertyName}")}");
+            }
+            
+            
+            if (propertyAndAttribute.BuildContext.Context.ConfirmedCondition is { } confirmedCondition)
+            {
+                var boolValue = confirmedCondition.Negate ? "false" : "true";
+                
+                if (confirmedCondition.SourceType == ConditionSource.Method)
+                {
+                    builder.AppendLine($"if (destination.{confirmedCondition.Condition}() == {boolValue})");
+                    
+                }
+                else if (confirmedCondition.SourceType == ConditionSource.Property)
+                {
+                    builder.AppendLine($"if (destination.{confirmedCondition.Condition} == {boolValue})");
+                }
+                else
+                {
+                    throw new InvalidOperationException("Unexpected condition type");
+                }
+                
+                
+                builder.AppendLine("{");
+                AddLine();
+                builder.AppendLine("}");
+            }
+            else
+            {
+                AddLine();
+            }
+            
+            
+            
+
+            
+            
         }
 
         return builder.ToString();

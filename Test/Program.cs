@@ -12,9 +12,21 @@ namespace Test
     {
         static void Main(string[] args)
         {
+            var splitFormSpectreFactory = new SplitFormSpectreFactory();
+            var splitForm = splitFormSpectreFactory.Get();
+            
         }
     }
 
+    [AutoSpectreForm]
+    public class SplitForm
+    {
+        [Ask(Title = "Use angry prompting")]
+        public bool AngryPrompting { get; set; }
+        
+        [Ask(Title ="[Red]What is your damn name?[/]", Condition = nameof(AngryPrompting), NegateCondition = true)]
+        public string AngryName { get; set; }
+    }
 
     [AutoSpectreForm]
     public class MainForm

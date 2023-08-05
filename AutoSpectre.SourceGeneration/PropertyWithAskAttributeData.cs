@@ -20,6 +20,8 @@ public class PropertyWithAskAttributeData
         var selectionSource = attributeData.GetValue<string?>("SelectionSource") ?? null;
         var converter = attributeData.GetValue<string?>("Converter") ?? null;
         var validator = attributeData.GetValue<string>(nameof(AskAttribute.Validator));
+        var condition = attributeData.GetValue<string>(nameof(AskAttribute.Condition));
+        var conditionNegated = attributeData.GetValue<bool>(nameof(AskAttribute.NegateCondition));
         
         TranslatedAskAttribute =
             new TranslatedAskAttributeData(
@@ -27,7 +29,9 @@ public class PropertyWithAskAttributeData
                 selectionSource: selectionSource,
                 title: title,
                 converter: converter,
-                validator: validator);
+                validator: validator,
+                condition: condition, 
+                conditionNegated);
     }
 
     public void Deconstruct(out IPropertySymbol property, out TranslatedAskAttributeData attributeData)

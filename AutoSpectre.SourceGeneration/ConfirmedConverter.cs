@@ -1,6 +1,6 @@
 namespace AutoSpectre.SourceGeneration;
 
-internal class ConfirmedConverter
+public class ConfirmedConverter
 {
     public string Converter { get; }
 

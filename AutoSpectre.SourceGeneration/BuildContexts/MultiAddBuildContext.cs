@@ -19,7 +19,8 @@ public class MultiAddBuildContext : PromptBuildContext
 
     private readonly SinglePropertyEvaluationContext? _childEvaluationContext;
 
-    public MultiAddBuildContext(ITypeSymbol type, ITypeSymbol underlyingType,LazyTypes lazyTypes, PromptBuildContext buildContext)
+    public MultiAddBuildContext(ITypeSymbol type, ITypeSymbol underlyingType, LazyTypes lazyTypes,
+        PromptBuildContext buildContext, SinglePropertyEvaluationContext context) : base(context)
     {
         _type = type;
         _underlyingType = underlyingType;

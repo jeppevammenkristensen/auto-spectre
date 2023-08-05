@@ -7,10 +7,18 @@ namespace AutoSpectre.SourceGeneration;
 
 public abstract class PromptBuildContext
 {
+    
+    public PromptBuildContext(SinglePropertyEvaluationContext context)
+    {
+        Context = context;
+    }
+
     public virtual bool DeclaresVariable
     {
         get { return false; }
     }
+
+    public SinglePropertyEvaluationContext Context { get; }
 
     public abstract string GenerateOutput(string destination);
 

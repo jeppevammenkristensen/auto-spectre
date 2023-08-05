@@ -1,6 +1,6 @@
 namespace AutoSpectre.SourceGeneration;
 
-internal class ConfirmedValidator
+public class ConfirmedValidator
 {
     public ConfirmedValidator(string name, bool singleValidation)
     {

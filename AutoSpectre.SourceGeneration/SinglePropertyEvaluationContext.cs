@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis;
 
 namespace AutoSpectre.SourceGeneration;
 
-internal class SinglePropertyEvaluationContext
+public class SinglePropertyEvaluationContext
 {
     public SinglePropertyEvaluationContext(IPropertySymbol property, bool isNullable, ITypeSymbol type, bool isEnumerable, ITypeSymbol underlyingType)
     {
@@ -23,7 +23,8 @@ internal class SinglePropertyEvaluationContext
     public ConfirmedConverter? ConfirmedConverter { get; set; }
     
     public ConfirmedValidator? ConfirmedValidator { get; set; }
-    
+    public ConfirmedCondition? ConfirmedCondition { get; set; }
+
     public static SinglePropertyEvaluationContext GenerateFromPropertySymbol(IPropertySymbol property)
     {
         var (nullable, originalType) = property.Type.GetTypeWithNullableInformation();

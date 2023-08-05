@@ -8,7 +8,8 @@ public class ConfirmPromptBuildContext : PromptBuildContext
     public ITypeSymbol Type { get; }
     public bool IsNullable { get; }
 
-    public ConfirmPromptBuildContext(string title, ITypeSymbol type, bool isNullable)
+    public ConfirmPromptBuildContext(string title, ITypeSymbol type, bool isNullable,
+        SinglePropertyEvaluationContext evaluationContext) : base(evaluationContext)
     {
         Title = title;
         Type = type;

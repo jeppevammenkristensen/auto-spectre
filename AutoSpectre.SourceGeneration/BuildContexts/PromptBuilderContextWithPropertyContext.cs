@@ -4,11 +4,8 @@ namespace AutoSpectre.SourceGeneration.BuildContexts;
 
 internal abstract class PromptBuilderContextWithPropertyContext : PromptBuildContext
 {
-    public SinglePropertyEvaluationContext Context { get; }
-
-    public PromptBuilderContextWithPropertyContext(SinglePropertyEvaluationContext context)
+    protected PromptBuilderContextWithPropertyContext(SinglePropertyEvaluationContext context) : base(context)
     {
-        Context = context;
     }
 
     protected virtual string GenerateConverter()

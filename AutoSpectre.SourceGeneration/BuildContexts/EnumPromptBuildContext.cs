@@ -9,7 +9,8 @@ public class EnumPromptBuildContext : PromptBuildContext
     public ITypeSymbol Type { get; }
     public bool IsNullable { get; }
 
-    public EnumPromptBuildContext(string title, ITypeSymbol type, bool isNullable)
+    public EnumPromptBuildContext(string title, ITypeSymbol type, bool isNullable,
+        SinglePropertyEvaluationContext context) : base(context)
     {
         Title = title;
         Type = type;
