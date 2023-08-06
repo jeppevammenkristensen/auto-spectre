@@ -12,31 +12,71 @@ Decorate a class with the AutoSpectreForm attribute and then decorate the proper
 
 ```csharp
  [AutoSpectreForm]
- public class Someclass
- {
-     [Ask(AskType = AskType.Normal, Title = "Add item")] 
-     public int[] IntItems { get; set; } = Array.Empty<int>();
+public class Example
+{
+    [Ask(AskType = AskType.Normal, Title = "Add item")] 
+    public int[] IntItems { get; set; } = Array.Empty<int>();
 
-     [Ask(Title = "Enter first name")]
-     public string? FirstName { get; set; }
+    [Ask(Title = "Enter first name")]
+    public string? FirstName { get; set; }
 
-     [Ask]
-     public bool LeftHanded { get; set; }
+    [Ask]
+    public bool LeftHanded { get; set; }
 
-     [Ask(Title = "Choose your [red]value[/]")]
-     public SomeEnum Other { get; set; }
+    [Ask(Title = "Choose your [red]value[/]")]
+    public SomeEnum Other { get; set; }
 
-     [Ask] 
-     public Name Owner { get; set; } = new Name(); 
+    [Ask] 
+    public ChildFormClass ChildForm { get; set; } = new (); 
 
-     [Ask]
-     public IReadOnlyList<Name> Investors { get; set; } = new List<Name>();
+    [Ask]
+    public IReadOnlyList<ChildFormClass> Investors { get; set; } = new List<ChildFormClass>();
 
-     [Ask(AskType = AskType.Selection, SelectionSource = nameof(Items))]
-     public string Item { get; set; } = string.Empty;
+    
+    [Ask(AskType = AskType.Selection)]
+    //[Ask(AskType = AskType.Selection, SelectionSource = nameof(ItemSource))]
+    public string Item { get; set; } = string.Empty;
+    public List<string> ItemSource { get; } = new List<string>() { "Alpha", "Bravo", "Charlie" };
 
-     public List<string> Items { get; } = new List<string>() { "Alpha", "Bravo", "Charlie" };
- }
+    [Ask(AskType = AskType.Selection)]
+    //[Ask(AskType = AskType.Selection, Converter = nameof(SpecialProjectionConverter))]
+    public List<int> SpecialProjection { get; set; } = new();
+
+    public string SpecialProjectionConverter(int source) => $"Number {source}";
+    public List<int> SpecialProjectionSource { get; set; } = new(){1,2,3,4};
+    
+    [Ask]
+    // [Ask(Validator = nameof(EnterYearValidator))]
+    public int EnterYear { get; set; }
+
+    public string? EnterYearValidator(int year)
+    {
+        return year <= DateTime.Now.Year ? null : "Year cannot be larger than current year";
+    }
+
+    [Ask] public HashSet<string> Names { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+
+    public string? NamesValidator(List<string> items, string newItem)
+    {
+        if (newItem == "Foobar")
+            return "Cannot be Foobar";
+
+        if (items.Contains(newItem))
+            return $"{newItem} has already been added";
+
+        return null;
+    }
+    
+    [Ask]
+    public bool AddExistingName { get; set; }
+    
+    [Ask(Condition = nameof(AddExistingName))]
+    public string? ExistingName { get; set; }
+    
+    [Ask(Condition = nameof(AddExistingName), NegateCondition = true)]
+    public string? NewName { get; set; }
+    
+}
 ```
 
 Behind the scenes this will generate an interface factory and implentation using `Spectre.Console` to prompt for the values.
@@ -44,74 +84,124 @@ Behind the scenes this will generate an interface factory and implentation using
 ### Example output
 
 ```csharp
- public interface ISomeclassSpectreFactory
- {
-     Someclass Get(Someclass destination = null);
- }
+ public interface IExampleSpectreFactory
+{
+    Example Get(Example destination = null);
+}
 
- public class SomeclassSpectreFactory : ISomeclassSpectreFactory
- {
-     public Someclass Get(Someclass destination = null)
-     {
-         INameSpectreFactory NameSpectreFactory = new NameSpectreFactory();
-         destination ??= new Test.Someclass();
-         // Prompt for values for destination.IntItems
-         {
-             List<int> items = new List<int>();
-             bool continuePrompting = true;
-             do
-             {
-                 var item = AnsiConsole.Prompt(new TextPrompt<int>("Add item"));
-                 items.Add(item);
-                 continuePrompting = AnsiConsole.Confirm("Add more items?");
-             }
-             while (continuePrompting);
-             int[] result = items.ToArray();
-             destination.IntItems = result;
-         }
+public class ExampleSpectreFactory : IExampleSpectreFactory
+{
+    public Example Get(Example destination = null)
+    {
+        IChildFormClassSpectreFactory ChildFormClassSpectreFactory = new ChildFormClassSpectreFactory();
+        destination ??= new Test.Example();
+        // Prompt for values for destination.IntItems
+        {
+            List<int> items = new List<int>();
+            bool continuePrompting = true;
+            do
+            {
+                var item = AnsiConsole.Prompt(new TextPrompt<int>("Add item"));
+                items.Add(item);
+                continuePrompting = AnsiConsole.Confirm("Add more items?");
+            }
+            while (continuePrompting);
+            int[] result = items.ToArray();
+            destination.IntItems = result;
+        }
 
-         destination.FirstName = AnsiConsole.Prompt(new TextPrompt<string?>("Enter first name").AllowEmpty());
-         destination.LeftHanded = AnsiConsole.Confirm("Enter [green]LeftHanded[/]");
-         destination.Other = AnsiConsole.Prompt(new SelectionPrompt<SomeEnum>().Title("Choose your [red]value[/]").PageSize(10).AddChoices(Enum.GetValues<SomeEnum>()));
-         {
-             AnsiConsole.MarkupLine("Enter [green]Owner[/]");
-             var item = NameSpectreFactory.Get();
-             destination.Owner = item;
-         }
+        destination.FirstName = AnsiConsole.Prompt(new TextPrompt<string?>("Enter first name").AllowEmpty());
+        destination.LeftHanded = AnsiConsole.Confirm("Enter [green]LeftHanded[/]");
+        destination.Other = AnsiConsole.Prompt(new SelectionPrompt<SomeEnum>().Title("Choose your [red]value[/]").PageSize(10).AddChoices(Enum.GetValues<SomeEnum>()));
+        {
+            AnsiConsole.MarkupLine("Enter [green]ChildForm[/]");
+            var item = ChildFormClassSpectreFactory.Get();
+            destination.ChildForm = item;
+        }
 
-         // Prompt for values for destination.Investors
-         {
-             List<Name> items = new List<Name>();
-             bool continuePrompting = true;
-             do
-             {
-                 {
-                     AnsiConsole.MarkupLine("Enter [green]Investors[/]");
-                     var newItem = NameSpectreFactory.Get();
-                     items.Add(newItem);
-                 }
+        // Prompt for values for destination.Investors
+        {
+            List<ChildFormClass> items = new List<ChildFormClass>();
+            bool continuePrompting = true;
+            do
+            {
+                {
+                    AnsiConsole.MarkupLine("Enter [green]Investors[/]");
+                    var newItem = ChildFormClassSpectreFactory.Get();
+                    items.Add(newItem);
+                }
 
-                 continuePrompting = AnsiConsole.Confirm("Add more items?");
-             }
-             while (continuePrompting);
-             System.Collections.Generic.IReadOnlyList<Test.Name> result = items;
-             destination.Investors = result;
-         }
+                continuePrompting = AnsiConsole.Confirm("Add more items?");
+            }
+            while (continuePrompting);
+            System.Collections.Generic.IReadOnlyList<Test.ChildFormClass> result = items;
+            destination.Investors = result;
+        }
 
-         destination.Item = AnsiConsole.Prompt(new SelectionPrompt<string>().Title("Enter [green]Item[/]").PageSize(10).AddChoices(destination.Items.ToArray()));
-         return destination;
-     }
- }
+        destination.Item = AnsiConsole.Prompt(new SelectionPrompt<string>().Title("Enter [green]Item[/]").PageSize(10).AddChoices(destination.ItemSource.ToArray()));
+        destination.SpecialProjection = AnsiConsole.Prompt(new MultiSelectionPrompt<int>().Title("Enter [green]SpecialProjection[/]").UseConverter(destination.SpecialProjectionConverter).PageSize(10).AddChoices(destination.SpecialProjectionSource.ToArray()));
+        destination.EnterYear = AnsiConsole.Prompt(new TextPrompt<int>("Enter [green]EnterYear[/]").Validate(ctx =>
+        {
+            var result = destination.EnterYearValidator(ctx);
+            return result == null ? ValidationResult.Success() : ValidationResult.Error(result);
+        }));
+        // Prompt for values for destination.Names
+        {
+            List<string> items = new List<string>();
+            bool continuePrompting = true;
+            do
+            {
+                bool valid = false;
+                while (!valid)
+                {
+                    var item = AnsiConsole.Prompt(new TextPrompt<string>("Enter [green]Names[/]"));
+                    var validationResult = destination.NamesValidator(items, item);
+                    if (validationResult is { } error)
+                    {
+                        AnsiConsole.MarkupLine($"[red]{error}[/]");
+                        valid = false;
+                    }
+                    else
+                    {
+                        valid = true;
+                        items.Add(item);
+                    }
+                }
+
+                continuePrompting = AnsiConsole.Confirm("Add more items?");
+            }
+            while (continuePrompting);
+            System.Collections.Generic.HashSet<string> result = new System.Collections.Generic.HashSet<string>(items);
+            destination.Names = result;
+        }
+
+        destination.AddExistingName = AnsiConsole.Confirm("Enter [green]AddExistingName[/]");
+        if (destination.AddExistingName == true)
+        {
+            destination.ExistingName = AnsiConsole.Prompt(new TextPrompt<string?>("Enter [green]ExistingName[/]").AllowEmpty());
+        }
+
+        if (destination.AddExistingName == false)
+        {
+            destination.NewName = AnsiConsole.Prompt(new TextPrompt<string?>("Enter [green]NewName[/]").AllowEmpty());
+        }
+
+        return destination;
+    }
+}
 ```
 
 ### How to call
 
 ```csharp
-ISomeClassSpectreFactory factory = new SomeClassSpectreFactory();
-var item = factory.Get();
-// or 
-SomeClass someclass = new();
-factory.Get(someclass);
+IExampleSpectreFactory formFactory = new ExampleSpectreFactory();
+            
+// The form object is initialized in the Get method
+var form = formFactory.Get();
+
+// We pass a pre initialized form object to the get method
+var preinitializedForm = new Example();
+preinitializedForm = formFactory.Get(preinitializedForm); 
 ```
 
 ## Collections
@@ -323,6 +413,42 @@ ctx =>
 }
 ```
 
+## Conditions
+
+Using the `Condition` you can instruct whether prompting should occur for a given property. The condition should point to either a public bool property or a public method with no parameters returning bool. You can negate this by using the `NegateCondition` property.
+
+### Example
+
+```csharp
+[AutoSpectreForm]
+public class ConditionSampleForm
+{
+    [Ask]
+    public bool AskFriendlyCondition { get; set; }
+    
+    [Ask(Title ="Please sir what is your name?")]
+    public string AskFriendly { get; set; }
+    
+    [Ask(Title = "What is your #!^$ name", Condition = nameof(AskFriendlyCondition), NegateCondition = true)]
+    public string AskHostile { get; set; }
+}
+```
+
+### Generated
+
+```csharp
+destination.AskFriendlyCondition = AnsiConsole.Confirm("Enter [green]AskFriendlyCondition[/]");
+if (destination.AskFriendlyCondition == true)
+{
+    destination.AskFriendly = AnsiConsole.Prompt(new TextPrompt<string>("Please sir what is your name?"));
+}
+
+if (destination.AskFriendlyCondition == false)
+{
+    destination.AskHostile = AnsiConsole.Prompt(new TextPrompt<string>("What is your #!^$ name"));
+}
+```
+
 ## Conventions
 
 The following conventions come into play
@@ -374,3 +500,18 @@ public string? AgeValidator(int age)
 }
 ```
 
+### Condition
+
+It's possible to leave out the `Condition` in the `AskAttribute` if you have a method with no parameters returning bool or a property returning bool that matches {NameOfProperty}Condition. If you want to negate this you will still need to provide the `NegateCondition` manually.
+
+```csharp
+[Ask]
+public string FirstName { get; set; }
+
+public bool FirstNameCondition => true;
+
+[Ask(NegateCondition = true)]
+public string NegatePrompt { get; set; }
+
+public bool NegatePromptCondition => false;
+```

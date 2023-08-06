@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <IsRoslynComponent>true</IsRoslynComponent>
-    <Version>0.3.7.2</Version>
+    <Version>0.3.8.0</Version>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -19,7 +19,7 @@
     <PackageProjectUrl>https://github.com/jeppevammenkristensen/auto-spectre</PackageProjectUrl>
     <RepositoryUrl>https://github.com/jeppevammenkristensen/auto-spectre</RepositoryUrl>
     <PackageTags>C#;Source Generator</PackageTags>
-    <PackageReleaseNotes>Fixed so validation also works when using a class decorated with AutoSpectreForm in another form</PackageReleaseNotes>
+    <PackageReleaseNotes>Added logic for handling conditional prompting</PackageReleaseNotes>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>
   </PropertyGroup>
   

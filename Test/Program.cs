@@ -12,20 +12,117 @@ namespace Test
     {
         static void Main(string[] args)
         {
-            var splitFormSpectreFactory = new SplitFormSpectreFactory();
-            var splitForm = splitFormSpectreFactory.Get();
+            IExampleSpectreFactory formFactory = new ExampleSpectreFactory();
             
+            // The form object is initialized in the Get method
+            var form = formFactory.Get();
+            
+            // We pass a pre initialized form object to the get method
+            var preinitializedForm = new Example();
+            preinitializedForm = formFactory.Get(preinitializedForm); 
+
         }
     }
 
     [AutoSpectreForm]
-    public class SplitForm
+    public class ConditionSampleForm
     {
-        [Ask(Title = "Use angry prompting")]
-        public bool AngryPrompting { get; set; }
+        [Ask]
+        public bool AskFriendlyCondition { get; set; }
         
-        [Ask(Title ="[Red]What is your damn name?[/]", Condition = nameof(AngryPrompting), NegateCondition = true)]
-        public string AngryName { get; set; }
+        [Ask(Title ="Please sir what is your name?")]
+        public string AskFriendly { get; set; }
+        
+        [Ask(Title = "What is your #!^$ name", Condition = nameof(AskFriendlyCondition), NegateCondition = true)]
+        public string AskHostile { get; set; }
+    }
+
+    [AutoSpectreForm]
+    public class ConditionConvention
+    {
+        [Ask]
+        public string FirstName { get; set; }
+
+        public bool FirstNameCondition => true;
+        
+        [Ask(NegateCondition = true)]
+        public string NegatePrompt { get; set; }
+
+        public bool NegatePromptCondition => false;
+    }
+    
+    [AutoSpectreForm]
+    public class Example
+    {
+        [Ask(AskType = AskType.Normal, Title = "Add item")] 
+        public int[] IntItems { get; set; } = Array.Empty<int>();
+
+        [Ask(Title = "Enter first name")]
+        public string? FirstName { get; set; }
+
+        [Ask]
+        public bool LeftHanded { get; set; }
+
+        [Ask(Title = "Choose your [red]value[/]")]
+        public SomeEnum Other { get; set; }
+
+        [Ask] 
+        public ChildFormClass ChildForm { get; set; } = new (); 
+
+        [Ask]
+        public IReadOnlyList<ChildFormClass> Investors { get; set; } = new List<ChildFormClass>();
+
+        
+        [Ask(AskType = AskType.Selection)]
+        //[Ask(AskType = AskType.Selection, SelectionSource = nameof(ItemSource))]
+        public string Item { get; set; } = string.Empty;
+        public List<string> ItemSource { get; } = new List<string>() { "Alpha", "Bravo", "Charlie" };
+
+        [Ask(AskType = AskType.Selection)]
+        //[Ask(AskType = AskType.Selection, Converter = nameof(SpecialProjectionConverter))]
+        public List<int> SpecialProjection { get; set; } = new();
+
+        public string SpecialProjectionConverter(int source) => $"Number {source}";
+        public List<int> SpecialProjectionSource { get; set; } = new(){1,2,3,4};
+        
+        [Ask]
+        // [Ask(Validator = nameof(EnterYearValidator))]
+        public int EnterYear { get; set; }
+
+        public string? EnterYearValidator(int year)
+        {
+            return year <= DateTime.Now.Year ? null : "Year cannot be larger than current year";
+        }
+
+        [Ask] public HashSet<string> Names { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+
+        public string? NamesValidator(List<string> items, string newItem)
+        {
+            if (newItem == "Foobar")
+                return "Cannot be Foobar";
+
+            if (items.Contains(newItem))
+                return $"{newItem} has already been added";
+
+            return null;
+        }
+        
+        [Ask]
+        public bool AddExistingName { get; set; }
+        
+        [Ask(Condition = nameof(AddExistingName))]
+        public string? ExistingName { get; set; }
+        
+        [Ask(Condition = nameof(AddExistingName), NegateCondition = true)]
+        public string? NewName { get; set; }
+        
+    }
+
+    [AutoSpectreForm]
+    public class ChildFormClass
+    {
+        [Ask]
+        public string Name { get; set; }
     }
 
     [AutoSpectreForm]
