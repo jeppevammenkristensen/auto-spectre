@@ -15,7 +15,7 @@
     <Title>AutoSpectre Source Generation</Title>
     <PackageIcon>ghost.png</PackageIcon>
     <Authors>Jeppe Roi Kristensen</Authors>
-    <Description>A quick and dirty tool to generate a form through with a source generator that can collect data</Description>
+    <Description>A tool to generate a form using Spectre.Console through a source generator that generate a new class to collect data</Description>
     <PackageProjectUrl>https://github.com/jeppevammenkristensen/auto-spectre</PackageProjectUrl>
     <RepositoryUrl>https://github.com/jeppevammenkristensen/auto-spectre</RepositoryUrl>
     <PackageTags>C#;Source Generator</PackageTags>
