@@ -27,11 +27,14 @@ public class IncrementAutoSpectreGenerator : IIncrementalGenerator
                         .GetPropertiesWithSetter()
                         .Select(x =>
                         {
-                            var attribute = x.GetAttributes().FirstOrDefault(x =>
-                                x.AttributeClass is
+                            var attribute = x.GetAttributes().FirstOrDefault(a =>
+                                a.AttributeClass is
                                 {
-                                    MetadataName: "AskAttribute",
-                                    ContainingNamespace: {IsGlobalNamespace: false, Name: "AutoSpectre"}
+                                    MetadataName: "AskAttribute" or "TextPromptAttribute" or "SelectPromptAttribute",
+                                    ContainingNamespace:
+                                    {
+                                        IsGlobalNamespace: false, Name: "AutoSpectre"
+                                    }
                                 });
 
                             return new
@@ -46,7 +49,8 @@ public class IncrementAutoSpectreGenerator : IIncrementalGenerator
                     // Check if there are any candidates
                     if (candidates.Any())
                     {
-                        var propertyContexts = PropertyContextBuilderOperation.GetPropertyContexts(syntaxContext, candidates, targetNamedType, productionContext);
+                        var propertyContexts = PropertyContextBuilderOperation.GetPropertyContexts(syntaxContext,
+                            candidates, targetNamedType, productionContext);
 
                         var builder = new NewCodeBuilder(targetNamedType, propertyContexts);
                         var code = builder.Code();

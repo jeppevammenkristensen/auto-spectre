@@ -15,7 +15,7 @@ namespace AutoSpectre.SourceGeneration.Extensions
             return source.Equals(nameWithoutAttribute) || source.Equals($"{nameWithoutAttribute}Attribute");
         }
 
-        public static T? GetValue<T>(this AttributeData attributeData, string name)
+        public static T? GetValue<T>(this AttributeData attributeData, string name, T? valueIfNotPresent = default)
         {
             if (attributeData == null) throw new ArgumentNullException(nameof(attributeData));
 
@@ -30,13 +30,11 @@ namespace AutoSpectre.SourceGeneration.Extensions
                     _ => (T?) named.Value.Value
 
                 };
-
-
             }
 
             //attributeData.ConstructorArguments.FirstOrDefault(x => x.())
 
-            return default;
+            return valueIfNotPresent;
         }
 
         public static IEnumerable<IPropertySymbol> GetPropertiesWithSetter(this INamedTypeSymbol typeSymbol)

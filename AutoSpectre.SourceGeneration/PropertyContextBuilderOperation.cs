@@ -6,6 +6,8 @@ using AutoSpectre.SourceGeneration.BuildContexts;
 using AutoSpectre.SourceGeneration.Extensions;
 using AutoSpectre.SourceGeneration.Models;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Spectre.Console;
 
 namespace AutoSpectre.SourceGeneration;
 
@@ -16,10 +18,10 @@ internal class PropertyContextBuilderOperation
     public INamedTypeSymbol TargetType { get; }
     public SourceProductionContext ProductionContext { get; }
 
-    public LazyTypes Types { get;  }
+    public LazyTypes Types { get; }
 
     internal PropertyContextBuilderOperation(
-        GeneratorAttributeSyntaxContext syntaxContext, 
+        GeneratorAttributeSyntaxContext syntaxContext,
         IReadOnlyList<PropertyWithAskAttributeData> propertyCandidates,
         INamedTypeSymbol targetType, SourceProductionContext productionContext)
     {
@@ -31,9 +33,9 @@ internal class PropertyContextBuilderOperation
     }
 
     public static List<PropertyContext> GetPropertyContexts(
-        GeneratorAttributeSyntaxContext syntaxContext, 
+        GeneratorAttributeSyntaxContext syntaxContext,
         IReadOnlyList<PropertyWithAskAttributeData> candidates,
-        INamedTypeSymbol targetNamedType, 
+        INamedTypeSymbol targetNamedType,
         SourceProductionContext productionContext)
     {
         PropertyContextBuilderOperation operation = new(syntaxContext, candidates, targetNamedType, productionContext);
@@ -49,15 +51,18 @@ internal class PropertyContextBuilderOperation
         foreach (var (property, attributeData) in PropertyCandidates)
         {
             var propertyContext = SinglePropertyEvaluationContext.GenerateFromPropertySymbol(property);
+
             EvaluateCondition(propertyContext, attributeData);
 
             if (attributeData.AskType == AskTypeCopy.Normal)
             {
+                EvaluateDefaultValue(propertyContext, attributeData);
+                EvaluatePromptStyle(propertyContext, attributeData);
                 EvaluateValidation(propertyContext, attributeData);
-                
+
                 if (!propertyContext.IsEnumerable)
                 {
-                    if (GetNormalPromptBuildContext(attributeData.Title, propertyContext) is
+                    if (GetTextPromptBuildContext(attributeData, propertyContext) is
                         { } promptBuildContext)
                     {
                         propertyContexts.Add(new(property.Name, property,
@@ -66,7 +71,7 @@ internal class PropertyContextBuilderOperation
                 }
                 else
                 {
-                    if (GetNormalPromptBuildContext(attributeData.Title, propertyContext) is
+                    if (GetTextPromptBuildContext(attributeData, propertyContext) is
                         { } promptBuildContext)
                     {
                         propertyContexts.Add(new(property.Name,
@@ -108,7 +113,7 @@ internal class PropertyContextBuilderOperation
                             new SelectionPromptBuildContext(attributeData.Title, propertyContext,
                                 selectionSource, selectionType)));
                     }
-                    else 
+                    else
                     {
                         propertyContexts.Add(new(property.Name, property,
                             new MultiSelectionBuildContext(title: attributeData.Title,
@@ -126,11 +131,62 @@ internal class PropertyContextBuilderOperation
                             "General", DiagnosticSeverity.Warning, true),
                         property.Locations.FirstOrDefault()));
                 }
-
             }
         }
 
         return propertyContexts;
+    }
+
+    private void EvaluatePromptStyle(SinglePropertyEvaluationContext propertyContext, TranslatedAttributeData attribute)
+    {
+        propertyContext.PromptStyle = attribute.PromptStyle;
+    }
+
+    /// <summary>
+    /// Evaluates to see if the property has an initalized
+    /// Like for instance public bool Confirm {get;set;} = true
+    /// </summary>
+    /// <param name="propertyContext"></param>
+    /// <param name="translatedAttributeData"></param>
+    /// <param name="attributeData"></param>
+    private void EvaluateDefaultValue(SinglePropertyEvaluationContext propertyContext,
+        TranslatedAttributeData attributeData)
+    {
+        if (propertyContext.PropertySyntax is { Initializer: { } equal })
+        {
+            // We try to catch a property initialized with for instance = "Hello", = 5, = true
+            if (equal.Value is LiteralExpressionSyntax)
+            {
+                propertyContext.ConfirmedDefaultValue =
+                    new ConfirmedDefaultValue(DefaultValueType.Literal,
+                        equal.Value.ToString(),
+                        attributeData.DefaultValueStyle);
+            }
+            else if (equal.Value is IdentifierNameSyntax or InvocationExpressionSyntax { Expression: IdentifierNameSyntax})
+            {
+                // Note that it can be necessary to make this more robust.
+                propertyContext.ConfirmedDefaultValue =
+                    new ConfirmedDefaultValue(DefaultValueType.Call, equal.Value.ToString(), attributeData.DefaultValueStyle);
+            }
+            else if (equal.Value.ToString().Equals("string.empty", StringComparison.OrdinalIgnoreCase))
+            {
+                propertyContext.ConfirmedDefaultValue =
+                    new ConfirmedDefaultValue(DefaultValueType.Literal,
+                        equal.Value.ToString(),
+                        attributeData.DefaultValueStyle);
+            }
+            else
+            {
+                ProductionContext.ReportDiagnostic(Diagnostic.Create(
+                    new(DiagnosticIds.Id0012_UnsupportedDefaultValue,
+                        $"The default value defined for property {propertyContext.Property.Name} is not supported",
+                        $"The supported initializers for a properties are literals (for instance 5, 70), simple public static constants, properties, fields, method invocations", "General",
+                        DiagnosticSeverity.Info, true),
+                    propertyContext.PropertySyntax.Initializer!.GetLocation()));
+            }
+
+           
+        }
     }
 
     /// <summary>
@@ -139,23 +195,24 @@ internal class PropertyContextBuilderOperation
     /// </summary>
     /// <param name="attributeData"></param>
     /// <param name="context"></param>
-    private void EvaluateSelectionConverter(TranslatedAskAttributeData attributeData, SinglePropertyEvaluationContext context)
+    private void EvaluateSelectionConverter(TranslatedAttributeData attributeData,
+        SinglePropertyEvaluationContext context)
     {
         bool guessed = attributeData.Converter == null;
         var converterName = attributeData.Converter ?? $"{context.Property.Name}Converter";
-        
+
         bool ConverterMethodOrProperty(ISymbol symbol)
         {
             if (symbol is IMethodSymbol method)
             {
                 if (method.Parameters.FirstOrDefault() is { } parameter)
                 {
-                    if (SymbolEqualityComparer.Default.Equals(parameter.Type,context.UnderlyingType ?? context.Type))
+                    if (SymbolEqualityComparer.Default.Equals(parameter.Type, context.UnderlyingType ?? context.Type))
                     {
                         if (method.ReturnType.SpecialType == SpecialType.System_String)
                         {
                             return true;
-                        }   
+                        }
                     }
                 }
             }
@@ -167,9 +224,9 @@ internal class PropertyContextBuilderOperation
             .GetMembers()
             .Where(x => x.Name == converterName)
             .ToList();
-        
+
         var match = candidates.FirstOrDefault(ConverterMethodOrProperty);
-        
+
         if (match is { })
         {
             context.ConfirmedConverter = new ConfirmedConverter(converterName);
@@ -177,38 +234,45 @@ internal class PropertyContextBuilderOperation
         else if (!guessed || candidates.Count > 0)
         {
             ProductionContext.ReportDiagnostic(Diagnostic.Create(
-                new("AutoSpectre_JJK0008", $"Converter {attributeData.Converter} should be a method taking a {context.UnderlyingType} as input and return string on the class",
-                    $"Could not find a correct method to match {attributeData.Converter} supported", "General", DiagnosticSeverity.Warning, true),
+                new("AutoSpectre_JJK0008",
+                    $"Converter {attributeData.Converter} should be a method taking a {context.UnderlyingType} as input and return string on the class",
+                    $"Could not find a correct method to match {attributeData.Converter} supported", "General",
+                    DiagnosticSeverity.Warning, true),
                 context.Property.Locations.FirstOrDefault()));
         }
     }
 
-    public PromptBuildContext? GetNormalPromptBuildContext(string title, SinglePropertyEvaluationContext evaluationContext)
+    public PromptBuildContext? GetTextPromptBuildContext(TranslatedAttributeData attributeData,
+        SinglePropertyEvaluationContext evaluationContext)
     {
         var type = evaluationContext.IsEnumerable ? evaluationContext.UnderlyingType : evaluationContext.Type;
-        
+
         if (type.SpecialType == SpecialType.System_Boolean)
         {
-            return new ConfirmPromptBuildContext(title, type, evaluationContext.IsNullable, evaluationContext);
+            return new ConfirmPromptBuildContext(attributeData.Title, type, evaluationContext.IsNullable,
+                evaluationContext);
         }
         else if (type.TypeKind == TypeKind.Enum)
         {
-            return new EnumPromptBuildContext(title, type, evaluationContext.IsNullable, evaluationContext);
+            return new EnumPromptBuildContext(attributeData.Title, type, evaluationContext.IsNullable,
+                evaluationContext);
         }
         else if (type.SpecialType == SpecialType.None)
         {
             if (type is INamedTypeSymbol namedType)
             {
                 if (namedType.GetAttributes().FirstOrDefault(x =>
-                        SymbolEqualityComparer.Default.Equals(x.AttributeClass,Types.AutoSpectreForm)) is { })
+                        SymbolEqualityComparer.Default.Equals(x.AttributeClass, Types.AutoSpectreForm)) is { })
                 {
-                    return new ReuseExistingAutoSpectreFactoryPromptBuildContext(title, namedType, evaluationContext.IsNullable, evaluationContext);
+                    return new ReuseExistingAutoSpectreFactoryPromptBuildContext(attributeData.Title, namedType,
+                        evaluationContext.IsNullable, evaluationContext);
                 }
                 else
                 {
                     ProductionContext.ReportDiagnostic(Diagnostic.Create(
                         new("AutoSpectre_JJK0007", $"Type currently not supported",
-                            $"Only classes with {Constants.AutoSpectreFormAttributeFullyQualifiedName} supported", "General", DiagnosticSeverity.Warning, true),
+                            $"Only classes with {Constants.AutoSpectreFormAttributeFullyQualifiedName} supported",
+                            "General", DiagnosticSeverity.Warning, true),
                         evaluationContext.Property.Locations.FirstOrDefault()));
                     return null;
                 }
@@ -223,19 +287,19 @@ internal class PropertyContextBuilderOperation
             }
         }
 
-        else 
+        else
         {
-            return new TextPromptBuildContext(title, type,evaluationContext.IsNullable, evaluationContext);
+            return new TextPromptBuildContext(attributeData, type, evaluationContext.IsNullable, evaluationContext);
         }
     }
 
     private void EvaluateCondition(SinglePropertyEvaluationContext propertyContext,
-        TranslatedAskAttributeData attributeData)
+        TranslatedAttributeData attributeData)
     {
         bool isGuess = attributeData.Condition == null;
         string condition = attributeData.Condition ?? $"{propertyContext.Property.Name}Condition";
         bool negateCondition = attributeData.ConditionNegated;
-        
+
         bool IsConditionMatch(ISymbol symbol)
         {
             if (symbol is IMethodSymbol methodSymbol)
@@ -252,7 +316,8 @@ internal class PropertyContextBuilderOperation
             }
             else if (symbol is IPropertySymbol propertySymbol)
             {
-                if (propertySymbol.Type.SpecialType == SpecialType.System_Boolean && propertySymbol.GetMethod is not null)
+                if (propertySymbol.Type.SpecialType == SpecialType.System_Boolean &&
+                    propertySymbol.GetMethod is not null)
                 {
                     return true;
                 }
@@ -260,8 +325,8 @@ internal class PropertyContextBuilderOperation
 
             return false;
         }
-        
-        var candidates = 
+
+        var candidates =
             TargetType.GetMembers(condition)
                 .ToList();
 
@@ -272,15 +337,18 @@ internal class PropertyContextBuilderOperation
             propertyContext.ConfirmedCondition = match switch
             {
                 IMethodSymbol method => new ConfirmedCondition(method.Name, ConditionSource.Method, negateCondition),
-                IPropertySymbol property => new ConfirmedCondition(property.Name, ConditionSource.Property,negateCondition),
+                IPropertySymbol property => new ConfirmedCondition(property.Name, ConditionSource.Property,
+                    negateCondition),
                 _ => throw new InvalidOperationException("Expected a Method or Property symbol")
             };
         }
         else if (candidates.Count > 0)
         {
             ProductionContext.ReportDiagnostic(Diagnostic.Create(
-                new(DiagnosticIds.Id0010_ConditionNameMatchInvalid, $"Found name matches for {condition} but they were not valid",
-                    $"{candidates.Count} matches where found. But they did not match a property or method (with no arguments) named {condition} return a boolean", "General", DiagnosticSeverity.Warning, true),
+                new(DiagnosticIds.Id0010_ConditionNameMatchInvalid,
+                    $"Found name matches for {condition} but they were not valid",
+                    $"{candidates.Count} matches where found. But they did not match a property or method (with no arguments) named {condition} return a boolean",
+                    "General", DiagnosticSeverity.Warning, true),
                 propertyContext.Property.Locations.FirstOrDefault()));
         }
         else if (!isGuess)
@@ -291,9 +359,9 @@ internal class PropertyContextBuilderOperation
                 propertyContext.Property.Locations.FirstOrDefault()));
         }
     }
-    
+
     private void EvaluateValidation(SinglePropertyEvaluationContext propertyContext,
-        TranslatedAskAttributeData attributeData)
+        TranslatedAttributeData attributeData)
     {
         bool isGuess = attributeData.Validator == null;
         string validator = attributeData.Validator ?? $"{propertyContext.Property.Name}Validator";
@@ -318,7 +386,7 @@ internal class PropertyContextBuilderOperation
                                 if (methodSymbol.ReturnType.SpecialType == SpecialType.System_String)
                                 {
                                     return true;
-                                }    
+                                }
                             }
                         }
                     }
@@ -333,18 +401,17 @@ internal class PropertyContextBuilderOperation
                             return true;
                         }
                     }
-                    
                 }
             }
 
             return false;
         }
 
-        var candidates = 
+        var candidates =
             TargetType.GetMembers(validator)
                 .ToList();
 
-         var match = candidates.FirstOrDefault(IsMethodMatch);
+        var match = candidates.FirstOrDefault(IsMethodMatch);
 
         if (match is { })
         {
@@ -353,8 +420,10 @@ internal class PropertyContextBuilderOperation
         else if (candidates.Count > 0)
         {
             ProductionContext.ReportDiagnostic(Diagnostic.Create(
-                new(DiagnosticIds.Id0008_ValidatorNameMatchInvalid, $"Found name matches for {validator} but they were not valid",
-                    $"{candidates.Count} matches where found. But they did not match having a parameter of type {propertyContext.Type} and return type string", "General", DiagnosticSeverity.Warning, true),
+                new(DiagnosticIds.Id0008_ValidatorNameMatchInvalid,
+                    $"Found name matches for {validator} but they were not valid",
+                    $"{candidates.Count} matches where found. But they did not match having a parameter of type {propertyContext.Type} and return type string",
+                    "General", DiagnosticSeverity.Warning, true),
                 propertyContext.Property.Locations.FirstOrDefault()));
         }
         else if (!isGuess)
@@ -365,6 +434,4 @@ internal class PropertyContextBuilderOperation
                 propertyContext.Property.Locations.FirstOrDefault()));
         }
     }
-    
-    
 }

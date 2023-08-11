@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System.Diagnostics;
+using System.Linq;
+using System.Net.Mime;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Spectre.Console;
@@ -7,14 +9,15 @@ namespace AutoSpectre.SourceGeneration.BuildContexts;
 
 internal class TextPromptBuildContext : PromptBuilderContextWithPropertyContext
 {
-    public string Title { get; }
+    private readonly TranslatedAttributeData _attributeData;
+    public string Title => _attributeData.Title;
     public ITypeSymbol TypeSymbol { get; }
     public bool Nullable { get; }
 
-    public TextPromptBuildContext(string title, ITypeSymbol typeSymbol, bool nullable,
+    public TextPromptBuildContext(TranslatedAttributeData attributeData, ITypeSymbol typeSymbol, bool nullable,
         SinglePropertyEvaluationContext context) : base(context)
     {
-        Title = title;
+        _attributeData = attributeData;
         TypeSymbol = typeSymbol;
         Nullable = context.IsNullable;
     }
@@ -35,6 +38,10 @@ internal class TextPromptBuildContext : PromptBuilderContextWithPropertyContext
             builder.AppendLine(".AllowEmpty()");
         }
 
+        BuildSecret(builder);
+        BuildDefaultValue(builder);
+        BuildPromptStyle(builder);
+
         if (Context.ConfirmedValidator is { SingleValidation:true })
         {
             builder.AppendLine(
@@ -48,5 +55,49 @@ internal class TextPromptBuildContext : PromptBuilderContextWithPropertyContext
 
         builder.Append(")");
         return builder.ToString();
+    }
+
+    private void BuildPromptStyle(StringBuilder builder)
+    {
+        if (Context.PromptStyle is { })
+        {
+            builder.AppendLine($".PromptStyle(\"{Context.PromptStyle}\")");
+        }
+    }
+
+    private void BuildDefaultValue(StringBuilder builder)
+    {
+        if (Context.ConfirmedDefaultValue is { } confirmed)
+        {
+            if (confirmed.Type == DefaultValueType.Literal)
+            {
+                builder.AppendLine($".DefaultValue({confirmed.Name})");
+            }
+            else
+            {
+                builder.AppendLine($".DefaultValue({Context.Property.ContainingType.Name}.{confirmed.Name});");
+            }
+
+            if (confirmed.Style is { } style)
+            {
+                builder.AppendLine($".DefaultValueStyle(\"{style}\")");
+            }
+        }
+    }
+
+
+    private void BuildSecret(StringBuilder builder)
+    {
+        if (_attributeData.Secret)
+        {
+            string mask = _attributeData.Mask switch
+            {
+                null => "null",
+                { } s => $"'{s}'",
+            };
+
+
+            builder.AppendLine($".Secret({mask})");
+        }
     }
 }
