@@ -11,6 +11,8 @@ namespace Test
     {
         static void Main(string[] args)
         {
+            AnsiConsole.Prompt(new SelectionPrompt<int>().PageSize())
+            
             var conditionSampleFormSpectreFactory = new ConditionSampleFormSpectreFactory();
             var conditionSampleForm = conditionSampleFormSpectreFactory.Get();
         }
@@ -85,7 +87,7 @@ namespace Test
             return year <= DateTime.Now.Year ? null : "Year cannot be larger than current year";
         }
 
-        [SelectPrompt] public HashSet<string> Names { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+        [SelectPrompt(PageSize = 43)] public HashSet<string> Names { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
         public string? NamesValidator(List<string> items, string newItem)
         {

@@ -45,8 +45,22 @@ public class TranslatedAttributeData
 
     public bool Secret { get; set; }
 
-    public static TranslatedAttributeData SelectPrompt(string title, string? selectionSource, string? converter, string? condition, bool conditionNegated)
+    public static TranslatedAttributeData SelectPrompt(string title, string? selectionSource, string? converter, string? condition, bool conditionNegated, int? pageSize, bool? wrapAround)
     {
-        return new(askType: AskTypeCopy.Selection, selectionSource: selectionSource, title: title, converter: converter, validator: null, condition: condition, conditionNegated: conditionNegated);
+        return new(askType: AskTypeCopy.Selection,
+            selectionSource: selectionSource,
+            title: title,
+            converter: converter,
+            validator: null,
+            condition: condition,
+            conditionNegated: conditionNegated)
+        {
+            PageSize = pageSize,
+            WrapAround = wrapAround
+        };
     }
+
+    public bool? WrapAround { get; set; }
+
+    public int? PageSize { get; set; }
 }

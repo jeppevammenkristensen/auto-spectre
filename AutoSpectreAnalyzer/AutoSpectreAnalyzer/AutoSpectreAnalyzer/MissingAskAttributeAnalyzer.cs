@@ -6,6 +6,7 @@ using System.Linq;
 
 namespace AutoSpectreAnalyzer
 {
+
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class MissingAskAttributeAnalyzer : DiagnosticAnalyzer
     {

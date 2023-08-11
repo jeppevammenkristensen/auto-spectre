@@ -61,8 +61,10 @@ public class PropertyWithAskAttributeData
         {
             var selectionSource = attributeData.GetValue<string?>(nameof(SelectPromptAttribute.Source)) ?? null;
             var converter = attributeData.GetValue<string?>(nameof(SelectPromptAttribute.Converter)) ?? null;
+            var pageSize = attributeData.GetValue<int?>(nameof(SelectPromptAttribute.PageSize)) ?? null;
+            var wrapAround = attributeData.GetValue<bool?>(nameof(SelectPromptAttribute.WrapAround)) ?? null;
 
-            TranslatedAttribute = TranslatedAttributeData.SelectPrompt(title, selectionSource, converter, condition, conditionNegated);
+            TranslatedAttribute = TranslatedAttributeData.SelectPrompt(title, selectionSource, converter, condition, conditionNegated, pageSize, wrapAround);
         }
         else
         {

@@ -36,6 +36,8 @@ public class SinglePropertyEvaluationContext
     public ConfirmedDefaultValue? ConfirmedDefaultValue { get; set; }
     public PropertyDeclarationSyntax? PropertySyntax => _propertySyntaxLazy.Value;
     public string? PromptStyle { get; set; }
+    public int? PageSize { get; set; }
+    public bool? WrapAround { get; set; }
 
     public static SinglePropertyEvaluationContext GenerateFromPropertySymbol(IPropertySymbol property)
     {
