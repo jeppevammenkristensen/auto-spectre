@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <IsRoslynComponent>true</IsRoslynComponent>
-    <Version>0.3.8.0</Version>
+    <Version>0.4.0-preview.0.1</Version>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -19,7 +19,7 @@
     <PackageProjectUrl>https://github.com/jeppevammenkristensen/auto-spectre</PackageProjectUrl>
     <RepositoryUrl>https://github.com/jeppevammenkristensen/auto-spectre</RepositoryUrl>
     <PackageTags>C#;Source Generator</PackageTags>
-    <PackageReleaseNotes>Added logic for handling conditional prompting</PackageReleaseNotes>
+    <PackageReleaseNotes>Rewrite that adds TextPrompt and SelectionPrompt attributes instead of the AskAttribute</PackageReleaseNotes>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>
   </PropertyGroup>
   
@@ -40,7 +40,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.4.0" PrivateAsserts="all">
     </PackageReference>
-    <PackageReference Include="Spectre.Console" Version="0.45.0" />
+    <PackageReference Include="Spectre.Console" Version="0.47.0" />
   </ItemGroup>
 
   <ItemGroup>

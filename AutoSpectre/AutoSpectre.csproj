@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>0.2.4.0</Version>
+    <Version>0.3.0-preview.0.1</Version>
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
@@ -24,6 +24,9 @@
       <Pack>true</Pack>
       <PackagePath>\</PackagePath>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Spectre.Console" Version="0.47.0" />
   </ItemGroup>
 
 </Project>

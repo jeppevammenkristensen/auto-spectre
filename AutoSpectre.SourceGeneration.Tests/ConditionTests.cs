@@ -22,7 +22,7 @@ public class ConditionTests : AutoSpectreGeneratorTestsBase
                            [AutoSpectreForm]
                            public class ConditionClass
                            {
-                               [Ask]
+                               [TextPrompt]
                                public string Name { get; set;}
                                
                                public bool NameCondition => true;

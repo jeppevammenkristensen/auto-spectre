@@ -2,13 +2,7 @@
 
 namespace AutoSpectre
 {
-    /// <summary>
-    /// Apply this attribute to a property to tell that a prompt should take place
-    /// <example>
-    ///[Ask()]
-    /// public string Name {get;set;}
-    /// </example>
-    /// </summary>
+    [Obsolete("Use TextPromptAttribute for text prompt (AskType.Normal) or SelectionPrompt for selection prompt (AskType.Selection)")]
     public class AskAttribute : Attribute
     {
         public AskAttribute()

@@ -144,6 +144,44 @@ namespace Test
         }
 
         [Fact]
+        public void SingleItemPropertyWithMatchedWithSelectPromptConverterShouldGenerateCorrectCode()
+        {
+            var output = GetGeneratedOutput("""
+                                            using AutoSpectre;
+                                            using System.Collections.Generic;
+
+
+                                            namespace Test
+                                            {
+                                                [AutoSpectreForm]
+                                                public class TestForm
+                                                {
+                                                    [SelectPrompt(Converter=nameof(OtherStringConverter), Source = nameof(ListOfOther))]
+                                                    public OtherTest.OtherClass Other {get;set;}
+                                            
+                                                    public string OtherStringConverter(OtherTest.OtherClass other)
+                                                    {
+                                                        return other.ToString();
+                                                    }
+                                            
+                                                   
+                                                    public List<OtherTest.OtherClass> ListOfOther {get;set;} = new ();
+                                                }
+                                            }
+
+                                            namespace OtherTest
+                                            {
+                                                public class OtherClass
+                                                {
+                                            
+                                                }
+                                            }
+
+                                            """).Should().Contain(".UseConverter(destination.OtherStringConverter)");
+
+        }
+
+        [Fact]
         public void CollectionPropertyOfOtherAutoformTypeGeneratesCorrectCode()
         {
             GetGeneratedOutput("""
