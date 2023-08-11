@@ -37,11 +37,27 @@ internal class SelectionPromptBuildContext : PromptBuilderContextWithPropertyCon
         AnsiConsole.Prompt(
         new SelectionPrompt<{type}>()
             .Title("{Title}"){GenerateConverter()}
-            .PageSize(10) 
+            {GeneratePageSize()}
+            {GenerateWrapAround()}
             .AddChoices(destination.{GetSelector()}.ToArray()))
         """;
     }
+    
+    
+    private string GenerateWrapAround()
+    {
+        if (Context.WrapAround is { })
+        {
+            return $"""".WrapAround({(Context.WrapAround.Value ? "true" : "false")})"""";
+        }
 
+        return string.Empty;
+    }
+
+    private string GeneratePageSize()
+    {
+        return $""".PageSize({(Context.PageSize == null ? "10" : Context.PageSize.ToString())})""";
+    }
     
 
     private string GetSelector() => SelectionType switch

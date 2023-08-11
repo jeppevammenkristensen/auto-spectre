@@ -88,6 +88,8 @@ internal class PropertyContextBuilderOperation
             if (attributeData.AskType == AskTypeCopy.Selection)
             {
                 EvaluateSelectionConverter(attributeData, propertyContext);
+                EvaluatePageSize(attributeData, ref propertyContext);
+                EvaluateWrapAround(attributeData, ref propertyContext);
 
                 var selectionSource = attributeData.SelectionSource ?? $"{propertyContext.Property.Name}Source";
 
@@ -137,6 +139,22 @@ internal class PropertyContextBuilderOperation
         return propertyContexts;
     }
 
+    private void EvaluateWrapAround(TranslatedAttributeData attributeData, ref SinglePropertyEvaluationContext propertyContext)
+    {
+        if (attributeData.WrapAround is { })
+        {
+            propertyContext.WrapAround = attributeData.WrapAround;
+        }
+    }
+
+    private void EvaluatePageSize(TranslatedAttributeData attributeData, ref SinglePropertyEvaluationContext propertyContext)
+    {
+        if (attributeData.PageSize is { })
+        {
+            propertyContext.PageSize = attributeData.PageSize;
+        }
+    }
+
     private void EvaluatePromptStyle(SinglePropertyEvaluationContext propertyContext, TranslatedAttributeData attribute)
     {
         propertyContext.PromptStyle = attribute.PromptStyle;
@@ -184,8 +202,6 @@ internal class PropertyContextBuilderOperation
                         DiagnosticSeverity.Info, true),
                     propertyContext.PropertySyntax.Initializer!.GetLocation()));
             }
-
-           
         }
     }
 
@@ -216,7 +232,6 @@ internal class PropertyContextBuilderOperation
                     }
                 }
             }
-
             return false;
         }
 

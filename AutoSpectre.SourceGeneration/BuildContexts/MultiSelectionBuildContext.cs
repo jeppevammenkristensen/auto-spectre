@@ -55,7 +55,8 @@ AnsiConsole.Prompt(
 new MultiSelectionPrompt<{type}>()
 .Title("{Title}"){GenerateConverter()}
 {GenerateRequired()}
-.PageSize(10) 
+{GeneratePageSize()}
+{GenerateWrapAround()}
 .AddChoices(destination.{GetSelector()}.ToArray()))
 """;
         var builder = new StringBuilder(150);
@@ -69,6 +70,21 @@ new MultiSelectionPrompt<{type}>()
 
         builder.Append(";");
         return builder.ToString();
+    }
+
+    private string GenerateWrapAround()
+    {
+        if (Context.WrapAround is { })
+        {
+            return $"""".WrapAround({(Context.WrapAround.Value ? "true" : "false")})"""";
+        }
+
+        return string.Empty;
+    }
+
+    private string GeneratePageSize()
+    {
+        return $""".PageSize({(Context.PageSize == null ? "10" : Context.PageSize.ToString())})""";
     }
 
     private ConversionDelegate? NeedsConversion(ITypeSymbol typeSymbol)
