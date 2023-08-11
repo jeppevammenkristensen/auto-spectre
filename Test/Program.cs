@@ -11,8 +11,6 @@ namespace Test
     {
         static void Main(string[] args)
         {
-            AnsiConsole.Prompt(new SelectionPrompt<int>().PageSize())
-            
             var conditionSampleFormSpectreFactory = new ConditionSampleFormSpectreFactory();
             var conditionSampleForm = conditionSampleFormSpectreFactory.Get();
         }
