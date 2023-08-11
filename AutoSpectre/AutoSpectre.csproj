@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>0.3.0-preview.0.1</Version>
+    <Version>0.3.0-preview.0.2</Version>
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
@@ -9,7 +9,9 @@
     <Description>Classes used by the AutoSpectre.SourceGeneration package</Description>
     <Authors>Jeppe Roi Kristensen</Authors>
     <RepositoryUrl>https://github.com/jeppevammenkristensen/auto-spectre</RepositoryUrl>
-    <PackageReleaseNotes>Added Condition and NegatedCondition properties</PackageReleaseNotes>
+    <PackageReleaseNotes>AskAttribute is beginning deprecation and is replaced by TextPromptAttribute and SelectPromptAttribute. 
+    Some of there unique properties has been added. 
+    </PackageReleaseNotes>
     <PackageIcon>ghost.png</PackageIcon>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>    
   </PropertyGroup>
