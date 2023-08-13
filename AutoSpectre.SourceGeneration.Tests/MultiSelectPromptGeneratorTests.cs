@@ -11,6 +11,27 @@ public class MultiSelectPromptGeneratorTests : AutoSpectreGeneratorTestsBase
     }
 
     [Fact]
+    public void SelectPromptWithMoreChoicesTextGeneratesTheExpectedResult()
+    {
+        GetGeneratedOutput($$"""
+                             using AutoSpectre;
+                             using System.Collections.Generic;
+
+                             namespace Test;
+
+                             [AutoSpectreForm]
+                             public class TestForm
+                             {
+                                    [SelectPrompt(MoreChoicesText = "more")]
+                                    public string[] Something {get;set;}
+                                    
+                                    public List<string> SomethingSource {get;set;}
+                             }
+                             """).Should().Contain("""MoreChoicesText("more")""");
+    }
+
+
+    [Fact]
     public void SelectPromptWithPageSizeGeneratesCorrectValue()
     {
         GetGeneratedOutput($$"""

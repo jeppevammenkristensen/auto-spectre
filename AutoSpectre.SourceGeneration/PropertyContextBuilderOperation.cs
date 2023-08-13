@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Metadata;
 using AutoSpectre.SourceGeneration.BuildContexts;
 using AutoSpectre.SourceGeneration.Extensions;
 using AutoSpectre.SourceGeneration.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Spectre.Console;
 
 namespace AutoSpectre.SourceGeneration;
 
@@ -90,6 +88,7 @@ internal class PropertyContextBuilderOperation
                 EvaluateSelectionConverter(attributeData, propertyContext);
                 EvaluatePageSize(attributeData, ref propertyContext);
                 EvaluateWrapAround(attributeData, ref propertyContext);
+                EvaluateMoreChoicesText(attributeData, ref propertyContext);
 
                 var selectionSource = attributeData.SelectionSource ?? $"{propertyContext.Property.Name}Source";
 
@@ -137,6 +136,14 @@ internal class PropertyContextBuilderOperation
         }
 
         return propertyContexts;
+    }
+
+    private void EvaluateMoreChoicesText(TranslatedAttributeData attributeData, ref SinglePropertyEvaluationContext propertyContext)
+    {
+        if (attributeData.MoreChoicesText is { })
+        {
+            propertyContext.MoreChoicesText = attributeData.MoreChoicesText;
+        }
     }
 
     private void EvaluateWrapAround(TranslatedAttributeData attributeData, ref SinglePropertyEvaluationContext propertyContext)

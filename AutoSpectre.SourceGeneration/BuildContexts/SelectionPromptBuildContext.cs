@@ -5,18 +5,16 @@ using Microsoft.CodeAnalysis;
 
 namespace AutoSpectre.SourceGeneration.BuildContexts;
 
-internal class SelectionPromptBuildContext : PromptBuilderContextWithPropertyContext
+internal class SelectionPromptBuildContext : SelectionBaseBuildContext
 {
-    public string Title { get; }
     public ITypeSymbol TypeSymbol { get; }
     public bool Nullable { get; }
     public string SelectionTypeName { get; set; }
     public SelectionPromptSelectionType SelectionType { get; }
 
 
-    public SelectionPromptBuildContext(string title, SinglePropertyEvaluationContext context, string selectionTypeName, SelectionPromptSelectionType selectionType) : base(context)
+    public SelectionPromptBuildContext(string title, SinglePropertyEvaluationContext context, string selectionTypeName, SelectionPromptSelectionType selectionType) : base(title,context)
     {
-        Title = title;
         TypeSymbol = context.Type;
         Nullable = context.IsNullable;
         SelectionTypeName = selectionTypeName ?? throw new ArgumentNullException(nameof(selectionTypeName));
@@ -39,25 +37,13 @@ internal class SelectionPromptBuildContext : PromptBuilderContextWithPropertyCon
             .Title("{Title}"){GenerateConverter()}
             {GeneratePageSize()}
             {GenerateWrapAround()}
+            {GenerateMoreChoicesText()}
             .AddChoices(destination.{GetSelector()}.ToArray()))
         """;
     }
     
     
-    private string GenerateWrapAround()
-    {
-        if (Context.WrapAround is { })
-        {
-            return $"""".WrapAround({(Context.WrapAround.Value ? "true" : "false")})"""";
-        }
-
-        return string.Empty;
-    }
-
-    private string GeneratePageSize()
-    {
-        return $""".PageSize({(Context.PageSize == null ? "10" : Context.PageSize.ToString())})""";
-    }
+   
     
 
     private string GetSelector() => SelectionType switch

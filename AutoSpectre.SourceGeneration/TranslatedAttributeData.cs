@@ -45,7 +45,8 @@ public class TranslatedAttributeData
 
     public bool Secret { get; set; }
 
-    public static TranslatedAttributeData SelectPrompt(string title, string? selectionSource, string? converter, string? condition, bool conditionNegated, int? pageSize, bool? wrapAround)
+    public static TranslatedAttributeData SelectPrompt(string title, string? selectionSource, string? converter,
+        string? condition, bool conditionNegated, int? pageSize, bool? wrapAround, string? moreChoicesText)
     {
         return new(askType: AskTypeCopy.Selection,
             selectionSource: selectionSource,
@@ -56,9 +57,12 @@ public class TranslatedAttributeData
             conditionNegated: conditionNegated)
         {
             PageSize = pageSize,
-            WrapAround = wrapAround
+            WrapAround = wrapAround,
+            MoreChoicesText = moreChoicesText
         };
     }
+
+    public string? MoreChoicesText { get; set; }
 
     public bool? WrapAround { get; set; }
 

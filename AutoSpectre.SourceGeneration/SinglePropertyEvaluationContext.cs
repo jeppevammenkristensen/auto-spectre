@@ -38,6 +38,7 @@ public class SinglePropertyEvaluationContext
     public string? PromptStyle { get; set; }
     public int? PageSize { get; set; }
     public bool? WrapAround { get; set; }
+    public string? MoreChoicesText { get; set; }
 
     public static SinglePropertyEvaluationContext GenerateFromPropertySymbol(IPropertySymbol property)
     {
