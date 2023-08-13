@@ -6,26 +6,21 @@ using Microsoft.CodeAnalysis;
 
 namespace AutoSpectre.SourceGeneration.BuildContexts;
 
-internal class MultiSelectionBuildContext : PromptBuilderContextWithPropertyContext
+internal class MultiSelectionBuildContext : SelectionBaseBuildContext
 {
-    private readonly SinglePropertyEvaluationContext _context;
     private readonly LazyTypes _lazyTypes;
 
     public delegate void ConversionDelegate(StringBuilder builder, string prompt);
 
-    public MultiSelectionBuildContext(string title, SinglePropertyEvaluationContext context, string selectionTypeName, SelectionPromptSelectionType selectionType, LazyTypes lazyTypes) : base(context)
+    public MultiSelectionBuildContext(string title, SinglePropertyEvaluationContext context, string selectionTypeName, SelectionPromptSelectionType selectionType, LazyTypes lazyTypes) : base(title, context)
     {
-        _context = context;
         _lazyTypes = lazyTypes;
-        Title = title;
         TypeSymbol = context.Type;
         UnderlyingSymbol = context.UnderlyingType;
         Nullable = context.IsNullable;
         SelectionTypeName = selectionTypeName;
         SelectionType = selectionType;
     }
-
-    public string Title { get; }
     public ITypeSymbol TypeSymbol { get; }
     public ITypeSymbol? UnderlyingSymbol { get; }
     public bool Nullable { get; }
@@ -57,6 +52,7 @@ new MultiSelectionPrompt<{type}>()
 {GenerateRequired()}
 {GeneratePageSize()}
 {GenerateWrapAround()}
+{GenerateMoreChoicesText()}
 .AddChoices(destination.{GetSelector()}.ToArray()))
 """;
         var builder = new StringBuilder(150);
@@ -72,20 +68,7 @@ new MultiSelectionPrompt<{type}>()
         return builder.ToString();
     }
 
-    private string GenerateWrapAround()
-    {
-        if (Context.WrapAround is { })
-        {
-            return $"""".WrapAround({(Context.WrapAround.Value ? "true" : "false")})"""";
-        }
-
-        return string.Empty;
-    }
-
-    private string GeneratePageSize()
-    {
-        return $""".PageSize({(Context.PageSize == null ? "10" : Context.PageSize.ToString())})""";
-    }
+    
 
     private ConversionDelegate? NeedsConversion(ITypeSymbol typeSymbol)
     {
@@ -118,7 +101,7 @@ new MultiSelectionPrompt<{type}>()
             return null;
 
         if (typeSymbol.IsIn(new [] { _lazyTypes.Collection, _lazyTypes.HashSet}, (x,y) => x is {} && y.IsOriginalOfType(x)))
-            return Wrappable(typeSymbol);
+            return Wrapable(typeSymbol);
 
         return null;
 
@@ -136,7 +119,7 @@ new MultiSelectionPrompt<{type}>()
         builder.Append($"{prompt}.ToArray()");
     }
 
-    private ConversionDelegate Wrappable(ITypeSymbol type)
+    private ConversionDelegate Wrapable(ITypeSymbol type)
     {
         return (stringBuilder, prompt) => stringBuilder.Append($"""new {type}({prompt})""");
     }
