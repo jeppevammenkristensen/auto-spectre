@@ -11,8 +11,11 @@ namespace Test
     {
         static void Main(string[] args)
         {
-            var conditionSampleFormSpectreFactory = new ConditionSampleFormSpectreFactory();
-            var conditionSampleForm = conditionSampleFormSpectreFactory.Get();
+            var selectionPrompt = new SelectionPrompt<string>().PageSize(2);
+
+            var converterFormSpectreFactory = new ConverterFormSpectreFactory();
+            converterFormSpectreFactory.Get();
+
         }
     }
 
@@ -22,7 +25,7 @@ namespace Test
         [TextPrompt] public bool AskFriendlyCondition { get; set; } = true;
 
         [TextPrompt(Title = "Please sir what is your name?", DefaultValueStyle = "yellow slowblink")]
-        public string AskFriendly { get; set; } = "Sir Jeppelot";
+        public string AskFriendly { get; set; } = "Sir";
         
         [TextPrompt(Title = "What is your #!^$ name", Condition = nameof(AskFriendlyCondition), NegateCondition = true)]
         public string AskHostile { get; set; }
@@ -172,7 +175,7 @@ namespace Test
         [SelectPrompt(Title = "[green]Select person[/]", Source = nameof(Persons), Converter = nameof(Converter))]
         public Person? Person { get; set; }
 
-        [SelectPrompt(Title = "[green]Select persons[/]", Source = nameof(Persons), Converter = nameof(Converter))]
+        [SelectPrompt(Title = "[green]Select persons[/]", Source = nameof(Persons), Converter = nameof(Converter), PageSize = 3)]
         public List<Person> SelectedPersons { get; set; } = new List<Person>();
 
         public string Converter(Person value) => $"{value.FirstName} {value.LastName}";

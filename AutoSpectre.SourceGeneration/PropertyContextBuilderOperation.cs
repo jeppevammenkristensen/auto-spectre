@@ -149,8 +149,19 @@ internal class PropertyContextBuilderOperation
 
     private void EvaluatePageSize(TranslatedAttributeData attributeData, ref SinglePropertyEvaluationContext propertyContext)
     {
-        if (attributeData.PageSize is { })
+        if (attributeData.PageSize is { } pageSize)
         {
+            if (pageSize < 3)
+            {
+                ProductionContext.ReportDiagnostic(Diagnostic.Create(
+                    new(DiagnosticIds.Id0012_UnsupportedDefaultValue,
+                        "Pagesize must be greater than or equal to 3",
+                        $"PageSize {pageSize} is less than 3",
+                        "General", DiagnosticSeverity.Error, true),
+                    propertyContext.Property.Locations.FirstOrDefault()));
+            }
+
+
             propertyContext.PageSize = attributeData.PageSize;
         }
     }
