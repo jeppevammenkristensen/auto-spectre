@@ -6,7 +6,9 @@ Source generator project to generate classes that can be used in a console to pr
 
 ## Short Guide
 
-Decorate a class with the AutoSpectreForm attribute and then decorate the properties (must be settable) with AskAttribute.
+Decorate a class with the AutoSpectreForm attribute and then decorate the properties (must be settable) with a TextPrompt or SelectPrompt attribute.
+
+**NOTE** The `AskAttribute` has been marked as obsolete and split into `TextPromptAttribute` and `SelectPromptAttribute` to avoid having a lot of properties only relevant for one or another type of prompt.
 
 ### Example input
 
@@ -356,7 +358,7 @@ public class ConverterFormsSpectreFactory : IConverterFormsSpectreFactory
 
 ## Validation
 
-You can define validation by using the `Validator` property on the `TextPromptAttribute` or by following the {PropertyName}Validator convention. 
+You can define validation by using the `Validator` property on the `TextPromptAttribute` or by following the {PropertyName}Validator convention.
 
 The method being pointed to should return a nullable string. If validation is succesfull `null` should be returned, otherwise the validation error text message should be returned.
 
@@ -443,13 +445,13 @@ Using the `Condition` you can instruct whether prompting should occur for a give
 [AutoSpectreForm]
 public class ConditionSampleForm
 {
-    [Ask]
+    [TextPrompt]
     public bool AskFriendlyCondition { get; set; }
     
-    [Ask(Title ="Please sir what is your name?")]
+    [TextPrompt(Title ="Please sir what is your name?")]
     public string AskFriendly { get; set; }
     
-    [Ask(Title = "What is your #!^$ name", Condition = nameof(AskFriendlyCondition), NegateCondition = true)]
+    [TextPrompt(Title = "What is your #!^$ name", Condition = nameof(AskFriendlyCondition), NegateCondition = true)]
     public string AskHostile { get; set; }
 }
 ```
@@ -498,7 +500,7 @@ You can also leave out the `Converter` in the `AskAttribute` if you have a metho
 #### Example
 
 ```csharp
-[Ask(AskType = AskType.Selection)]
+[SelectPrompt(AskType = AskType.Selection)]
 public FullName Name { get; set; }
 
 public string NameConverter(FullName name) => $"{name.FirstName} {name.LastName}";
@@ -506,12 +508,12 @@ public string NameConverter(FullName name) => $"{name.FirstName} {name.LastName}
 
 ### Validation
 
-It's possible to leave out the `Validator` in the `AskAttribute` if you have a method with the name {NameOfProperty}Validator and the correct structure (see the part about Validation)
+It's possible to leave out the `Validator` in the `TextPromptAttribute` if you have a method with the name {NameOfProperty}Validator and the correct structure (see the part about Validation)
 
 #### Example
 
 ```csharp
-[Ask]
+[TextPrompt]
 public int Age {get;set;}
 
 public string? AgeValidator(int age)
@@ -522,15 +524,15 @@ public string? AgeValidator(int age)
 
 ### Condition
 
-It's possible to leave out the `Condition` in the `AskAttribute` if you have a method with no parameters returning bool or a property returning bool that matches {NameOfProperty}Condition. If you want to negate this you will still need to provide the `NegateCondition` manually.
+It's possible to leave out the `Condition` in a prompt attribute if you have a method with no parameters returning bool or a property returning bool that matches {NameOfProperty}Condition. If you want to negate this you will still need to provide the `NegateCondition` manually.
 
 ```csharp
-[Ask]
+[TextPrompt]
 public string FirstName { get; set; }
 
 public bool FirstNameCondition => true;
 
-[Ask(NegateCondition = true)]
+[TextPrompt(NegateCondition = true)]
 public string NegatePrompt { get; set; }
 
 public bool NegatePromptCondition => false;
