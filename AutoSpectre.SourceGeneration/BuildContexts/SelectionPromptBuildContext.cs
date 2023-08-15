@@ -38,6 +38,7 @@ internal class SelectionPromptBuildContext : SelectionBaseBuildContext
             {GeneratePageSize()}
             {GenerateWrapAround()}
             {GenerateMoreChoicesText()}
+            {GenerateHighlightStyle()}
             .AddChoices(destination.{GetSelector()}.ToArray()))
         """;
     }

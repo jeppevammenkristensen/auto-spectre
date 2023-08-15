@@ -9,4 +9,5 @@ public static class DiagnosticIds
     public const string Id0011_ConditionNameNotFound = "AutoSpectre_JJK0011";
     public const string Id0012_UnsupportedDefaultValue = "AutoSpectre_JJK0012";
     public const string Id0013_PageSizeMustBeThreeOrLarger = "AutoSpectre_JJK0013";
+    public const string Id0014_StyleNotValid = "AutoSpectre_JJK0014";
 }

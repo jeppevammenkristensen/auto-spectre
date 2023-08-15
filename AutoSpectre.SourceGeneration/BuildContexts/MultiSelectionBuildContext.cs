@@ -51,8 +51,10 @@ new MultiSelectionPrompt<{type}>()
 .Title("{Title}"){GenerateConverter()}
 {GenerateRequired()}
 {GeneratePageSize()}
+{GenerateHighlightStyle()}
 {GenerateWrapAround()}
 {GenerateMoreChoicesText()}
+{GenerateInstructionsText()}
 .AddChoices(destination.{GetSelector()}.ToArray()))
 """;
         var builder = new StringBuilder(150);
@@ -68,7 +70,16 @@ new MultiSelectionPrompt<{type}>()
         return builder.ToString();
     }
 
-    
+    private string GenerateInstructionsText()
+    {
+        if (Context.InstructionsText is { })
+        {
+            return $""".InstructionsText("{Context.InstructionsText}")""";
+        }
+
+        return string.Empty;
+    }
+
 
     private ConversionDelegate? NeedsConversion(ITypeSymbol typeSymbol)
     {

@@ -85,10 +85,16 @@ internal class PropertyContextBuilderOperation
 
             if (attributeData.AskType == AskTypeCopy.Selection)
             {
+                EvaluateSelectionSource(attributeData, propertyContext);
+                
                 EvaluateSelectionConverter(attributeData, propertyContext);
                 EvaluatePageSize(attributeData, ref propertyContext);
                 EvaluateWrapAround(attributeData, ref propertyContext);
                 EvaluateMoreChoicesText(attributeData, ref propertyContext);
+                EvaluateInstructionText(attributeData, ref propertyContext);
+                EvaluateHighlightStyle(propertyContext, attributeData);
+
+
 
                 var selectionSource = attributeData.SelectionSource ?? $"{propertyContext.Property.Name}Source";
 
@@ -138,6 +144,52 @@ internal class PropertyContextBuilderOperation
         return propertyContexts;
     }
 
+    private void EvaluateSelectionSource(TranslatedAttributeData attributeData, SinglePropertyEvaluationContext propertyContext)
+    {
+            var selectionSource = attributeData.SelectionSource ?? $"{propertyContext.Property.Name}Source";
+
+                var match = TargetType
+                    .GetMembers()
+                    .Where(x => x.Name == selectionSource)
+                    .FirstOrDefault(x => x is IMethodSymbol
+                    {
+                        Parameters.Length: 0
+                    } or IPropertySymbol { GetMethod: { } });
+
+                if (match is { })
+                {
+                    propertyContext.ConfirmedSelectionSource = match switch
+                    {
+                        IMethodSymbol => new ConfirmedSelectionSource(selectionSource,SelectionPromptSelectionType.Method),
+                        IPropertySymbol => new ConfirmedSelectionSource(selectionSource, SelectionPromptSelectionType.Property),
+                        _ => throw new NotSupportedException(),
+                    };
+                }
+                else
+                {
+                    ProductionContext.ReportDiagnostic(Diagnostic.Create(
+                        new("AutoSpectre_JJK0005",
+                            "Not a valid selection source",
+                            $"The selectionsource {attributeData.SelectionSource} was not found on type",
+                            "General", DiagnosticSeverity.Warning, true),
+                        propertyContext.Property.Locations.FirstOrDefault()));
+                }
+    }
+
+   
+
+    // Note. It might seems extra ceremonious for these methods that just transfers the value. But it's just in
+    // case they get extra "complex". They probably won't.
+
+    private void EvaluateInstructionText(TranslatedAttributeData attributeData,
+        ref SinglePropertyEvaluationContext propertyContext)
+    {
+        if (attributeData.InstructionsText is { })
+        {
+            propertyContext.InstructionsText = attributeData.InstructionsText;
+        }
+    }
+
     private void EvaluateMoreChoicesText(TranslatedAttributeData attributeData, ref SinglePropertyEvaluationContext propertyContext)
     {
         if (attributeData.MoreChoicesText is { })
@@ -161,7 +213,7 @@ internal class PropertyContextBuilderOperation
             if (pageSize < 3)
             {
                 ProductionContext.ReportDiagnostic(Diagnostic.Create(
-                    new(DiagnosticIds.Id0012_UnsupportedDefaultValue,
+                    new(DiagnosticIds.Id0013_PageSizeMustBeThreeOrLarger,
                         "Pagesize must be greater than or equal to 3",
                         $"PageSize {pageSize} is less than 3",
                         "General", DiagnosticSeverity.Error, true),
@@ -175,11 +227,39 @@ internal class PropertyContextBuilderOperation
 
     private void EvaluatePromptStyle(SinglePropertyEvaluationContext propertyContext, TranslatedAttributeData attribute)
     {
-        propertyContext.PromptStyle = attribute.PromptStyle;
+        propertyContext.PromptStyle = EvaluateStyle(attribute.PromptStyle, nameof(propertyContext.PromptStyle), propertyContext);
     }
 
+    private string? EvaluateStyle(string? style, string propertyName, SinglePropertyEvaluationContext propertyContext)
+    {
+        if (style == null)
+            return null;
+
+        if (style.EvaluateStyle())
+            return style;
+        else
+        {
+            ProductionContext.ReportDiagnostic(Diagnostic.Create(
+                new(DiagnosticIds.Id0014_StyleNotValid,
+                    "Not a valid style",
+                    $"The style {style} on property {propertyName} is not a valid style",
+                    "General", DiagnosticSeverity.Error, true),
+                propertyContext.Property.Locations.FirstOrDefault()));
+            return null;
+        }
+
+
+    }
+
+    private void EvaluateHighlightStyle(SinglePropertyEvaluationContext propertyContext,
+        TranslatedAttributeData attributeData)
+    {
+               propertyContext.HighlightStyle = EvaluateStyle(attributeData.HighlightStyle, nameof(attributeData.HighlightStyle), propertyContext);
+    }
+    
+
     /// <summary>
-    /// Evaluates to see if the property has an initalized
+    /// Evaluates to see if the property has an initialized
     /// Like for instance public bool Confirm {get;set;} = true
     /// </summary>
     /// <param name="propertyContext"></param>
@@ -188,6 +268,9 @@ internal class PropertyContextBuilderOperation
     private void EvaluateDefaultValue(SinglePropertyEvaluationContext propertyContext,
         TranslatedAttributeData attributeData)
     {
+        var parsedDefaultValue = EvaluateStyle(attributeData.DefaultValueStyle, nameof(attributeData.DefaultValueStyle),
+            propertyContext);
+
         if (propertyContext.PropertySyntax is { Initializer: { } equal })
         {
             // We try to catch a property initialized with for instance = "Hello", = 5, = true
@@ -196,20 +279,22 @@ internal class PropertyContextBuilderOperation
                 propertyContext.ConfirmedDefaultValue =
                     new ConfirmedDefaultValue(DefaultValueType.Literal,
                         equal.Value.ToString(),
-                        attributeData.DefaultValueStyle);
+                        parsedDefaultValue);
             }
             else if (equal.Value is IdentifierNameSyntax or InvocationExpressionSyntax { Expression: IdentifierNameSyntax})
             {
                 // Note that it can be necessary to make this more robust.
                 propertyContext.ConfirmedDefaultValue =
-                    new ConfirmedDefaultValue(DefaultValueType.Call, equal.Value.ToString(), attributeData.DefaultValueStyle);
+                    new ConfirmedDefaultValue(DefaultValueType.Call,
+                        equal.Value.ToString(),
+                        parsedDefaultValue);
             }
             else if (equal.Value.ToString().Equals("string.empty", StringComparison.OrdinalIgnoreCase))
             {
                 propertyContext.ConfirmedDefaultValue =
                     new ConfirmedDefaultValue(DefaultValueType.Literal,
                         equal.Value.ToString(),
-                        attributeData.DefaultValueStyle);
+                        parsedDefaultValue);
             }
             else
             {
