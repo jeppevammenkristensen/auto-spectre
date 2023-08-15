@@ -1,7 +1,9 @@
-﻿using Spectre.Console;
+﻿using System;
+using Spectre.Console;
 
 namespace AutoSpectre;
 
+[AttributeUsage(AttributeTargets.Property)]
 public class TextPromptAttribute : AutoSpectrePropertyAttribute
 {
     public string? Validator { get; set; }
