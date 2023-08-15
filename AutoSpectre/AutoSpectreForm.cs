@@ -6,6 +6,7 @@ namespace AutoSpectre;
 /// Marker interface. Apply this to a class and a factory will be generated
 /// based on the properties in decorated with the <see cref="AskAttribute"/>
 /// </summary>
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
 public class AutoSpectreForm : Attribute
 {
     

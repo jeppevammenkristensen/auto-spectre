@@ -1,8 +1,24 @@
-﻿namespace AutoSpectre;
+﻿using System;
 
+namespace AutoSpectre;
+
+[AttributeUsage(AttributeTargets.Property)]
 public class SelectPromptAttribute : AutoSpectrePropertyAttribute
 {
+    /// <summary>
+    /// The converter used to convert the type of to string
+    /// It is used for custom display of the select items.
+    /// This can be omitted if you have a method matching
+    /// {PropertyName}Converter
+    /// </summary>
     public string? Converter {get;set;}
+    
+    /// <summary>
+    /// The source of enumerable items to be used for the select prompt
+    /// The source can be either a property or parameter less method
+    /// It can omitted if you have a matching property or method that matches
+    /// {PropertyName}Source
+    /// </summary>
     public string? Source { get; set; }
     
     /// <summary>
@@ -12,6 +28,7 @@ public class SelectPromptAttribute : AutoSpectrePropertyAttribute
     
     /// <summary>
     ///  Gets or sets a value indicating whether the selection should wrap around when reaching the edge.
+    /// If you meet the last item you can navigate to the first item and vice versa by going up or down
     /// </summary>
     public bool WrapAround { get; set; }
 
@@ -22,8 +39,8 @@ public class SelectPromptAttribute : AutoSpectrePropertyAttribute
 
 
     /// <summary>
-    /// This is only relevant the type of property some kind of enumerable. It the instruction text
-    /// for how to selct multiple items
+    /// This is only relevant when the type of property is some kind of enumerable. It the instruction text
+    /// for how to select multiple items
     /// </summary>
     public string? InstructionsText { get; set; }
 
