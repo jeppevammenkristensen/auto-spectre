@@ -11,6 +11,26 @@ public class MultiSelectPromptGeneratorTests : AutoSpectreGeneratorTestsBase
     }
 
     [Fact]
+    public void SelectPromptWithInstructionsTextGeneratesExpectedResult()
+    {
+        GetGeneratedOutput($$"""
+                             using AutoSpectre;
+                             using System.Collections.Generic;
+
+                             namespace Test;
+
+                             [AutoSpectreForm]
+                             public class TestForm
+                             {
+                                [SelectPrompt(InstructionsText = "Instruction")]
+                                public string[] Something {get;set;}
+
+                                public List<string> SomethingSource {get;set;}
+                             }
+                             """).Should().Contain(""".InstructionsText("Instruction")""");
+    }
+
+    [Fact]
     public void SelectPromptWithMoreChoicesTextGeneratesTheExpectedResult()
     {
         GetGeneratedOutput($$"""
@@ -69,5 +89,25 @@ public class MultiSelectPromptGeneratorTests : AutoSpectreGeneratorTestsBase
                                   public List<int> SelectNumbersSource {get;set;}
                              }
                              """).Should().Contain(".WrapAround(true)");
+    }
+
+    [Fact]
+    public void SelectPromptWithHighlightStyleGeneratesCorrectPart()
+    {
+        GetGeneratedOutput($$"""
+                             using AutoSpectre;
+                             using System.Collections.Generic;
+
+                             namespace Test;
+
+                             [AutoSpectreForm]
+                             public class TestForm
+                             {
+                                [SelectPrompt(HighlightStyle="red")]
+                                public int[] SelectNumbers {get;set;}
+
+                                public List<int> SelectNumbersSource {get;set;}
+                             }
+                             """).Should().Contain(""".HighlightStyle("red")""");
     }
 }

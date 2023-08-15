@@ -77,7 +77,7 @@ public class IncrementAutoSpectreGenerator : IIncrementalGenerator
             catch (Exception ex)
             {
                 productionContext.ReportDiagnostic(Diagnostic.Create(
-                    new("AutoSpectre_JJK0002", "Error on processing", ex.Message, "General",
+                    new("AutoSpectre_JJK0002", "Error on processing", ex.ToString(), "General",
                         DiagnosticSeverity.Error, true, ex.ToString()),
                     syntaxContext.TargetSymbol.Locations.FirstOrDefault()));
             }

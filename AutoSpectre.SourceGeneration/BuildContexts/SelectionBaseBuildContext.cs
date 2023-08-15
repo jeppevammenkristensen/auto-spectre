@@ -37,4 +37,14 @@ internal abstract class SelectionBaseBuildContext : PromptBuilderContextWithProp
     {
         return $""".PageSize({(Context.PageSize == null ? "10" : Context.PageSize.ToString())})""";
     }
+
+    protected string GenerateHighlightStyle()
+    {
+        if (Context.HighlightStyle is { })
+        {
+            return $""".HighlightStyle("{Context.HighlightStyle}")""";
+        }
+
+        return string.Empty;
+    }
 }

@@ -27,6 +27,8 @@ public class SinglePropertyEvaluationContext
     public ITypeSymbol Type { get; }
     public bool IsEnumerable { get; }
     public ITypeSymbol? UnderlyingType { get; }
+
+    public ConfirmedSelectionSource ConfirmedSelectionSource { get; set; }
     
     public ConfirmedConverter? ConfirmedConverter { get; set; }
     
@@ -39,6 +41,8 @@ public class SinglePropertyEvaluationContext
     public int? PageSize { get; set; }
     public bool? WrapAround { get; set; }
     public string? MoreChoicesText { get; set; }
+    public string? InstructionsText { get; set; }
+    public string? HighlightStyle { get; set; }
 
     public static SinglePropertyEvaluationContext GenerateFromPropertySymbol(IPropertySymbol property)
     {

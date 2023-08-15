@@ -29,6 +29,10 @@ internal class NewCodeBuilder
         PropertyContexts = propertyContexts;
     }
 
+    /// <summary>
+    /// Helps create and fill <see cref="NewCodeBuilder"/> with values
+    /// </summary>
+    /// <returns></returns>
     public string Code()
     {
         var name = $"{Type.ContainingNamespace}.{Type.Name}";
@@ -43,11 +47,17 @@ internal class NewCodeBuilder
 
 namespace {{ Type.ContainingNamespace}}    
 {
+    /// <summary>
+    /// Helps create and fill <see cref="{{ Type.Name }}"/> with values
+    /// </summary>
     public interface {{spectreFactoryInterfaceName}}
     {
         {{ Type.Name}}   Get({{ Type.Name}}   destination = null);
     }
 
+    /// <summary>
+    /// Helps create and fill <see cref="{{ Type.Name }}"/> with values
+    /// </summary>
     public class {{ spectreFactoryClassName}} : {{ spectreFactoryInterfaceName }}
     {
         public {{ Type.Name}}   Get({{ Type.Name}}   destination = null)

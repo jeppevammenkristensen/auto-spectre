@@ -64,8 +64,10 @@ public class PropertyWithAskAttributeData
             var pageSize = attributeData.GetValue<int?>(nameof(SelectPromptAttribute.PageSize)) ?? null;
             var wrapAround = attributeData.GetValue<bool?>(nameof(SelectPromptAttribute.WrapAround)) ?? null;
             var moreChoicesText = attributeData.GetValue<string?>(nameof(SelectPromptAttribute.MoreChoicesText)) ?? null;
+            var instructionsText = attributeData.GetValue<string?>(nameof(SelectPromptAttribute.InstructionsText)) ?? null;
+            var highlightStyle = attributeData.GetValue<string?>(nameof(SelectPromptAttribute.HighlightStyle)) ?? null;
 
-            TranslatedAttribute = TranslatedAttributeData.SelectPrompt(title, selectionSource, converter, condition, conditionNegated, pageSize, wrapAround, moreChoicesText);
+            TranslatedAttribute = TranslatedAttributeData.SelectPrompt(title, selectionSource, converter, condition, conditionNegated, pageSize, wrapAround, moreChoicesText, instructionsText, highlightStyle);
         }
         else
         {

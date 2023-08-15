@@ -11,7 +11,7 @@ namespace Test
     {
         static void Main(string[] args)
         {
-            var converterFormSpectreFactory = new ConverterFormSpectreFactory();
+            IConverterFormSpectreFactory converterFormSpectreFactory = new ConverterFormSpectreFactory();
             converterFormSpectreFactory.Get();
 
         }
@@ -170,11 +170,11 @@ namespace Test
     [AutoSpectreForm]
     public class ConverterForm
     {
+        [SelectPrompt(Title = "[green]Select persons[/]", Source = nameof(Persons), Converter = nameof(Converter), HighlightStyle = "yellow",PageSize = 3,InstructionsText = "Dont panic!", MoreChoicesText = "Select more by pressing the down key..!!!#&!")]
+        public List<Person> SelectedPersons { get; set; } = new List<Person>();
+
         [SelectPrompt(Title = "[green]Select person[/]", Source = nameof(Persons), Converter = nameof(Converter), WrapAround = false, PageSize = 3, MoreChoicesText = "Select more by pressing the down key..!!!#&!")]
         public Person? Person { get; set; }
-
-        [SelectPrompt(Title = "[green]Select persons[/]", Source = nameof(Persons), Converter = nameof(Converter), PageSize = 3, MoreChoicesText = "Select more by pressing the down key..!!!#&!")]
-        public List<Person> SelectedPersons { get; set; } = new List<Person>();
 
         public string Converter(Person value) => $"{value.FirstName} {value.LastName}";
 

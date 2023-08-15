@@ -19,4 +19,16 @@ public class SelectPromptAttribute : AutoSpectrePropertyAttribute
     /// Gets or sets the text to display when there are more choices available.
     /// </summary>
     public string? MoreChoicesText { get; set; }
+
+
+    /// <summary>
+    /// This is only relevant the type of property some kind of enumerable. It the instruction text
+    /// for how to selct multiple items
+    /// </summary>
+    public string? InstructionsText { get; set; }
+
+    /// <summary>
+    /// The style to for highlighting the currently selected item
+    /// </summary>
+    public string? HighlightStyle { get; set; }
 }
