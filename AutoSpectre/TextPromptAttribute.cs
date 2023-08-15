@@ -6,9 +6,30 @@ namespace AutoSpectre;
 [AttributeUsage(AttributeTargets.Property)]
 public class TextPromptAttribute : AutoSpectrePropertyAttribute
 {
+    /// <summary>
+    /// A reference to a validator method. The method must return a
+    /// string (nullable is preferable). If the result is not empty it will
+    /// be considered to be an validation error otherwise not.
+    ///
+    /// If the property types is an enumerable the method must consist of two parameters
+    /// The first must be a list of the singular type and the second a single item.
+    /// For instance if you have
+    /// <code>
+    /// [TextPrompt(Validator = nameof(Validation)]
+    /// public List&lt;int&gt; Ages {get;set;}
+    /// </code>
+    ///
+    /// Then the method should be
+    /// <code>public string? Validation(List&lt;int&gt; items, int item) { ... }</code>
+    ///
+    /// If the property type is not an enumerable the method must of a single parameter matching the property type
+    ///
+    /// By convention if you have a method fulfilling the requirements above you can omit the Validator property
+    /// if the name is {PropertyName}Validator
+    /// </summary>
     public string? Validator { get; set; }
 
-    // Retrieve the field as a secret.
+    // Hide the inputted text
     public bool Secret { get; set; }
 
     /// <summary>
@@ -24,7 +45,7 @@ public class TextPromptAttribute : AutoSpectrePropertyAttribute
     public string? DefaultValueStyle { get; set; }
 
     /// <summary>
-    /// The style to use for the prompt
+    /// The style to use for the prompting where the user inputs data
     /// </summary>
     public string? PromptStyle { get; set; }
 }
