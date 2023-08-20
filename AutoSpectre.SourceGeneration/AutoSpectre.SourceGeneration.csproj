@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <IsRoslynComponent>true</IsRoslynComponent>
-    <Version>0.4.0</Version>
+    <Version>0.5.0-preview.0.1</Version>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -19,9 +19,9 @@
     <PackageProjectUrl>https://github.com/jeppevammenkristensen/auto-spectre</PackageProjectUrl>
     <RepositoryUrl>https://github.com/jeppevammenkristensen/auto-spectre</RepositoryUrl>
     <PackageTags>C#;Source Generator</PackageTags>
-    <PackageReleaseNotes>Rewrite that adds TextPrompt and SelectionPrompt attributes instead of the AskAttribute. More properties
-    added to these two attributes</PackageReleaseNotes>
+    <PackageReleaseNotes>Adds support for the TaskStep attribute that supports adding a method that will be called</PackageReleaseNotes>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
   
   <ItemGroup>

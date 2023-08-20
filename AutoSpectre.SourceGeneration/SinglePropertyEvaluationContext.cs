@@ -1,12 +1,49 @@
 ﻿using System;
+using System.Diagnostics;
 using AutoSpectre.SourceGeneration.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace AutoSpectre.SourceGeneration;
 
+public class SingleMethodEvaluationContext
+{
+    public IMethodSymbol Method { get; }
+    public bool ReturnTypeIsTask { get; }
+    public bool HasAnsiConsoleParameter { get; }
+
+    private Lazy<MethodDeclarationSyntax> _methodSyntaxLazy;
+
+    public SingleMethodEvaluationContext(IMethodSymbol method, bool returnTypeIsTask, bool hasAnsiConsoleParameter)
+    {
+        Method = method;
+        ReturnTypeIsTask = returnTypeIsTask;
+        HasAnsiConsoleParameter = hasAnsiConsoleParameter;
+        _methodSyntaxLazy = new Lazy<MethodDeclarationSyntax>(() =>
+            Method.DeclaringSyntaxReferences[0].GetSyntax() as MethodDeclarationSyntax ?? throw new InvalidOperationException());
+    }
+
+    public ConfirmedStatusWrap? ConfirmedStatus { get; set; }
+    public MethodDeclarationSyntax MethodSyntax => _methodSyntaxLazy.Value;
+}
+
+public class ConfirmedStatusWrap
+{
+    public ConfirmedStatusWrap(string statusText)
+    {
+        StatusText = statusText;
+    }
+    public string StatusText { get; }
+    
+}
+
 public class SinglePropertyEvaluationContext
 {
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+    public static SinglePropertyEvaluationContext Empty = new SinglePropertyEvaluationContext(default(IPropertySymbol),
+        false, default(ITypeSymbol), false, default(ITypeSymbol));
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+    
     private Lazy<PropertyDeclarationSyntax?> _propertySyntaxLazy;
     
     public SinglePropertyEvaluationContext(IPropertySymbol property, bool isNullable, ITypeSymbol type, bool isEnumerable, ITypeSymbol underlyingType)

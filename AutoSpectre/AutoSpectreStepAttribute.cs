@@ -2,7 +2,7 @@
 
 namespace AutoSpectre;
 
-public class AutoSpectrePropertyAttribute : Attribute
+public class AutoSpectreStepAttribute : Attribute
 {
     /// <summary>
     /// The title to display for the prompt. If not specified, the following

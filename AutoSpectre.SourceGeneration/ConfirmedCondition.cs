@@ -13,3 +13,4 @@ public class ConfirmedCondition
     public ConditionSource SourceType { get; set; }
     public bool Negate { get; }
 }
+

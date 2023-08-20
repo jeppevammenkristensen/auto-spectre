@@ -14,10 +14,15 @@ public class LazyTypes
     private Lazy<INamedTypeSymbol?> _hashSet;
     private readonly Lazy<INamedTypeSymbol?> _collection;
     private readonly Lazy<INamedTypeSymbol?> _autoSpectreForm;
+    private readonly Lazy<INamedTypeSymbol?> _task;
+    private readonly Lazy<INamedTypeSymbol?> _iAnsiConsole;
+
     public INamedTypeSymbol? ListGeneric => _listGeneric.Value;
     public INamedTypeSymbol? HashSet => _hashSet.Value;
     public INamedTypeSymbol? Collection => _collection.Value;
     public INamedTypeSymbol? AutoSpectreForm => _autoSpectreForm.Value;
+    public INamedTypeSymbol? Task => _task.Value;
+    public INamedTypeSymbol? IAnsiConsole => _iAnsiConsole.Value;
 
 
     public LazyTypes(Compilation compilation)
@@ -30,5 +35,8 @@ public class LazyTypes
             compilation.GetTypeByMetadataName("System.Collections.Generic.Collection`1"));
         _autoSpectreForm = new Lazy<INamedTypeSymbol?>(() =>
             compilation.GetTypeByMetadataName(Constants.AutoSpectreFormAttributeFullyQualifiedName));
+        _task = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName("System.Threading.Tasks.Task"));
+        _iAnsiConsole =
+            new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName("Spectre.Console.IAnsiConsole"));
     }
 }

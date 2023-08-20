@@ -9,174 +9,292 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace AutoSpectre.SourceGeneration;
 
-internal class PropertyContextBuilderOperation
+internal class StepContextBuilderOperation
 {
     public GeneratorAttributeSyntaxContext SyntaxContext { get; }
-    public IReadOnlyList<PropertyWithAskAttributeData> PropertyCandidates { get; }
+    public IReadOnlyList<StepWithAttributeData> StepCandidates { get; }
     public INamedTypeSymbol TargetType { get; }
     public SourceProductionContext ProductionContext { get; }
 
     public LazyTypes Types { get; }
 
-    internal PropertyContextBuilderOperation(
+    internal StepContextBuilderOperation(
         GeneratorAttributeSyntaxContext syntaxContext,
-        IReadOnlyList<PropertyWithAskAttributeData> propertyCandidates,
+        IReadOnlyList<StepWithAttributeData> stepCandidates,
         INamedTypeSymbol targetType, SourceProductionContext productionContext)
     {
         SyntaxContext = syntaxContext;
-        PropertyCandidates = propertyCandidates;
+        StepCandidates = stepCandidates;
         TargetType = targetType;
         ProductionContext = productionContext;
         Types = new(SyntaxContext.SemanticModel.Compilation);
     }
 
-    public static List<PropertyContext> GetPropertyContexts(
+    public static List<IStepContext> GetStepContexts(
         GeneratorAttributeSyntaxContext syntaxContext,
-        IReadOnlyList<PropertyWithAskAttributeData> candidates,
+        IReadOnlyList<StepWithAttributeData> candidates,
         INamedTypeSymbol targetNamedType,
         SourceProductionContext productionContext)
     {
-        PropertyContextBuilderOperation operation = new(syntaxContext, candidates, targetNamedType, productionContext);
-        return operation.GetPropertyContexts();
+        StepContextBuilderOperation operation = new(syntaxContext, candidates, targetNamedType, productionContext);
+        return operation.GetStepContexts();
     }
 
-    public List<PropertyContext> GetPropertyContexts()
+    public List<IStepContext> GetStepContexts()
     {
         var types = new LazyTypes(SyntaxContext.SemanticModel.Compilation);
 
-        List<PropertyContext> propertyContexts = new();
+        List<IStepContext> stepContexts = new();
 
-        foreach (var (property, attributeData) in PropertyCandidates)
+        foreach (var (property, method, attributeData) in StepCandidates)
         {
-            var propertyContext = SinglePropertyEvaluationContext.GenerateFromPropertySymbol(property);
-
-            EvaluateCondition(propertyContext, attributeData);
-
-            if (attributeData.AskType == AskTypeCopy.Normal)
+            if (property is { })
             {
-                EvaluateDefaultValue(propertyContext, attributeData);
-                EvaluatePromptStyle(propertyContext, attributeData);
-                EvaluateValidation(propertyContext, attributeData);
+                HandleProperty(property, attributeData, stepContexts, types);
+            }
+            else if (method is { })
+            {
+                HandleMethod(method, attributeData, stepContexts,types);
+            }
+            else
+            {
+                throw new InvalidOperationException($"Both {nameof(property)} and {nameof(method)} are unexpectedly null");
+            }
+        }
 
-                if (!propertyContext.IsEnumerable)
+        return stepContexts;
+    }
+
+    private void HandleMethod(IMethodSymbol method, TranslatedAttributeData attributeData, List<IStepContext> stepContexts, LazyTypes types)
+    {
+
+
+        if (EvaluateSingleMethodEvaluationContext(method) is not {} singleMethodEvaluationContext)
+        {
+            return;
+        }
+
+        EvaluateStatus(attributeData, singleMethodEvaluationContext);
+
+
+
+        stepContexts.Add(new MethodContext(singleMethodEvaluationContext,
+            new TaskStepBuildContext(attributeData.Title, singleMethodEvaluationContext)));
+    }
+
+    private void EvaluateStatus(TranslatedAttributeData attributeData, SingleMethodEvaluationContext singleMethodEvaluationContext)
+    {
+        if (attributeData.UseStatus == false)
+            return;
+
+        var methodWalker = new MethodWalker(SyntaxContext.SemanticModel);
+        methodWalker.Visit(singleMethodEvaluationContext.MethodSyntax);
+        if (methodWalker.HasPrompting)
+        {
+            ProductionContext.ReportDiagnostic(Diagnostic.Create(
+                new(DiagnosticIds.Id0017_TaskStepStatusWithPrompting,
+                    "When using status. Prompting is not allowed. It appears that the method body does this",
+                    $"When using status. Prompting is not allowed. It appears that the method body does this",
+                    "General", DiagnosticSeverity.Warning, true),
+                singleMethodEvaluationContext.Method.Locations.FirstOrDefault()));
+        }
+
+
+        if (attributeData.StatusText is { })
+        {
+            singleMethodEvaluationContext.ConfirmedStatus = new ConfirmedStatusWrap(attributeData.StatusText);
+        }
+        else
+        {
+            ProductionContext.ReportDiagnostic(Diagnostic.Create(
+                new(DiagnosticIds.Id0018_StatusTextIsRequired,
+                    "StatusText must be set when UseStatus has been set to true",
+                    $"StatusText must be set when UseStatus has been set to true",
+                    "General", DiagnosticSeverity.Error, true),
+                singleMethodEvaluationContext.Method.Locations.FirstOrDefault()));
+        }
+    }
+
+    /// <summary>
+    /// Evaluates the signature of the method. If it is incorrect a diagnostic is reported
+    /// and null is returned
+    /// </summary>
+    /// <param name="method"></param>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException"></exception>
+    private SingleMethodEvaluationContext? EvaluateSingleMethodEvaluationContext(IMethodSymbol method)
+    {
+        var typesByMetadataName =
+            this.SyntaxContext.SemanticModel.Compilation.GetTypesByMetadataName("System.Threading.Tasks.Task");
+        if (typesByMetadataName.Length == 0)
+        {
+            throw new InvalidOperationException("No types found");
+        }
+
+        // Check if the method is void or returning a Task. We will accept with or without async
+        if (method.ReturnsVoid || method.ReturnType.Equals(this.Types.Task, SymbolEqualityComparer.Default))
+        {
+            bool validParameters = method.Parameters.Length == 0 || (method.Parameters.Length == 1 &&
+                                                                     method.Parameters[0].Type
+                                                                         .Equals(Types.IAnsiConsole,
+                                                                             SymbolEqualityComparer.Default));
+            if (validParameters)
+            {
+                var hasAnsiConsole = method.Parameters.FirstOrDefault() is { };
+
+                var isAsync = method.ReturnType.Equals(this.Types.Task, SymbolEqualityComparer.Default);
+                return new SingleMethodEvaluationContext(method, isAsync, hasAnsiConsole);
+                
+            }
+            else
+            {
+                ProductionContext.ReportDiagnostic(Diagnostic.Create(
+                    new(DiagnosticIds.Id0015_IncorrectMethodType,
+                        "The method decorated with the TaskStepAttribute does not meet the requiremnts ",
+                        $"The return type must be void or a Task. IAnsiConsole is allowed a parameter, but can be omitted",
+                        "General", DiagnosticSeverity.Error, true),
+                    method.Locations.FirstOrDefault()));
+            }
+        }
+        else
+        {
+            ProductionContext.ReportDiagnostic(Diagnostic.Create(
+                new(DiagnosticIds.Id0016_TaskStepMethodInvalidReturnType,
+                    "The return type of the method must be either void or Task",
+                    $"The return type was {method.ReturnType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)} but only void or Task are allowed",
+                    "General", DiagnosticSeverity.Error, true),
+                method.Locations.FirstOrDefault()));
+        }
+
+        return null;
+    }
+
+    private void HandleProperty(IPropertySymbol property, TranslatedAttributeData attributeData, List<IStepContext> stepContexts,
+        LazyTypes types)
+    {
+        var propertyContext = SinglePropertyEvaluationContext.GenerateFromPropertySymbol(property);
+
+        EvaluateCondition(propertyContext, attributeData);
+
+        if (attributeData.AskType == AskTypeCopy.Normal)
+        {
+            EvaluateDefaultValue(propertyContext, attributeData);
+            EvaluatePromptStyle(propertyContext, attributeData);
+            EvaluateValidation(propertyContext, attributeData);
+
+            if (!propertyContext.IsEnumerable)
+            {
+                if (GetTextPromptBuildContext(attributeData, propertyContext) is
+                    { } promptBuildContext)
                 {
-                    if (GetTextPromptBuildContext(attributeData, propertyContext) is
-                        { } promptBuildContext)
-                    {
-                        propertyContexts.Add(new(property.Name, property,
-                            promptBuildContext));
-                    }
-                }
-                else
-                {
-                    if (GetTextPromptBuildContext(attributeData, propertyContext) is
-                        { } promptBuildContext)
-                    {
-                        propertyContexts.Add(new(property.Name,
-                            property,
-                            new MultiAddBuildContext(propertyContext.Type,
-                                propertyContext.UnderlyingType,
-                                types,
-                                promptBuildContext,
-                                propertyContext)));
-                    }
+                    stepContexts.Add(new PropertyContext(property.Name, property,
+                        promptBuildContext));
                 }
             }
-
-            if (attributeData.AskType == AskTypeCopy.Selection)
+            else
             {
-                EvaluateSelectionSource(attributeData, propertyContext);
-                
-                EvaluateSelectionConverter(attributeData, propertyContext);
-                EvaluatePageSize(attributeData, ref propertyContext);
-                EvaluateWrapAround(attributeData, ref propertyContext);
-                EvaluateMoreChoicesText(attributeData, ref propertyContext);
-                EvaluateInstructionText(attributeData, ref propertyContext);
-                EvaluateHighlightStyle(propertyContext, attributeData);
-
-
-
-                var selectionSource = attributeData.SelectionSource ?? $"{propertyContext.Property.Name}Source";
-
-                var match = TargetType
-                    .GetMembers()
-                    .Where(x => x.Name == selectionSource)
-                    .FirstOrDefault(x => x is IMethodSymbol
-                    {
-                        Parameters.Length: 0
-                    } or IPropertySymbol { GetMethod: { } });
-
-                if (match is { })
+                if (GetTextPromptBuildContext(attributeData, propertyContext) is
+                    { } promptBuildContext)
                 {
-                    SelectionPromptSelectionType selectionType = match switch
-                    {
-                        IMethodSymbol => SelectionPromptSelectionType.Method,
-                        IPropertySymbol => SelectionPromptSelectionType.Property,
-                        _ => throw new NotSupportedException(),
-                    };
-                    if (!propertyContext.IsEnumerable)
-                    {
-                        propertyContexts.Add(new(property.Name, property,
-                            new SelectionPromptBuildContext(attributeData.Title, propertyContext,
-                                selectionSource, selectionType)));
-                    }
-                    else
-                    {
-                        propertyContexts.Add(new(property.Name, property,
-                            new MultiSelectionBuildContext(title: attributeData.Title,
-                                propertyContext,
-                                selectionTypeName: selectionSource,
-                                selectionType: selectionType, types)));
-                    }
-                }
-                else
-                {
-                    ProductionContext.ReportDiagnostic(Diagnostic.Create(
-                        new("AutoSpectre_JJK0005",
-                            "Not a valid selection source",
-                            $"The selectionsource {attributeData.SelectionSource} was not found on type",
-                            "General", DiagnosticSeverity.Warning, true),
-                        property.Locations.FirstOrDefault()));
+                    stepContexts.Add(new PropertyContext(property.Name,
+                        property,
+                        new MultiAddBuildContext(propertyContext.Type,
+                            propertyContext.UnderlyingType,
+                            types,
+                            promptBuildContext,
+                            propertyContext)));
                 }
             }
         }
 
-        return propertyContexts;
-    }
+        if (attributeData.AskType == AskTypeCopy.Selection)
+        {
+            EvaluateSelectionSource(attributeData, propertyContext);
+            EvaluateSelectionConverter(attributeData, propertyContext);
+            EvaluatePageSize(attributeData, ref propertyContext);
+            EvaluateWrapAround(attributeData, ref propertyContext);
+            EvaluateMoreChoicesText(attributeData, ref propertyContext);
+            EvaluateInstructionText(attributeData, ref propertyContext);
+            EvaluateHighlightStyle(propertyContext, attributeData);
 
-    private void EvaluateSelectionSource(TranslatedAttributeData attributeData, SinglePropertyEvaluationContext propertyContext)
-    {
             var selectionSource = attributeData.SelectionSource ?? $"{propertyContext.Property.Name}Source";
 
-                var match = TargetType
-                    .GetMembers()
-                    .Where(x => x.Name == selectionSource)
-                    .FirstOrDefault(x => x is IMethodSymbol
-                    {
-                        Parameters.Length: 0
-                    } or IPropertySymbol { GetMethod: { } });
-
-                if (match is { })
+            var match = TargetType
+                .GetMembers()
+                .Where(x => x.Name == selectionSource)
+                .FirstOrDefault(x => x is IMethodSymbol
                 {
-                    propertyContext.ConfirmedSelectionSource = match switch
-                    {
-                        IMethodSymbol => new ConfirmedSelectionSource(selectionSource,SelectionPromptSelectionType.Method),
-                        IPropertySymbol => new ConfirmedSelectionSource(selectionSource, SelectionPromptSelectionType.Property),
-                        _ => throw new NotSupportedException(),
-                    };
+                    Parameters.Length: 0
+                } or IPropertySymbol { GetMethod: { } });
+
+            if (match is { })
+            {
+                SelectionPromptSelectionType selectionType = match switch
+                {
+                    IMethodSymbol => SelectionPromptSelectionType.Method,
+                    IPropertySymbol => SelectionPromptSelectionType.Property,
+                    _ => throw new NotSupportedException(),
+                };
+                if (!propertyContext.IsEnumerable)
+                {
+                    stepContexts.Add(new PropertyContext(property.Name, property,
+                        new SelectionPromptBuildContext(attributeData.Title, propertyContext,
+                            selectionSource, selectionType)));
                 }
                 else
                 {
-                    ProductionContext.ReportDiagnostic(Diagnostic.Create(
-                        new("AutoSpectre_JJK0005",
-                            "Not a valid selection source",
-                            $"The selectionsource {attributeData.SelectionSource} was not found on type",
-                            "General", DiagnosticSeverity.Warning, true),
-                        propertyContext.Property.Locations.FirstOrDefault()));
+                    stepContexts.Add(new PropertyContext(property.Name, property,
+                        new MultiSelectionBuildContext(title: attributeData.Title,
+                            propertyContext,
+                            selectionTypeName: selectionSource,
+                            selectionType: selectionType, types)));
                 }
+            }
+            else
+            {
+                ProductionContext.ReportDiagnostic(Diagnostic.Create(
+                    new("AutoSpectre_JJK0005",
+                        "Not a valid selection source",
+                        $"The source {attributeData.SelectionSource} was not found on type",
+                        "General", DiagnosticSeverity.Warning, true),
+                    property.Locations.FirstOrDefault()));
+            }
+        }
     }
 
-   
+    private void EvaluateSelectionSource(TranslatedAttributeData attributeData,
+        SinglePropertyEvaluationContext propertyContext)
+    {
+        var selectionSource = attributeData.SelectionSource ?? $"{propertyContext.Property.Name}Source";
+
+        var match = TargetType
+            .GetMembers()
+            .Where(x => x.Name == selectionSource)
+            .FirstOrDefault(x => x is IMethodSymbol
+            {
+                Parameters.Length: 0
+            } or IPropertySymbol { GetMethod: { } });
+
+        if (match is { })
+        {
+            propertyContext.ConfirmedSelectionSource = match switch
+            {
+                IMethodSymbol => new ConfirmedSelectionSource(selectionSource, SelectionPromptSelectionType.Method),
+                IPropertySymbol => new ConfirmedSelectionSource(selectionSource, SelectionPromptSelectionType.Property),
+                _ => throw new NotSupportedException(),
+            };
+        }
+        else
+        {
+            ProductionContext.ReportDiagnostic(Diagnostic.Create(
+                new("AutoSpectre_JJK0005",
+                    "Not a valid selection source",
+                    $"The selectionsource {attributeData.SelectionSource} was not found on type",
+                    "General", DiagnosticSeverity.Warning, true),
+                propertyContext.Property.Locations.FirstOrDefault()));
+        }
+    }
+
 
     // Note. It might seems extra ceremonious for these methods that just transfers the value. But it's just in
     // case they get extra "complex". They probably won't.
@@ -190,7 +308,8 @@ internal class PropertyContextBuilderOperation
         }
     }
 
-    private void EvaluateMoreChoicesText(TranslatedAttributeData attributeData, ref SinglePropertyEvaluationContext propertyContext)
+    private void EvaluateMoreChoicesText(TranslatedAttributeData attributeData,
+        ref SinglePropertyEvaluationContext propertyContext)
     {
         if (attributeData.MoreChoicesText is { })
         {
@@ -198,7 +317,8 @@ internal class PropertyContextBuilderOperation
         }
     }
 
-    private void EvaluateWrapAround(TranslatedAttributeData attributeData, ref SinglePropertyEvaluationContext propertyContext)
+    private void EvaluateWrapAround(TranslatedAttributeData attributeData,
+        ref SinglePropertyEvaluationContext propertyContext)
     {
         if (attributeData.WrapAround is { })
         {
@@ -206,7 +326,8 @@ internal class PropertyContextBuilderOperation
         }
     }
 
-    private void EvaluatePageSize(TranslatedAttributeData attributeData, ref SinglePropertyEvaluationContext propertyContext)
+    private void EvaluatePageSize(TranslatedAttributeData attributeData,
+        ref SinglePropertyEvaluationContext propertyContext)
     {
         if (attributeData.PageSize is { } pageSize)
         {
@@ -227,7 +348,8 @@ internal class PropertyContextBuilderOperation
 
     private void EvaluatePromptStyle(SinglePropertyEvaluationContext propertyContext, TranslatedAttributeData attribute)
     {
-        propertyContext.PromptStyle = EvaluateStyle(attribute.PromptStyle, nameof(propertyContext.PromptStyle), propertyContext);
+        propertyContext.PromptStyle =
+            EvaluateStyle(attribute.PromptStyle, nameof(propertyContext.PromptStyle), propertyContext);
     }
 
     private string? EvaluateStyle(string? style, string propertyName, SinglePropertyEvaluationContext propertyContext)
@@ -247,16 +369,15 @@ internal class PropertyContextBuilderOperation
                 propertyContext.Property.Locations.FirstOrDefault()));
             return null;
         }
-
-
     }
 
     private void EvaluateHighlightStyle(SinglePropertyEvaluationContext propertyContext,
         TranslatedAttributeData attributeData)
     {
-               propertyContext.HighlightStyle = EvaluateStyle(attributeData.HighlightStyle, nameof(attributeData.HighlightStyle), propertyContext);
+        propertyContext.HighlightStyle = EvaluateStyle(attributeData.HighlightStyle,
+            nameof(attributeData.HighlightStyle), propertyContext);
     }
-    
+
 
     /// <summary>
     /// Evaluates to see if the property has an initialized
@@ -281,7 +402,10 @@ internal class PropertyContextBuilderOperation
                         equal.Value.ToString(),
                         parsedDefaultValue);
             }
-            else if (equal.Value is IdentifierNameSyntax or InvocationExpressionSyntax { Expression: IdentifierNameSyntax})
+            else if (equal.Value is IdentifierNameSyntax or InvocationExpressionSyntax
+                     {
+                         Expression: IdentifierNameSyntax
+                     })
             {
                 // Note that it can be necessary to make this more robust.
                 propertyContext.ConfirmedDefaultValue =
@@ -301,7 +425,8 @@ internal class PropertyContextBuilderOperation
                 ProductionContext.ReportDiagnostic(Diagnostic.Create(
                     new(DiagnosticIds.Id0012_UnsupportedDefaultValue,
                         $"The default value defined for property {propertyContext.Property.Name} is not supported",
-                        $"The supported initializers for a properties are literals (for instance 5, 70), simple public static constants, properties, fields, method invocations", "General",
+                        $"The supported initializers for a properties are literals (for instance 5, 70), simple public static constants, properties, fields, method invocations",
+                        "General",
                         DiagnosticSeverity.Info, true),
                     propertyContext.PropertySyntax.Initializer!.GetLocation()));
             }
@@ -335,6 +460,7 @@ internal class PropertyContextBuilderOperation
                     }
                 }
             }
+
             return false;
         }
 

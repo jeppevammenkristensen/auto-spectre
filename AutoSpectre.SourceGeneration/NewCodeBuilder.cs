@@ -21,12 +21,12 @@ internal class NewCodeBuilder
     };
 
     public ITypeSymbol Type { get; }
-    public List<PropertyContext> PropertyContexts { get; }
+    public List<IStepContext> StepContexts { get; }
 
-    public NewCodeBuilder(INamedTypeSymbol type, List<PropertyContext> propertyContexts)
+    public NewCodeBuilder(INamedTypeSymbol type, List<IStepContext> stepContexts)
     {
         Type = type;
-        PropertyContexts = propertyContexts;
+        StepContexts = stepContexts;
     }
 
     /// <summary>
@@ -37,10 +37,15 @@ internal class NewCodeBuilder
     {
         var name = $"{Type.ContainingNamespace}.{Type.Name}";
 
-        var propertySetters = BuildPropertySetters();
+        var members = BuildStepContexts();
+        var isAsync = StepContexts.Any(x => x.IsAsync);
 
         var spectreFactoryInterfaceName = Type.GetSpectreFactoryInterfaceName();
         var spectreFactoryClassName = Type.GetSpectreFactoryClassName();
+        var returnTypeName = isAsync ? $"Task<{Type.Name}>" : Type.Name;
+        
+        
+        
 
         var result = $$"""
 {{ BuildUsingStatements() }}
@@ -52,7 +57,7 @@ namespace {{ Type.ContainingNamespace}}
     /// </summary>
     public interface {{spectreFactoryInterfaceName}}
     {
-        {{ Type.Name}}   Get({{ Type.Name}}   destination = null);
+        {{ returnTypeName}}   Get{{ (isAsync ? "Async " : string.Empty) }}({{ Type.Name}}   destination = null);
     }
 
     /// <summary>
@@ -60,12 +65,12 @@ namespace {{ Type.ContainingNamespace}}
     /// </summary>
     public class {{ spectreFactoryClassName}} : {{ spectreFactoryInterfaceName }}
     {
-        public {{ Type.Name}}   Get({{ Type.Name}}   destination = null)
+        public {{ (isAsync ? "async " : string.Empty) }}{{ returnTypeName}}   Get{{ (isAsync ? "Async " : string.Empty) }}({{ Type.Name}}   destination = null)
         {
             {{PreInitalization()}}
 
             destination ??= new {{ name}}   ();
-{{ propertySetters}}  
+{{ members}}  
             return destination;
         }
     }
@@ -79,7 +84,7 @@ namespace {{ Type.ContainingNamespace}}
     {
         var builder = new StringBuilder();
 
-         foreach (var code in PropertyContexts.SelectMany(x => x.BuildContext.CodeInitializing()).Distinct())
+         foreach (var code in StepContexts.SelectMany(x => x.BuildContext.CodeInitializing()).Distinct())
         {
             builder.AppendLine(code);
         }
@@ -90,7 +95,7 @@ namespace {{ Type.ContainingNamespace}}
     private string BuildUsingStatements()
     {
         var builder = new StringBuilder();
-        foreach (var nmSpace in InitalNamespaces.Concat(PropertyContexts.SelectMany(x => x.BuildContext.Namespaces())).Distinct().Where(x => x != Type.ContainingNamespace.ToString()))
+        foreach (var nmSpace in InitalNamespaces.Concat(StepContexts.SelectMany(x => x.BuildContext.Namespaces())).Distinct().Where(x => x != Type.ContainingNamespace.ToString()))
         {
             builder.AppendLine($"using {nmSpace};");
         }
@@ -98,19 +103,30 @@ namespace {{ Type.ContainingNamespace}}
         return builder.ToString();
     }
 
-    private string BuildPropertySetters()
+    private string BuildStepContexts()
     {
         StringBuilder builder = new();
-        foreach (var propertyAndAttribute in this.PropertyContexts)
+        foreach (var stepContext in this.StepContexts)
         {
             void AddLine()
             {
-                builder.AppendLine(
-                    $"{propertyAndAttribute.BuildContext.GenerateOutput($"destination.{propertyAndAttribute.PropertyName}")}");
+                switch (stepContext)
+                {
+                    case MethodContext methodContext:
+                        builder.AppendLine(
+                            $"{methodContext.BuildContext.GenerateOutput($"destination.{methodContext.MethodName}")}");
+                        break;
+                    case PropertyContext propertyContext:
+                        builder.AppendLine($"{propertyContext.BuildContext.GenerateOutput($"destination.{propertyContext.PropertyName}")}");
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(stepContext));
+                }
+                
             }
             
             
-            if (propertyAndAttribute.BuildContext.Context.ConfirmedCondition is { } confirmedCondition)
+            if (stepContext.BuildContext.Context.ConfirmedCondition is { } confirmedCondition)
             {
                 var boolValue = confirmedCondition.Negate ? "false" : "true";
                 

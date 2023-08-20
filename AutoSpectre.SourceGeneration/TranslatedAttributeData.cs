@@ -66,6 +66,20 @@ public class TranslatedAttributeData
         };
     }
 
+    public static TranslatedAttributeData TaskPrompt(string title, string? condition, bool conditionNegated, bool useStatus, string? statusText)
+    {
+        return new TranslatedAttributeData(AskTypeCopy.Task, null, title, null, null, condition, conditionNegated)
+        {
+            UseStatus = useStatus,
+            StatusText = statusText
+
+        };
+    }
+
+    public string? StatusText { get; set; }
+
+    public bool UseStatus { get; set; }
+
     public string? HighlightStyle { get; set; }
 
     public string? InstructionsText { get; set; }
@@ -75,4 +89,5 @@ public class TranslatedAttributeData
     public bool? WrapAround { get; set; }
 
     public int? PageSize { get; set; }
+
 }
