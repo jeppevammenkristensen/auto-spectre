@@ -24,35 +24,48 @@ public class IncrementAutoSpectreGenerator : IIncrementalGenerator
                 if (syntaxContext.TargetSymbol is INamedTypeSymbol targetNamedType)
                 {
                     var candidates = targetNamedType
-                        .GetPropertiesWithSetter()
+                        .GetPropertiesWithSetterAndMethods()
                         .Select(x =>
                         {
-                            var attribute = x.GetAttributes().FirstOrDefault(a =>
+                            var (property, method) = x;
+                            ISymbol symbol = (ISymbol)property ?? method;
+                            
+                            var attribute = symbol!.GetAttributes().FirstOrDefault(a =>
                                 a.AttributeClass is
                                 {
-                                    MetadataName: "AskAttribute" or "TextPromptAttribute" or "SelectPromptAttribute",
+                                    MetadataName: "AskAttribute" or nameof(TextPromptAttribute) or nameof(SelectPromptAttribute) or nameof(TaskStepAttribute),
                                     ContainingNamespace:
                                     {
                                         IsGlobalNamespace: false, Name: "AutoSpectre"
                                     }
                                 });
 
+                            
                             return new
                             {
-                                Property = x,
+                                Property = property,
+                                Method = method,
                                 Attribute = attribute
                             };
                         })
                         .Where(x => x.Attribute != null)
-                        .Select(x => new PropertyWithAskAttributeData(x.Property, x.Attribute!)).ToList();
+                        .Select(x =>
+                        {
+                            return x switch
+                            {
+                                { Property: { } property } => new StepWithAttributeData(property, x.Attribute!),
+                                { Method: { } method } => new StepWithAttributeData(method, x.Attribute!),
+                                _ => throw new InvalidOperationException("Unexpected result")
+                            };
+                        }).ToList();
 
                     // Check if there are any candidates
                     if (candidates.Any())
                     {
-                        var propertyContexts = PropertyContextBuilderOperation.GetPropertyContexts(syntaxContext,
+                        var stepContexts = StepContextBuilderOperation.GetStepContexts(syntaxContext,
                             candidates, targetNamedType, productionContext);
 
-                        var builder = new NewCodeBuilder(targetNamedType, propertyContexts);
+                        var builder = new NewCodeBuilder(targetNamedType, stepContexts);
                         var code = builder.Code();
                         if (string.IsNullOrWhiteSpace(code))
                         {

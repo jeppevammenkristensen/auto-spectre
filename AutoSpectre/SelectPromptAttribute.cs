@@ -3,7 +3,7 @@
 namespace AutoSpectre;
 
 [AttributeUsage(AttributeTargets.Property)]
-public class SelectPromptAttribute : AutoSpectrePropertyAttribute
+public class SelectPromptAttribute : AutoSpectreStepAttribute
 {
     /// <summary>
     /// The converter used to convert the type of to string

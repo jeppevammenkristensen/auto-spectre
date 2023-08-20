@@ -2,8 +2,34 @@
 
 namespace AutoSpectre.SourceGeneration
 {
-    public class PropertyContext
+    public interface IStepContext
     {
+        bool IsAsync { get; }
+        public PromptBuildContext BuildContext { get; }
+    }
+
+    public class MethodContext : IStepContext
+    {
+        public MethodContext(SingleMethodEvaluationContext evaluationContext, PromptBuildContext buildContext)
+        {
+            BuildContext = buildContext;
+            EvaluationContext = evaluationContext;
+            
+            }
+
+        public SingleMethodEvaluationContext EvaluationContext { get;  }
+
+        public PromptBuildContext BuildContext { get; }
+        public IMethodSymbol MethodSymbol => EvaluationContext.Method;
+        public string MethodName => MethodSymbol.Name;
+        
+        public bool IsAsync => EvaluationContext.ReturnTypeIsTask;
+    }
+    
+    public class PropertyContext : IStepContext
+    {
+        public bool IsAsync => false; //Rewrite if properties can become Async. :) 
+        
         public string PropertyName { get; }
         public IPropertySymbol PropertySymbol { get; }
         public PromptBuildContext BuildContext { get; }

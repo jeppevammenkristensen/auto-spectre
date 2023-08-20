@@ -4,7 +4,7 @@ using Spectre.Console;
 namespace AutoSpectre;
 
 [AttributeUsage(AttributeTargets.Property)]
-public class TextPromptAttribute : AutoSpectrePropertyAttribute
+public class TextPromptAttribute : AutoSpectreStepAttribute
 {
     /// <summary>
     /// A reference to a validator method. The method must return a

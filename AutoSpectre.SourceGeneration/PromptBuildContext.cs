@@ -1,13 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace AutoSpectre.SourceGeneration;
 
 public abstract class PromptBuildContext
 {
-    
     public PromptBuildContext(SinglePropertyEvaluationContext context)
     {
         Context = context;
@@ -43,6 +41,4 @@ public abstract class PromptBuildContext
     {
         return Enumerable.Empty<string>();
     }
-
-
 }

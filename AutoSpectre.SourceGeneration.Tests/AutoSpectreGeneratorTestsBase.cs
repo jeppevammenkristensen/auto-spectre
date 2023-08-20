@@ -2,6 +2,7 @@
 using FluentAssertions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Spectre.Console;
 using Xunit.Abstractions;
 
 namespace AutoSpectre.SourceGeneration.Tests;
@@ -30,6 +31,7 @@ public class AutoSpectreGeneratorTestsBase
         }
 
         references.Add(MetadataReference.CreateFromFile(typeof(AskAttribute).Assembly.Location));
+        references.Add(MetadataReference.CreateFromFile(typeof(IAnsiConsole).Assembly.Location));
 
         var compilation = CSharpCompilation.Create("foo", new SyntaxTree[] { syntaxTree }, references, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
            

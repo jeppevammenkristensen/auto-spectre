@@ -1,50 +1,10 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using AutoSpectre.SourceGeneration.Extensions;
-using AutoSpectre.SourceGeneration.Models;
 using Microsoft.CodeAnalysis;
 
-namespace AutoSpectre.SourceGeneration.Extensions
-{
-    //private static Color Closest(ColorSystem system, Color color)
-    //{
-    //    if (system == ColorSystem.TrueColor)
-    //    {
-    //        return color;
-    //    }
-
-    //    var palette = system switch
-    //    {
-
-    //        ColorSystem.EightBit => EightBit,
-    //        _ => throw new NotSupportedException(),
-    //    };
-
-    //    // https://stackoverflow.com/a/9085524
-    //    static double Distance(Color first, Color second)
-    //    {
-    //        var rmean = ((float)first.R + second.R) / 2;
-    //        var r = first.R - second.R;
-    //        var g = first.G - second.G;
-    //        var b = first.B - second.B;
-    //        return Math.Sqrt(
-    //            ((int)((512 + rmean) * r * r) >> 8)
-    //            + (4 * g * g)
-    //            + ((int)((767 - rmean) * b * b) >> 8));
-    //    }
-
-    //    return Enumerable.Range(0, int.MaxValue)
-    //        .Zip(palette, (id, other) => (Distance: Distance(other, color), Id: id, Color: other))
-    //        .OrderBy(x => x.Distance)
-    //        .FirstOrDefault().Color;
-    //}
-}
-
+namespace AutoSpectre.SourceGeneration.Extensions;
 
 public static class Extensions
 {
@@ -261,7 +221,7 @@ public static class Extensions
         return source.Equals(nameWithoutAttribute) || source.Equals($"{nameWithoutAttribute}Attribute");
     }
 
-    public static T? GetValue<T>(this AttributeData attributeData, string name, T? valueIfNotPresent = default)
+    public static T? GetAttributePropertyValue<T>(this AttributeData attributeData, string name, T? valueIfNotPresent = default)
     {
         if (attributeData == null) throw new ArgumentNullException(nameof(attributeData));
 
@@ -282,11 +242,19 @@ public static class Extensions
         return valueIfNotPresent;
     }
 
-    public static IEnumerable<IPropertySymbol> GetPropertiesWithSetter(this INamedTypeSymbol typeSymbol)
+    public static IEnumerable<(IPropertySymbol? property,IMethodSymbol? method)> GetPropertiesWithSetterAndMethods(this INamedTypeSymbol typeSymbol)
     {
-        return typeSymbol.GetMembers()
-            .OfType<IPropertySymbol>()
-            .Where(x => x.SetMethod != null);
+        foreach (var member in typeSymbol.GetMembers())
+        {
+            if (member is IPropertySymbol { SetMethod: { } } property)
+            {
+                yield return (property, null);
+            }
+            else if (member is IMethodSymbol methodSymbol)
+            {
+                yield return (null, methodSymbol);
+            }
+        }
     }
 
     public static (bool isEnumerable, ITypeSymbol underlyingType) IsEnumerableOfTypeButNotString(
@@ -297,6 +265,19 @@ public static class Extensions
             return (false, default!);
 
         return IsEnumerableOfType(typeSymbol);
+    }
+    public static bool IsMethodReturningTask(this IMethodSymbol method, SemanticModel model)
+    {
+        var task = model.Compilation.GetTypeByMetadataName("System.Threading.Tasks");
+        if (task is null)
+            return false;
+
+        if (method.ReturnType.Equals(task, SymbolEqualityComparer.Default))
+        {
+            return true;
+        }
+
+        return false;
     }
 
     public static (bool isEnumerable, ITypeSymbol underlyingType) IsEnumerableOfType(this ITypeSymbol typeSymbol)

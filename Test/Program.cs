@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-
+using System.Threading.Tasks;
 using AutoSpectre;
 using Spectre.Console;
 
@@ -9,17 +9,26 @@ namespace Test
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
-            IConverterFormSpectreFactory converterFormSpectreFactory = new ConverterFormSpectreFactory();
-            converterFormSpectreFactory.Get();
+            //AnsiConsole.Console.Prompt(new TextPrompt<string>("Jeppe"));
 
+            var factory = new ConditionSampleFormSpectreFactory();
+            var res = await factory.GetAsync();
         }
     }
 
     [AutoSpectreForm]
     public class ConditionSampleForm
     {
+        [TaskStep(UseStatus = true, StatusText = "Loading")]
+        public async Task WriteIntro(IAnsiConsole console)
+        {
+            console.MarkupLine("Here we go");
+           await Task.Delay(2000); 
+            
+        }
+        
         [TextPrompt] public bool AskFriendlyCondition { get; set; } = true;
 
         [TextPrompt(Title = "Please sir what is your name?", DefaultValueStyle = "yellow slowblink")]
