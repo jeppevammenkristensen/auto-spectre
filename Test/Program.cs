@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Text;
 using System.Threading.Tasks;
 using AutoSpectre;
 using Spectre.Console;
@@ -11,7 +12,9 @@ namespace Test
     {
         static async Task Main(string[] args)
         {
-            //AnsiConsole.Console.Prompt(new TextPrompt<string>("Jeppe"));
+            System.Console.OutputEncoding = Encoding.UTF8;
+            System.Console.InputEncoding = Encoding.UTF8;
+
 
             var factory = new ConditionSampleFormSpectreFactory();
             var res = await factory.GetAsync();
@@ -21,7 +24,7 @@ namespace Test
     [AutoSpectreForm]
     public class ConditionSampleForm
     {
-        [TaskStep(UseStatus = true, StatusText = "Loading")]
+        [TaskStep(UseStatus = true, StatusText = "Loading", SpinnerType = SpinnerKnownTypes.Star, SpinnerStyle = "red")]
         public async Task WriteIntro(IAnsiConsole console)
         {
             console.MarkupLine("Here we go");

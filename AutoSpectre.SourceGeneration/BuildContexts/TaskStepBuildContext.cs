@@ -47,20 +47,41 @@ public class TaskStepBuildContext : PromptBuildContext
             return;
         }
 
+
+
         var text = EvaluationContext.ReturnTypeIsTask switch
         {
             true => $$"""
-                      await AnsiConsole.Status().StartAsync("{{status.StatusText}}",async ctx =>
+                      await {{BuildStatus()}}.StartAsync("{{status.StatusText}}",async ctx =>
                       {
                       """,
             false => $$"""
-                       AnsiConsole.Status().Start("{{status.StatusText}}",ctx =>
+                       {{BuildStatus()}}.Start("{{status.StatusText}}",ctx =>
                        {
                        """
         };
 
         builder.AppendLine(text);
         
+    }
+
+    private string BuildStatus()
+    {
+        var builder = new StringBuilder();
+        builder.Append("AnsiConsole.Status()");
+        if (EvaluationContext.SpinnerStyle is not null)
+        {
+            builder.AppendLine();
+            builder.Append($""".SpinnerStyle("{EvaluationContext.SpinnerStyle}")""");
+        }
+
+        if (EvaluationContext.SpinnerKnownType is { } knownType)
+        {
+            builder.AppendLine();
+            builder.Append($""".Spinner(Spinner.Known.{knownType})""");
+        }
+
+        return builder.ToString();
     }
 
     private void EndStatus(StringBuilder builder)

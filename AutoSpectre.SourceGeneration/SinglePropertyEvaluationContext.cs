@@ -25,6 +25,8 @@ public class SingleMethodEvaluationContext
 
     public ConfirmedStatusWrap? ConfirmedStatus { get; set; }
     public MethodDeclarationSyntax MethodSyntax => _methodSyntaxLazy.Value;
+    public string? SpinnerStyle { get; set; }
+    public string? SpinnerKnownType { get; set; }
 }
 
 public class ConfirmedStatusWrap
