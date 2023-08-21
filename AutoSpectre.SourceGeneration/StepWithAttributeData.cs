@@ -42,7 +42,10 @@ public class StepWithAttributeData
         var useStatus = attributeData.GetAttributePropertyValue<bool>(nameof(TaskStepAttribute.UseStatus));
         var statusText = attributeData.GetAttributePropertyValue<string?>(nameof(TaskStepAttribute.StatusText));
 
-        TranslatedAttribute = TranslatedAttributeData.TaskPrompt(title, condition, conditionNegated, useStatus, statusText);
+        var spinnerStyle = attributeData.GetAttributePropertyValue<string?>(nameof(TaskStepAttribute.SpinnerStyle));
+        var spinnerType = attributeData.GetAttributePropertyValue<SpinnerKnownTypesCopy>(nameof(TaskStepAttribute.SpinnerType));
+
+        TranslatedAttribute = TranslatedAttributeData.TaskPrompt(title, condition, conditionNegated, useStatus, statusText, spinnerStyle, spinnerType);
     }
     
     public StepWithAttributeData(IPropertySymbol property, AttributeData attributeData)

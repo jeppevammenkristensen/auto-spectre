@@ -15,4 +15,5 @@ public static class DiagnosticIds
     public const string Id0016_TaskStepMethodInvalidReturnType = "AutoSpectre_JJK0016";
     public const string Id0017_TaskStepStatusWithPrompting = "AutoSpectre_JJK0017";
     public const string Id0018_StatusTextIsRequired = "AutoSpectre_JJK0018";
+    public const string Id0019_SpinnerStyleNotValid = "AutoSpectre_JJK0019";
 }

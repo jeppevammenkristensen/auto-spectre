@@ -103,6 +103,9 @@ internal class StepContextBuilderOperation
         if (attributeData.StatusText is { })
         {
             singleMethodEvaluationContext.ConfirmedStatus = new ConfirmedStatusWrap(attributeData.StatusText);
+            EvaluateSpinnerStyle(attributeData, singleMethodEvaluationContext);
+            EvaluateSpinnerType(attributeData, singleMethodEvaluationContext);
+
         }
         else
         {
@@ -113,6 +116,35 @@ internal class StepContextBuilderOperation
                     "General", DiagnosticSeverity.Error, true),
                 singleMethodEvaluationContext.Method.Locations.FirstOrDefault()));
         }
+    }
+
+    private void EvaluateSpinnerType(TranslatedAttributeData attributeData, SingleMethodEvaluationContext singleMethodEvaluationContext)
+    {
+        if (attributeData.SpinnerType is { })
+        {
+            singleMethodEvaluationContext.SpinnerKnownType = attributeData.SpinnerType.ToString();
+        }
+    }
+
+    private void EvaluateSpinnerStyle(TranslatedAttributeData attributeData, SingleMethodEvaluationContext singleMethodEvaluationContext)
+    {
+        if (attributeData.SpinnerStyle is { } style)
+        {
+            if (style.EvaluateStyle())
+            {
+                singleMethodEvaluationContext.SpinnerStyle = style;
+            }
+            else
+            {
+                ProductionContext.ReportDiagnostic(Diagnostic.Create(new (DiagnosticIds.Id0019_SpinnerStyleNotValid,
+                        "The Spinnerstyle is not correct",
+                        "The SpinnerStyle is not correct",
+                        "General",
+                        DiagnosticSeverity.Warning,
+                        true), singleMethodEvaluationContext.Method.Locations.FirstOrDefault()));
+            }
+        }
+        
     }
 
     /// <summary>

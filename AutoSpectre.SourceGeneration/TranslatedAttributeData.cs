@@ -66,15 +66,21 @@ public class TranslatedAttributeData
         };
     }
 
-    public static TranslatedAttributeData TaskPrompt(string title, string? condition, bool conditionNegated, bool useStatus, string? statusText)
+    public static TranslatedAttributeData TaskPrompt(string title, string? condition, bool conditionNegated, bool useStatus, string? statusText, string? spinnerStyle,SpinnerKnownTypesCopy? spinnerType)
     {
         return new TranslatedAttributeData(AskTypeCopy.Task, null, title, null, null, condition, conditionNegated)
         {
             UseStatus = useStatus,
-            StatusText = statusText
+            StatusText = statusText,
+            SpinnerStyle = spinnerStyle,
+            SpinnerType = spinnerType,
 
         };
     }
+
+    public SpinnerKnownTypesCopy? SpinnerType { get; set; }
+
+    public string? SpinnerStyle { get; set; }
 
     public string? StatusText { get; set; }
 
