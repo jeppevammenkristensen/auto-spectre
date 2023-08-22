@@ -20,13 +20,19 @@ internal class NewCodeBuilder
         "System.Collections.Immutable"
     };
 
-    public ITypeSymbol Type { get; }
+    public INamedTypeSymbol Type { get; }
     public List<IStepContext> StepContexts { get; }
+    
+    public bool HasEmptyConstructor { get; }
 
     public NewCodeBuilder(INamedTypeSymbol type, List<IStepContext> stepContexts)
     {
         Type = type;
         StepContexts = stepContexts;
+        HasEmptyConstructor = EvaluateConstructors();
+        // A note about hasEmptyConstructor. If there are no empty constructors we will
+        // instantiate the type so it's required to pass it in. So we remove the default value and
+        // change the return type to be void or Task
     }
 
     /// <summary>
@@ -43,6 +49,8 @@ internal class NewCodeBuilder
         var spectreFactoryInterfaceName = Type.GetSpectreFactoryInterfaceName();
         var spectreFactoryClassName = Type.GetSpectreFactoryClassName();
         var returnTypeName = isAsync ? $"Task<{Type.Name}>" : Type.Name;
+        if (!HasEmptyConstructor)
+            returnTypeName = isAsync ? "Task" : "void";
         
         
         
@@ -57,7 +65,7 @@ namespace {{ Type.ContainingNamespace}}
     /// </summary>
     public interface {{spectreFactoryInterfaceName}}
     {
-        {{ returnTypeName}}   Get{{ (isAsync ? "Async " : string.Empty) }}({{ Type.Name}}   destination = null);
+        {{ returnTypeName}}   Get{{ (isAsync ? "Async " : string.Empty) }}({{ Type.Name}}   destination {{ (HasEmptyConstructor ? "= null" : "")}});
     }
 
     /// <summary>
@@ -65,19 +73,24 @@ namespace {{ Type.ContainingNamespace}}
     /// </summary>
     public class {{ spectreFactoryClassName}} : {{ spectreFactoryInterfaceName }}
     {
-        public {{ (isAsync ? "async " : string.Empty) }}{{ returnTypeName}}   Get{{ (isAsync ? "Async " : string.Empty) }}({{ Type.Name}}   destination = null)
+        public {{ (isAsync ? "async " : string.Empty) }}{{ returnTypeName}}   Get{{ (isAsync ? "Async " : string.Empty) }}({{ Type.Name}}   destination {{ (HasEmptyConstructor ? "= null" : "")}})
         {
             {{PreInitalization()}}
 
-            destination ??= new {{ name}}   ();
-{{ members}}  
-            return destination;
+            {{( HasEmptyConstructor ? $"destination ??= new { name }   ();" : string.Empty )}}
+{{ members}} 
+            {{ ( HasEmptyConstructor ? "return destination;" : string.Empty)  }}
         }
     }
 }
 """ ;
 
         return SyntaxFactory.ParseCompilationUnit(result).NormalizeWhitespace().ToFullString();
+    }
+
+    private bool EvaluateConstructors()
+    {
+        return Type.InstanceConstructors.Any(x => x.Parameters.Length == 0);
     }
 
     private string PreInitalization()
