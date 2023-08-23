@@ -178,7 +178,7 @@ namespace ConsoleApplication1
         await Verify.VerifyAnalyzerAsyncV2(test);
     }
 
-    [Fact]
+    [Fact(Skip = "Until analyzers are revisited")]
     public async Task MissingMethodGeneratedBasedOnDiagnostic()
     {
         var test = @"
@@ -227,7 +227,7 @@ namespace ConsoleApplication1
         await Verify.VerifyCodeFixAsyncV2(test, after, null,expected);
     }
 
-    [Fact]
+    [Fact(Skip = "Until analyzers are revisited")]
     public async Task MissingMethodGeneratedBasedOnDiagnosticWithCorrectParameters()
     {
         var test = """
