@@ -29,8 +29,8 @@ public class TaskStepGeneratorTests : AutoSpectreGeneratorTestsBase
                                     
                                   }
                              }
-                             """).Should().Contain("destination.Hello();").And
-            .Contain("AnsiConsole.MarkupLine(\"Calling methd [green]Hello[/]");
+                             """).Should().Contain("destination.Hello();");
+
     }
 
     [Fact]
@@ -107,7 +107,49 @@ public class TaskStepGeneratorTests : AutoSpectreGeneratorTestsBase
                                   }
                              }
                              """).Should()
-            .Contain("await AnsiConsole.Status().Spinner(Spinner.Known.Default).StartAsync(\"Hello\"");
+            .Contain("await AnsiConsole.Status().StartAsync(\"Hello\"");
+    }
+
+    [Fact]
+    public void TitleNotEmtpyIsDisplayed()
+    {
+        GetGeneratedOutput($$"""
+                             using AutoSpectre;
+                             using System.Collections.Generic;
+
+                             namespace Test;
+
+                             [AutoSpectreForm]
+                             public class TestForm
+                             {
+                                   [TaskStep(Title = "Calling mister raider")]
+                                   public void CustomStep() 
+                                   {
+                                   }
+                             }
+                             """).Should().Contain("AnsiConsole.MarkupLine(\"Calling mister raider\");");
+    }
+
+    [Fact]
+    public void SpinnerTypeSetGeneratesCorrect()
+    {
+        GetGeneratedOutput($$"""
+                             using AutoSpectre;
+                             using System.Collections.Generic;
+                             using System.Threading.Tasks;
+
+                             namespace Test;
+
+                             [AutoSpectreForm]
+                             public class TestForm
+                             {
+                                  [TaskStep(UseStatus = true, StatusText = "Hello", SpinnerType = SpinnerKnownTypes.Balloon)]
+                                  public async Task Hello()
+                                  {
+                                        await Task.Delay(5000);
+                                  }
+                             }
+                             """).Should().Contain(".Spinner(Spinner.Known.Balloon).");
     }
 
 

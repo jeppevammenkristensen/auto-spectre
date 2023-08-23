@@ -9,7 +9,7 @@ public class AutoSpectreStepAttribute : Attribute
     /// will be used:
     /// Enter [green]{PropertyName}[/]
     /// </summary>
-    public string? Title { get; set; }
+    public virtual string? Title { get; set; }
 
     /// <summary>
     /// Indicates a reference to a condition that determines whether a prompt should

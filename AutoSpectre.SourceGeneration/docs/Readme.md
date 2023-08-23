@@ -1,9 +1,13 @@
 ﻿# AutoSpectre Source Generation
 
-This allows you to decorate a class with the `AutoSpectreForm` attribute and decoreate properties on that class with:
+This allows you to decorate a class with the `AutoSpectreForm` attribute and decorate properties on that class with:
 
 * `TextPromptAttribute`
 * `SelectPromptAttribute`
+
+and void or Task methods with
+
+* `TaskStepAttribute`
 
 and behind the scenes a Form (SpectreFactory) will be generated to request input using `Spectre.Console`
 
@@ -34,6 +38,11 @@ public class Example
     [TextPrompt]
     public IReadOnlyList<OtherAutoSpectreFormClass> Investors { get; set; } = new List<OtherAutoSpectreFormClass>();
 
+    [TaskStep(UseStatus = true, StatusText = "This will take a while", SpinnerType = SpinnerKnownTypes.Christmas, SpinnerStyle = "green on yellow")]
+    public void DoSomething(IAnsiConsole console)
+    {
+        console.Write(new FigletText("A figlet text is needed"));
+    }
 
     [SelectPrompt(WrapAround = true, PageSize = 3,
         MoreChoicesText = "Press down to see more choices", HighlightStyle = "purple")]
@@ -84,131 +93,123 @@ public class Example
 ### Output
 
 ```csharp
- /// <summary>
-    /// Helps create and fill <see cref = "Example"/> with values
-    /// </summary>
-    public interface IExampleSpectreFactory
-    {
-        Example Get(Example destination = null);
-    }
+/// <summary>
+/// Helps create and fill <see cref = "Example"/> with values
+/// </summary>
+public interface IExampleSpectreFactory
+{
+    Example Get(Example destination = null);
+}
 
-    /// <summary>
-    /// Helps create and fill <see cref = "Example"/> with values
-    /// </summary>
-    public class ExampleSpectreFactory : IExampleSpectreFactory
+/// <summary>
+/// Helps create and fill <see cref = "Example"/> with values
+/// </summary>
+public class ExampleSpectreFactory : IExampleSpectreFactory
+{
+    public Example Get(Example destination = null)
     {
-        public Example Get(Example destination = null)
+        IOtherAutoSpectreFormClassSpectreFactory OtherAutoSpectreFormClassSpectreFactory = new OtherAutoSpectreFormClassSpectreFactory();
+        destination ??= new ConsoleApp1.Example();
+        // Prompt for values for destination.IntItems
         {
-            IOtherAutoSpectreFormClassSpectreFactory OtherAutoSpectreFormClassSpectreFactory = new OtherAutoSpectreFormClassSpectreFactory();
-            destination ??= new ConsoleApp1.Example();
-            // Prompt for values for destination.IntItems
+            List<int> items = new List<int>();
+            bool continuePrompting = true;
+            do
             {
-                List<int> items = new List<int>();
-                bool continuePrompting = true;
-                do
-                {
-                    var item = AnsiConsole.Prompt(new TextPrompt<int>("Add item"));
-                    items.Add(item);
-                    continuePrompting = AnsiConsole.Confirm("Add more items?");
-                }
-                while (continuePrompting);
-                int[] result = items.ToArray();
-                destination.IntItems = result;
+                var item = AnsiConsole.Prompt(new TextPrompt<int>("Add item"));
+                items.Add(item);
+                continuePrompting = AnsiConsole.Confirm("Add more items?");
             }
-
-            destination.FirstName = AnsiConsole.Prompt(new TextPrompt<string?>("Enter first name")
-            .AllowEmpty().DefaultValue("John Doe").DefaultValueStyle("bold"));
-            destination.LeftHanded = AnsiConsole.Confirm("Enter [green]LeftHanded[/]");
-            destination.Other = AnsiConsole.Prompt(new SelectionPrompt<SomeEnum>().Title("Choose your [red]value[/]").PageSize(10).AddChoices(Enum.GetValues<SomeEnum>()));
-            destination.Password = AnsiConsole.Prompt(new TextPrompt<string?>("Enter [green]Password[/]").AllowEmpty().Secret('*'));
-            {
-                AnsiConsole.MarkupLine("Enter [green]ChildForm[/]");
-                var item = OtherAutoSpectreFormClassSpectreFactory.Get();
-                destination.ChildForm = item;
-            }
-
-            // Prompt for values for destination.Investors
-            {
-                List<OtherAutoSpectreFormClass> items = new List<OtherAutoSpectreFormClass>();
-                bool continuePrompting = true;
-                do
-                {
-                    {
-                        AnsiConsole.MarkupLine("Enter [green]Investors[/]");
-                        var newItem = OtherAutoSpectreFormClassSpectreFactory.Get();
-                        items.Add(newItem);
-                    }
-
-                    continuePrompting = AnsiConsole.Confirm("Add more items?");
-                }
-                while (continuePrompting);
-                System.Collections.Generic.IReadOnlyList<ConsoleApp1.OtherAutoSpectreFormClass> result = items;
-                destination.Investors = result;
-            }
-
-            destination.Item = AnsiConsole.Prompt(new SelectionPrompt<string>()
-            .Title("Enter [green]Item[/]")
-            .PageSize(3)
-            .WrapAround(true)
-            .MoreChoicesText("Press down to see more choices")
-            .HighlightStyle("purple")
-            .AddChoices(destination.ItemSource.ToArray()));
-            
-            destination.SpecialProjection = AnsiConsole.Prompt(new MultiSelectionPrompt<int>()
-            .Title("Enter [green]SpecialProjection[/]")
-            .UseConverter(destination.SpecialProjectionConverter)
-            .PageSize(10)
-            .InstructionsText("Check the special items you want to select").AddChoices(destination.SpecialProjectionSource.ToArray()));
-
-            destination.EnterYear = AnsiConsole.Prompt(new TextPrompt<int>("Enter [green]EnterYear[/]").Validate(ctx =>
-            {
-                var result = destination.EnterYearValidator(ctx);
-                return result == null ? ValidationResult.Success() : ValidationResult.Error(result);
-            }));
-            // Prompt for values for destination.Names
-            {
-                List<string> items = new List<string>();
-                bool continuePrompting = true;
-                do
-                {
-                    bool valid = false;
-                    while (!valid)
-                    {
-                        var item = AnsiConsole.Prompt(new TextPrompt<string>("Enter [green]Names[/]"));
-                        var validationResult = destination.NamesValidator(items, item);
-                        if (validationResult is { } error)
-                        {
-                            AnsiConsole.MarkupLine($"[red]{error}[/]");
-                            valid = false;
-                        }
-                        else
-                        {
-                            valid = true;
-                            items.Add(item);
-                        }
-                    }
-
-                    continuePrompting = AnsiConsole.Confirm("Add more items?");
-                }
-                while (continuePrompting);
-                System.Collections.Generic.HashSet<string> result = new System.Collections.Generic.HashSet<string>(items);
-                destination.Names = result;
-            }
-
-            destination.AddExistingName = AnsiConsole.Confirm("Enter [green]AddExistingName[/]");
-            if (destination.AddExistingName == true)
-            {
-                destination.ExistingName = AnsiConsole.Prompt(new TextPrompt<string?>("Enter [green]ExistingName[/]").AllowEmpty());
-            }
-
-            if (destination.AddExistingName == false)
-            {
-                destination.NewName = AnsiConsole.Prompt(new TextPrompt<string?>("Enter [green]NewName[/]").AllowEmpty());
-            }
-
-            return destination;
+            while (continuePrompting);
+            int[] result = items.ToArray();
+            destination.IntItems = result;
         }
+
+        destination.FirstName = AnsiConsole.Prompt(new TextPrompt<string?>("Enter first name").AllowEmpty().DefaultValue("John Doe").DefaultValueStyle("bold"));
+        destination.LeftHanded = AnsiConsole.Confirm("Enter [green]LeftHanded[/]");
+        destination.Other = AnsiConsole.Prompt(new SelectionPrompt<SomeEnum>().Title("Choose your [red]value[/]").PageSize(10).AddChoices(Enum.GetValues<SomeEnum>()));
+        destination.Password = AnsiConsole.Prompt(new TextPrompt<string?>("Enter [green]Password[/]").AllowEmpty().Secret('*'));
+        {
+            AnsiConsole.MarkupLine("Enter [green]ChildForm[/]");
+            var item = OtherAutoSpectreFormClassSpectreFactory.Get();
+            destination.ChildForm = item;
+        }
+
+        // Prompt for values for destination.Investors
+        {
+            List<OtherAutoSpectreFormClass> items = new List<OtherAutoSpectreFormClass>();
+            bool continuePrompting = true;
+            do
+            {
+                {
+                    AnsiConsole.MarkupLine("Enter [green]Investors[/]");
+                    var newItem = OtherAutoSpectreFormClassSpectreFactory.Get();
+                    items.Add(newItem);
+                }
+
+                continuePrompting = AnsiConsole.Confirm("Add more items?");
+            }
+            while (continuePrompting);
+            System.Collections.Generic.IReadOnlyList<ConsoleApp1.OtherAutoSpectreFormClass> result = items;
+            destination.Investors = result;
+        }
+
+        AnsiConsole.MarkupLine("Calling method [green]DoSomething[/]");
+        AnsiConsole.Status().SpinnerStyle("green on yellow").Spinner(Spinner.Known.Christmas).Start("This will take a while", ctx =>
+        {
+            destination.DoSomething(AnsiConsole.Console);
+        });
+        destination.Item = AnsiConsole.Prompt(new SelectionPrompt<string>().Title("Enter [green]Item[/]").PageSize(3).WrapAround(true).MoreChoicesText("Press down to see more choices").HighlightStyle("purple").AddChoices(destination.ItemSource.ToArray()));
+        destination.SpecialProjection = AnsiConsole.Prompt(new MultiSelectionPrompt<int>().Title("Enter [green]SpecialProjection[/]").UseConverter(destination.SpecialProjectionConverter).PageSize(10).InstructionsText("Check the special items you want to select").AddChoices(destination.SpecialProjectionSource.ToArray()));
+        destination.EnterYear = AnsiConsole.Prompt(new TextPrompt<int>("Enter [green]EnterYear[/]").Validate(ctx =>
+        {
+            var result = destination.EnterYearValidator(ctx);
+            return result == null ? ValidationResult.Success() : ValidationResult.Error(result);
+        }));
+        // Prompt for values for destination.Names
+        {
+            List<string> items = new List<string>();
+            bool continuePrompting = true;
+            do
+            {
+                bool valid = false;
+                while (!valid)
+                {
+                    var item = AnsiConsole.Prompt(new TextPrompt<string>("Enter [green]Names[/]"));
+                    var validationResult = destination.NamesValidator(items, item);
+                    if (validationResult is { } error)
+                    {
+                        AnsiConsole.MarkupLine($"[red]{error}[/]");
+                        valid = false;
+                    }
+                    else
+                    {
+                        valid = true;
+                        items.Add(item);
+                    }
+                }
+
+                continuePrompting = AnsiConsole.Confirm("Add more items?");
+            }
+            while (continuePrompting);
+            System.Collections.Generic.HashSet<string> result = new System.Collections.Generic.HashSet<string>(items);
+            destination.Names = result;
+        }
+
+        destination.AddExistingName = AnsiConsole.Confirm("Enter [green]AddExistingName[/]");
+        if (destination.AddExistingName == true)
+        {
+            destination.ExistingName = AnsiConsole.Prompt(new TextPrompt<string?>("Enter [green]ExistingName[/]").AllowEmpty());
+        }
+
+        if (destination.AddExistingName == false)
+        {
+            destination.NewName = AnsiConsole.Prompt(new TextPrompt<string?>("Enter [green]NewName[/]").AllowEmpty());
+        }
+
+        return destination;
     }
+}
 ```
 
 ## Credits
