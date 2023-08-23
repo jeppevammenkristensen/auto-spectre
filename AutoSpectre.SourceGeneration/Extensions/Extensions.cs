@@ -241,6 +241,34 @@ public static class Extensions
 
         return valueIfNotPresent;
     }
+    
+    public static bool TryGetAttributePropertyValue<T>(this AttributeData attributeData, string name, out T value)
+    {
+        value = default(T);
+        
+        if (attributeData == null) throw new ArgumentNullException(nameof(attributeData));
+
+        var named = attributeData.NamedArguments.Select(x => new {x.Key, Value = x.Value})
+            .FirstOrDefault(x => x.Key == name);
+        if (named != null)
+        {
+            var (valid, r) = named.Value switch
+            {
+                {Value: not { }} => (false,default),
+                {Kind: TypedConstantKind.Enum} x => (true,(T) Enum.ToObject(typeof(T), x.Value)),
+                _ => (true,(T) named.Value.Value)
+            };
+
+            if (valid)
+                value = r;
+            
+            return valid;
+        }
+
+        //attributeData.ConstructorArguments.FirstOrDefault(x => x.())
+
+        return false;
+    }
 
     public static IEnumerable<(IPropertySymbol? property,IMethodSymbol? method)> GetPropertiesWithSetterAndMethods(this INamedTypeSymbol typeSymbol)
     {

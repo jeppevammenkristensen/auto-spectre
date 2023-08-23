@@ -35,6 +35,11 @@ public class Example
     [TextPrompt]
     public IReadOnlyList<OtherAutoSpectreFormClass> Investors { get; set; } = new List<OtherAutoSpectreFormClass>();
 
+    [TaskStep(UseStatus = true, StatusText = "This will take a while", SpinnerType = SpinnerKnownTypes.Christmas, SpinnerStyle = "green on yellow")]
+    public void DoSomething(IAnsiConsole console)
+    {
+        console.Write(new FigletText("A figlet text is needed"));
+    }
 
     [SelectPrompt(WrapAround = true, PageSize = 3,
         MoreChoicesText = "Press down to see more choices", HighlightStyle = "purple")]
@@ -88,130 +93,122 @@ Behind the scenes this will generate an interface factory and implentation using
 
 ```csharp
 /// <summary>
-    /// Helps create and fill <see cref = "Example"/> with values
-    /// </summary>
-    public interface IExampleSpectreFactory
-    {
-        Example Get(Example destination = null);
-    }
+/// Helps create and fill <see cref = "Example"/> with values
+/// </summary>
+public interface IExampleSpectreFactory
+{
+    Example Get(Example destination = null);
+}
 
-    /// <summary>
-    /// Helps create and fill <see cref = "Example"/> with values
-    /// </summary>
-    public class ExampleSpectreFactory : IExampleSpectreFactory
+/// <summary>
+/// Helps create and fill <see cref = "Example"/> with values
+/// </summary>
+public class ExampleSpectreFactory : IExampleSpectreFactory
+{
+    public Example Get(Example destination = null)
     {
-        public Example Get(Example destination = null)
+        IOtherAutoSpectreFormClassSpectreFactory OtherAutoSpectreFormClassSpectreFactory = new OtherAutoSpectreFormClassSpectreFactory();
+        destination ??= new ConsoleApp1.Example();
+        // Prompt for values for destination.IntItems
         {
-            IOtherAutoSpectreFormClassSpectreFactory OtherAutoSpectreFormClassSpectreFactory = new OtherAutoSpectreFormClassSpectreFactory();
-            destination ??= new ConsoleApp1.Example();
-            // Prompt for values for destination.IntItems
+            List<int> items = new List<int>();
+            bool continuePrompting = true;
+            do
             {
-                List<int> items = new List<int>();
-                bool continuePrompting = true;
-                do
-                {
-                    var item = AnsiConsole.Prompt(new TextPrompt<int>("Add item"));
-                    items.Add(item);
-                    continuePrompting = AnsiConsole.Confirm("Add more items?");
-                }
-                while (continuePrompting);
-                int[] result = items.ToArray();
-                destination.IntItems = result;
+                var item = AnsiConsole.Prompt(new TextPrompt<int>("Add item"));
+                items.Add(item);
+                continuePrompting = AnsiConsole.Confirm("Add more items?");
             }
-
-            destination.FirstName = AnsiConsole.Prompt(new TextPrompt<string?>("Enter first name")
-            .AllowEmpty().DefaultValue("John Doe").DefaultValueStyle("bold"));
-            destination.LeftHanded = AnsiConsole.Confirm("Enter [green]LeftHanded[/]");
-            destination.Other = AnsiConsole.Prompt(new SelectionPrompt<SomeEnum>().Title("Choose your [red]value[/]").PageSize(10).AddChoices(Enum.GetValues<SomeEnum>()));
-            destination.Password = AnsiConsole.Prompt(new TextPrompt<string?>("Enter [green]Password[/]").AllowEmpty().Secret('*'));
-            {
-                AnsiConsole.MarkupLine("Enter [green]ChildForm[/]");
-                var item = OtherAutoSpectreFormClassSpectreFactory.Get();
-                destination.ChildForm = item;
-            }
-
-            // Prompt for values for destination.Investors
-            {
-                List<OtherAutoSpectreFormClass> items = new List<OtherAutoSpectreFormClass>();
-                bool continuePrompting = true;
-                do
-                {
-                    {
-                        AnsiConsole.MarkupLine("Enter [green]Investors[/]");
-                        var newItem = OtherAutoSpectreFormClassSpectreFactory.Get();
-                        items.Add(newItem);
-                    }
-
-                    continuePrompting = AnsiConsole.Confirm("Add more items?");
-                }
-                while (continuePrompting);
-                System.Collections.Generic.IReadOnlyList<ConsoleApp1.OtherAutoSpectreFormClass> result = items;
-                destination.Investors = result;
-            }
-
-            destination.Item = AnsiConsole.Prompt(new SelectionPrompt<string>()
-            .Title("Enter [green]Item[/]")
-            .PageSize(3)
-            .WrapAround(true)
-            .MoreChoicesText("Press down to see more choices")
-            .HighlightStyle("purple")
-            .AddChoices(destination.ItemSource.ToArray()));
-            
-            destination.SpecialProjection = AnsiConsole.Prompt(new MultiSelectionPrompt<int>()
-            .Title("Enter [green]SpecialProjection[/]")
-            .UseConverter(destination.SpecialProjectionConverter)
-            .PageSize(10)
-            .InstructionsText("Check the special items you want to select").AddChoices(destination.SpecialProjectionSource.ToArray()));
-
-            destination.EnterYear = AnsiConsole.Prompt(new TextPrompt<int>("Enter [green]EnterYear[/]").Validate(ctx =>
-            {
-                var result = destination.EnterYearValidator(ctx);
-                return result == null ? ValidationResult.Success() : ValidationResult.Error(result);
-            }));
-            // Prompt for values for destination.Names
-            {
-                List<string> items = new List<string>();
-                bool continuePrompting = true;
-                do
-                {
-                    bool valid = false;
-                    while (!valid)
-                    {
-                        var item = AnsiConsole.Prompt(new TextPrompt<string>("Enter [green]Names[/]"));
-                        var validationResult = destination.NamesValidator(items, item);
-                        if (validationResult is { } error)
-                        {
-                            AnsiConsole.MarkupLine($"[red]{error}[/]");
-                            valid = false;
-                        }
-                        else
-                        {
-                            valid = true;
-                            items.Add(item);
-                        }
-                    }
-
-                    continuePrompting = AnsiConsole.Confirm("Add more items?");
-                }
-                while (continuePrompting);
-                System.Collections.Generic.HashSet<string> result = new System.Collections.Generic.HashSet<string>(items);
-                destination.Names = result;
-            }
-
-            destination.AddExistingName = AnsiConsole.Confirm("Enter [green]AddExistingName[/]");
-            if (destination.AddExistingName == true)
-            {
-                destination.ExistingName = AnsiConsole.Prompt(new TextPrompt<string?>("Enter [green]ExistingName[/]").AllowEmpty());
-            }
-
-            if (destination.AddExistingName == false)
-            {
-                destination.NewName = AnsiConsole.Prompt(new TextPrompt<string?>("Enter [green]NewName[/]").AllowEmpty());
-            }
-
-            return destination;
+            while (continuePrompting);
+            int[] result = items.ToArray();
+            destination.IntItems = result;
         }
+
+        destination.FirstName = AnsiConsole.Prompt(new TextPrompt<string?>("Enter first name").AllowEmpty().DefaultValue("John Doe").DefaultValueStyle("bold"));
+        destination.LeftHanded = AnsiConsole.Confirm("Enter [green]LeftHanded[/]");
+        destination.Other = AnsiConsole.Prompt(new SelectionPrompt<SomeEnum>().Title("Choose your [red]value[/]").PageSize(10).AddChoices(Enum.GetValues<SomeEnum>()));
+        destination.Password = AnsiConsole.Prompt(new TextPrompt<string?>("Enter [green]Password[/]").AllowEmpty().Secret('*'));
+        {
+            AnsiConsole.MarkupLine("Enter [green]ChildForm[/]");
+            var item = OtherAutoSpectreFormClassSpectreFactory.Get();
+            destination.ChildForm = item;
+        }
+
+        // Prompt for values for destination.Investors
+        {
+            List<OtherAutoSpectreFormClass> items = new List<OtherAutoSpectreFormClass>();
+            bool continuePrompting = true;
+            do
+            {
+                {
+                    AnsiConsole.MarkupLine("Enter [green]Investors[/]");
+                    var newItem = OtherAutoSpectreFormClassSpectreFactory.Get();
+                    items.Add(newItem);
+                }
+
+                continuePrompting = AnsiConsole.Confirm("Add more items?");
+            }
+            while (continuePrompting);
+            System.Collections.Generic.IReadOnlyList<ConsoleApp1.OtherAutoSpectreFormClass> result = items;
+            destination.Investors = result;
+        }
+
+        AnsiConsole.MarkupLine("Calling method [green]DoSomething[/]");
+        AnsiConsole.Status().SpinnerStyle("green on yellow").Spinner(Spinner.Known.Christmas).Start("This will take a while", ctx =>
+        {
+            destination.DoSomething(AnsiConsole.Console);
+        });
+        destination.Item = AnsiConsole.Prompt(new SelectionPrompt<string>().Title("Enter [green]Item[/]").PageSize(3).WrapAround(true).MoreChoicesText("Press down to see more choices").HighlightStyle("purple").AddChoices(destination.ItemSource.ToArray()));
+        destination.SpecialProjection = AnsiConsole.Prompt(new MultiSelectionPrompt<int>().Title("Enter [green]SpecialProjection[/]").UseConverter(destination.SpecialProjectionConverter).PageSize(10).InstructionsText("Check the special items you want to select").AddChoices(destination.SpecialProjectionSource.ToArray()));
+        destination.EnterYear = AnsiConsole.Prompt(new TextPrompt<int>("Enter [green]EnterYear[/]").Validate(ctx =>
+        {
+            var result = destination.EnterYearValidator(ctx);
+            return result == null ? ValidationResult.Success() : ValidationResult.Error(result);
+        }));
+        // Prompt for values for destination.Names
+        {
+            List<string> items = new List<string>();
+            bool continuePrompting = true;
+            do
+            {
+                bool valid = false;
+                while (!valid)
+                {
+                    var item = AnsiConsole.Prompt(new TextPrompt<string>("Enter [green]Names[/]"));
+                    var validationResult = destination.NamesValidator(items, item);
+                    if (validationResult is { } error)
+                    {
+                        AnsiConsole.MarkupLine($"[red]{error}[/]");
+                        valid = false;
+                    }
+                    else
+                    {
+                        valid = true;
+                        items.Add(item);
+                    }
+                }
+
+                continuePrompting = AnsiConsole.Confirm("Add more items?");
+            }
+            while (continuePrompting);
+            System.Collections.Generic.HashSet<string> result = new System.Collections.Generic.HashSet<string>(items);
+            destination.Names = result;
+        }
+
+        destination.AddExistingName = AnsiConsole.Confirm("Enter [green]AddExistingName[/]");
+        if (destination.AddExistingName == true)
+        {
+            destination.ExistingName = AnsiConsole.Prompt(new TextPrompt<string?>("Enter [green]ExistingName[/]").AllowEmpty());
+        }
+
+        if (destination.AddExistingName == false)
+        {
+            destination.NewName = AnsiConsole.Prompt(new TextPrompt<string?>("Enter [green]NewName[/]").AllowEmpty());
+        }
+
+        return destination;
     }
+}
 ```
 
 ### How to call
@@ -227,32 +224,103 @@ var preinitializedForm = new Example();
 preinitializedForm = formFactory.Get(preinitializedForm); 
 ```
 
-## Collections
+## The form attribute
 
-### Multiselect
+The class that you wan't populated, should be decorated with the `AutoSpectreForm` attribute. If it has at least one valid property or method decorated with an attribute the SpectreFactory is generated.
 
-if you use the SelectPromptAttributed combined with a IEnumerable type the user will be presented with a multiselect.
-
-This property
+Since version 0.5.0 the class is allowed to not have an empty constructor. But in that case the Get/GetAsync method will change to be for instance. Requirering you to new up the class before calling the Get method
 
 ```csharp
-[SelectPrompt(Source = nameof(Items))]
-public string[] ArrayMultiSelect { get; set; } = Array.Empty<string>();
+public void Get(Example destination)
 ```
 
-Will become
+Compared to below where destination can be preinitialized or null (in which case the result will be newed up in the call)
 
 ```csharp
-destination.ArrayMultiSelect = AnsiConsole.Prompt(new MultiSelectionPrompt<string>().Title("Enter [green]ArrayMultiSelect[/]").PageSize(10).AddChoices(destination.Items.ToArray())).ToArray();
+public Example Get(Example destination = null)
 ```
 
-With the prompt below
+## The property attributes
 
-![Alt text](/doc/multi-select.png?raw=true)
+These properties are applied to properties. The properties must be settable and public. The two attributes share the following Properties
 
-### Strategy
+* Title (can be used to overrule the default title)
+* Condition (points to a property or method that returns bool to determine if the given property should be prompted for)
+* NegateCondition negates the condition.
 
-The multiselection prompt always returns a List of given type. In the above example (`List<string>`). But AutoSpectre will attempt to adjust to the propertys type.
+### TextPromptAttribute
+
+This will in the end present some kind of input prompt to the user, that tries to prompt the use for the value of a given type. Per default it will try to convert a string to the given value. However if the type is bool it will produce a ConfirmationPrompt (y/n). If the type is an enum it will generate a selection prompt (but unlike using the SelectPrompt, you do not have to provide a source).
+
+If the type is another class that has been decorated with the AutoSpectreForm attribute it will use that forms SpectreFactory to prompt for the values.
+
+#### Default value
+
+You can apply a defaultvalue like this:
+`public string FirstName { get; set; } = "John Doe";`
+
+The default value mechanism is not perfect in it's current state. But it can help you some of the way. If it's a value that we can't use as default value will be ignored. Also note that we will not look for default values set in the constructor.
+
+Default value is only currently used for single items (not enumerables)
+
+#### IEnumerable types
+
+In the case of a TextPromptAttribute and an IEnumerable&lt;T&gt; value. The rules above will be applied to a single type, and after collecting input the user will be prompted if the want's to continue.
+
+#### Other functionality
+
+The textprompt allows you to
+
+* add [validation](#validation), see more below
+* add a password prompt by using the `Secret` and/or `Mask` property
+* control styles with the `DefaultValueStyle`for the DefaultValue and `PromptStyle` for the prompt itself. See [styles](#styles)
+
+### SelectPromptAttribute
+
+The select prompt will adjust based on whether or not the property type is single or enumerable. If it's single select prompt will be used and other a multiselect prompt.
+
+It's required that you define a source. Either by pointing the Source property to the name of the property or method that returns the sources to use or by convention (see [source convention](#source))
+
+Here you can use the [converter](#converter) to control how the values are presented to the user.
+
+Other interesting attribute properties are:
+
+* PageSize (defaults to 10)
+* WrapAround. If set to true we can cycle through the elements. If you reach the end you will go to the first element and vice versa
+* MoreChoicesText. If set this will be displayed when you reach the end of the page size
+* InstructionsText (only for multiselect). This is custom text to guide them to select mulitiple items
+* HighlightStyle
+
+## The method attribute
+
+If you wan't to do something that doesn't fit prompting. Between some of the steps you can use the `TaskStepAttribute` to do that.
+
+The filosophy for this method is that you can do 'custom' things.
+
+* You can choose display whatever you may want to the user (for instance figlet text)
+* You can do a lookup to a database or an api.
+* You can do some processing of the data you currently collected
+* If the current supplied property step attributes does not fit your needs you do some custom prompting to set a property values. *NOTE* If you use the Status bar, prompting is not allowed, so it would be important that UseStatus is set to false in that case.
+
+### Requirements for the method
+
+It can return either void or Task. If the return type is Task this will affect how the SpectreFactory is generated. As the Get call will be async instead and be named GetAsync.
+
+It allows you to have `IAnsiConsole` as a parameter, and that will be injected into the method when it's called. This should make it easier to do testing if that is desired.
+
+### Title
+
+Unlike the property based step attributes we will not generate a default title if the Title is not set. If you input an IAnsiConsole it might be overkill to also add a Title. But there is nothing hindering you from doing so.
+
+### Status bar
+
+You can control whether or not you want a status bar(spinner) to run when the method is called. This is done by setting the `UseStatus` property to true and adding text to the `StatusText` property. Both are required. The choice was that it was more intuitive that the status will be displayed by having two properties instead of StatusText being optional. You can control the spinner type and style by using the `SpinnerType` and `SpinnerStyle` properties.
+
+The spinner type is set by using the `SpinnerKnownTypes` this has been generated from the KnownTypes. Custom spinner types are not possible. Alternatively you can generate the status inside the method, and thereby allowing you all the flexibility you want.
+
+## Collections strategy
+
+When requesting input for a collection we will often work with a List&lt;T&gt; and converted it to the type of the property. Most cases should be covered. But here is a short list of some of the "conversions" behind the scenes.
 
 * Array will result in a ToList()
 * HashSet will be initalized with new HashSet<>
@@ -435,6 +503,17 @@ ctx =>
 }
 ```
 
+## Styles
+
+There are different properties to control the style. We won't go into detail here but we take a string as input and try to evaluate the style. If it can't be parsed an error will be outputted in the build log(since it's a source generator it will often first appear after a build).
+
+Styles can be, in very rough terms, [colors](https://spectreconsole.net/appendix/colors) or [styles](https://spectreconsole.net/appendix/styles) and used in different combinations. Try them out, you will be "told" if it's not allowed by the AutoSpectre SourceGenerator. :)
+
+* Red
+* Green slowblink
+* Red on white (red foreground on white background)
+* italic blue on yellow
+
 ## Conditions
 
 Using the `Condition` you can instruct whether prompting should occur for a given property. The condition should point to either a public bool property or a public method with no parameters returning bool. You can negate this by using the `NegateCondition` property.
@@ -475,7 +554,7 @@ if (destination.AskFriendlyCondition == false)
 
 The following conventions come into play
 
-### SelectionSource
+### Source
 
 You can leave out the Source in the SelectPromptAttribute if you have a property or method that is named {NameOfProperty}Source and have the correct structure ( No input parameters and returns an enumerable of the type of the given property)
 

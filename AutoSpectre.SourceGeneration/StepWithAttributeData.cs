@@ -31,8 +31,7 @@ public class StepWithAttributeData
         if (attributeData.AttributeClass == null)
             throw new("Attribute class was null");
 
-        var title = attributeData.GetAttributePropertyValue<string?>("Title") ??
-                    $"Calling method [green]{method.Name}[/]";
+        var title = attributeData.GetAttributePropertyValue<string?>("Title");
 
         #pragma warning disable CS0618 // Type or member is obsolete
         var condition = attributeData.GetAttributePropertyValue<string>(nameof(AskAttribute.Condition));
@@ -43,8 +42,12 @@ public class StepWithAttributeData
         var statusText = attributeData.GetAttributePropertyValue<string?>(nameof(TaskStepAttribute.StatusText));
 
         var spinnerStyle = attributeData.GetAttributePropertyValue<string?>(nameof(TaskStepAttribute.SpinnerStyle));
-        var spinnerType = attributeData.GetAttributePropertyValue<SpinnerKnownTypesCopy>(nameof(TaskStepAttribute.SpinnerType));
-
+        SpinnerKnownTypesCopy? spinnerType = null;
+        if (attributeData.TryGetAttributePropertyValue<SpinnerKnownTypesCopy>(nameof(TaskStepAttribute.SpinnerType), out var value))
+        {
+            spinnerType = value;
+        } 
+        
         TranslatedAttribute = TranslatedAttributeData.TaskPrompt(title, condition, conditionNegated, useStatus, statusText, spinnerStyle, spinnerType);
     }
     

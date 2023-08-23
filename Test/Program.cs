@@ -8,42 +8,51 @@ using Spectre.Console;
 
 namespace Test
 {
-    public class TestForm
-    {
-        [TaskStep()]
-        public void Hello()
-        {
-        }
-    }
-
-    public interface ITestFormSpectreFactory
-    {
-        void Get(TestForm destination);
-    }
-
-    /// <summary>
-    /// Helps create and fill <see cref = "TestForm"/> with values
-    /// </summary>
-    public class TestFormSpectreFactory : ITestFormSpectreFactory
-    {
-        public void Get(TestForm destination)
-        {
-            AnsiConsole.MarkupLine("Calling method [green]Hello[/]");
-            destination.Hello();
-            return destination;
-        }
-    }
-    // [AutoSpectreForm]
-    // public class Testy
+    // public class TestForm
     // {
-    //     [TextPrompt]
-    //     public string Name { get; set; }
+    //     [TaskStep()]
+    //     public void Hello()
+    //     {
+    //     }
     // }
     //
+    // public interface ITestFormSpectreFactory
+    // {
+    //     void Get(TestForm destination);
+    // }
+    //
+    // /// <summary>
+    // /// Helps create and fill <see cref = "TestForm"/> with values
+    // /// </summary>
+    // public class TestFormSpectreFactory : ITestFormSpectreFactory
+    // {
+    //     public void Get(TestForm destination)
+    //     {
+    //         AnsiConsole.MarkupLine("Calling method [green]Hello[/]");
+    //         destination.Hello();
+    //         return destination;
+    //     }
+    // }
+    [AutoSpectreForm]
+    public class Testy
+    {
+        [TaskStep()]
+        public void LetsGo()
+        {
+            
+        }
+        
+        [TextPrompt(PromptStyle = "italic blue on yellow")]
+        public string Name { get; set; }
+    }
+    
     class Program
     {
         static async Task Main(string[] args)
         {
+            var testySpectreFactory = new TestySpectreFactory();
+            var testy = testySpectreFactory.Get();
+            
             // var prompt = new TestySpectreFactory();
             // var testy = prompt.Get();
             // System.Console.OutputEncoding = Encoding.UTF8;
