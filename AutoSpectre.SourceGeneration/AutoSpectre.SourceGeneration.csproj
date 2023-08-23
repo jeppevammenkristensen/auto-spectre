@@ -7,7 +7,7 @@
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <IsRoslynComponent>true</IsRoslynComponent>
     <VersionPrefix>0.5.0</VersionPrefix>
-    <VersionSuffix>preview.0.7</VersionSuffix>
+<!--    <VersionSuffix>preview.0.7</VersionSuffix>-->
   </PropertyGroup>
 
   <PropertyGroup>
@@ -20,7 +20,7 @@
     <PackageProjectUrl>https://github.com/jeppevammenkristensen/auto-spectre</PackageProjectUrl>
     <RepositoryUrl>https://github.com/jeppevammenkristensen/auto-spectre</RepositoryUrl>
     <PackageTags>C#;Source Generator</PackageTags>
-    <PackageReleaseNotes>Adds support for the TaskStep attribute that supports adding a method that will be called</PackageReleaseNotes>
+    <PackageReleaseNotes>Adds support for the TaskStep attribute that supports adding a method with custom functionality. Support for a form classes without empty constructors. Alligned major and minor version between SourceGenerator and the AutoSpectre library</PackageReleaseNotes>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
