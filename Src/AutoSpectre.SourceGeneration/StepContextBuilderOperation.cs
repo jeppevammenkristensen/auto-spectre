@@ -74,6 +74,8 @@ internal class StepContextBuilderOperation
             return;
         }
 
+        EvaluateCondition(singleMethodEvaluationContext, attributeData);
+
         EvaluateStatus(attributeData, singleMethodEvaluationContext);
 
 
@@ -173,7 +175,6 @@ internal class StepContextBuilderOperation
             if (validParameters)
             {
                 var hasAnsiConsole = method.Parameters.FirstOrDefault() is { };
-
                 var isAsync = method.ReturnType.Equals(this.Types.Task, SymbolEqualityComparer.Default);
                 return new SingleMethodEvaluationContext(method, isAsync, hasAnsiConsole);
                 
@@ -569,11 +570,11 @@ internal class StepContextBuilderOperation
         }
     }
 
-    private void EvaluateCondition(SinglePropertyEvaluationContext propertyContext,
+    private void EvaluateCondition(IConditionContext propertyContext,
         TranslatedAttributeData attributeData)
     {
         bool isGuess = attributeData.Condition == null;
-        string condition = attributeData.Condition ?? $"{propertyContext.Property.Name}Condition";
+        string condition = attributeData.Condition ?? $"{propertyContext.Name}Condition";
         bool negateCondition = attributeData.ConditionNegated;
 
         bool IsConditionMatch(ISymbol symbol)
@@ -625,14 +626,14 @@ internal class StepContextBuilderOperation
                     $"Found name matches for {condition} but they were not valid",
                     $"{candidates.Count} matches where found. But they did not match a property or method (with no arguments) named {condition} return a boolean",
                     "General", DiagnosticSeverity.Warning, true),
-                propertyContext.Property.Locations.FirstOrDefault()));
+                propertyContext.Symbol.Locations.FirstOrDefault()));
         }
         else if (!isGuess)
         {
             ProductionContext.ReportDiagnostic(Diagnostic.Create(
                 new(DiagnosticIds.Id0011_ConditionNameNotFound, $"Did not find name matches for {condition}",
                     $"No candiates where found with name {condition}", "General", DiagnosticSeverity.Warning, true),
-                propertyContext.Property.Locations.FirstOrDefault()));
+                propertyContext.Symbol.Locations.FirstOrDefault()));
         }
     }
 

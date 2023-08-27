@@ -18,7 +18,6 @@
     <ItemGroup>
         <ProjectReference Include="..\..\..\AutoSpectre\AutoSpectre.csproj" />
         <ProjectReference Include="..\AutoSpectreAnalyzer.CodeFixes\AutoSpectreAnalyzer.CodeFixes.csproj" />
-        <ProjectReference Include="..\AutoSpectreAnalyzer\AutoSpectreAnalyzer.csproj" />
     </ItemGroup>
 
 </Project>

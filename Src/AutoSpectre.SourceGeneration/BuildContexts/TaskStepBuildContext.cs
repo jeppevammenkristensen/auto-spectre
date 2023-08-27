@@ -25,7 +25,6 @@ public class TaskStepBuildContext : PromptBuildContext
             builder.AppendLine($"AnsiConsole.MarkupLine(\"{Title}\");");    
         }
         
-        
         StartStatus(builder);
 
         if (EvaluationContext.ReturnTypeIsTask)
@@ -110,7 +109,7 @@ public class TaskStepBuildContext : PromptBuildContext
 
     public override IEnumerable<string> Namespaces()
     {
-        if (EvaluationContext.HasAnsiConsoleParameter)
+        if (EvaluationContext.ReturnTypeIsTask)
         {
             yield return "System.Threading.Tasks";
         }

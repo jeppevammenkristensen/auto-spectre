@@ -57,6 +57,32 @@ public class TaskStepGeneratorTests : AutoSpectreGeneratorTestsBase
     }
 
     [Fact]
+    public void TaskStepWithConditionCodeIsWrappedWithCondition()
+    {
+        GetGeneratedOutput($$"""
+                             using AutoSpectre;
+                             using System.Collections.Generic;
+                             using System.Threading.Tasks;
+                             
+                             
+                             namespace Test;
+
+                             [AutoSpectreForm]
+                             public class TestForm
+                             {
+                                [TextPrompt]
+                                public bool Test {get;set;}
+                             
+                                [TaskStep(Condition = nameof(Test))]
+                                public async Task HelloAsync()
+                                {
+                                    await Task.Delay(5000);
+                                }
+                             }
+                             """).Should().Contain("if (destination.Test == true)");
+    }
+
+    [Fact]
     public void AsyncStepMethodWithoutParameter_GeneratesExpectedResult()
     {
         GetGeneratedOutput($$"""
