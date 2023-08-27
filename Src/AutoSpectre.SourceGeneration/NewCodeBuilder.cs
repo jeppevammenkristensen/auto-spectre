@@ -121,6 +121,29 @@ namespace {{ Type.ContainingNamespace}}
         StringBuilder builder = new();
         foreach (var stepContext in this.StepContexts)
         {
+            void AddConditions(ConfirmedCondition condition)
+            {
+                var boolValue = condition.Negate ? "false" : "true";
+
+                if (condition.SourceType == ConditionSource.Method)
+                {
+                    builder.AppendLine($"if (destination.{condition.Condition}() == {boolValue})");
+                }
+                else if (condition.SourceType == ConditionSource.Property)
+                {
+                    builder.AppendLine($"if (destination.{condition.Condition} == {boolValue})");
+                }
+                else
+                {
+                    throw new InvalidOperationException("Unexpected condition type");
+                }
+
+
+                builder.AppendLine("{");
+                AddLine();
+                builder.AppendLine("}");
+            }
+
             void AddLine()
             {
                 switch (stepContext)
@@ -139,28 +162,13 @@ namespace {{ Type.ContainingNamespace}}
             }
             
             
-            if (stepContext.BuildContext.Context.ConfirmedCondition is { } confirmedCondition)
+            if (stepContext is PropertyContext {BuildContext.Context.ConfirmedCondition: { } confirmedCondition})
             {
-                var boolValue = confirmedCondition.Negate ? "false" : "true";
-                
-                if (confirmedCondition.SourceType == ConditionSource.Method)
-                {
-                    builder.AppendLine($"if (destination.{confirmedCondition.Condition}() == {boolValue})");
-                    
-                }
-                else if (confirmedCondition.SourceType == ConditionSource.Property)
-                {
-                    builder.AppendLine($"if (destination.{confirmedCondition.Condition} == {boolValue})");
-                }
-                else
-                {
-                    throw new InvalidOperationException("Unexpected condition type");
-                }
-                
-                
-                builder.AppendLine("{");
-                AddLine();
-                builder.AppendLine("}");
+                AddConditions(confirmedCondition);
+            }
+            else if (stepContext is MethodContext {EvaluationContext.ConfirmedCondition: { } confirmedMethodCondition})
+            {
+                AddConditions(confirmedMethodCondition);
             }
             else
             {
@@ -175,5 +183,7 @@ namespace {{ Type.ContainingNamespace}}
         }
 
         return builder.ToString();
+
+        
     }
 }

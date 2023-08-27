@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace AutoSpectre.SourceGeneration;
 
-public class SingleMethodEvaluationContext
+public class SingleMethodEvaluationContext : IConditionContext
 {
     public IMethodSymbol Method { get; }
     public bool ReturnTypeIsTask { get; }
@@ -27,6 +27,9 @@ public class SingleMethodEvaluationContext
     public MethodDeclarationSyntax MethodSyntax => _methodSyntaxLazy.Value;
     public string? SpinnerStyle { get; set; }
     public string? SpinnerKnownType { get; set; }
+    string IConditionContext.Name => Method.Name;
+    ISymbol IConditionContext.Symbol => Method;
+    public ConfirmedCondition? ConfirmedCondition { get; set; }
 }
 
 public class ConfirmedStatusWrap
@@ -39,7 +42,15 @@ public class ConfirmedStatusWrap
     
 }
 
-public class SinglePropertyEvaluationContext
+public interface IConditionContext
+{
+    public string Name { get; }
+    public ISymbol Symbol { get; }
+
+    public ConfirmedCondition? ConfirmedCondition { get; set; }
+}
+
+public class SinglePropertyEvaluationContext : IConditionContext
 {
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
     public static SinglePropertyEvaluationContext Empty = new SinglePropertyEvaluationContext(default(IPropertySymbol),
@@ -60,6 +71,9 @@ public class SinglePropertyEvaluationContext
     }
 
     public IPropertySymbol Property { get; }
+
+    string IConditionContext.Name => Property.Name;
+    ISymbol IConditionContext.Symbol => Property;
     
     
     public bool IsNullable { get; }
