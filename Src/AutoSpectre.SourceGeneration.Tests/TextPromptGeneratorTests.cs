@@ -64,6 +64,40 @@ public class TextPromptGeneratorTests : AutoSpectreGeneratorTestsBase
                              }
                              """).Should().Contain("DefaultValue(string.Empty)");
     }
+
+    [Fact]
+    public void PropertyExistingFormValidationSetsCorrectValidationMessage()
+    {
+        GetGeneratedOutput($$"""
+                             using AutoSpectre;
+                             using System.Collections.Generic;
+
+                             namespace Test;
+                             
+                             [AutoSpectreForm]
+                             public class ChildForm
+                             {
+                                [TextPrompt]
+                                public string Title {get;set;}
+                             }
+                             
+                             
+                             [AutoSpectreForm]
+                             public class TestForm
+                             {
+                                  [TextPrompt]
+                                  public ChildForm Child {get;set;}
+                                  
+                                  public string? ChildValidator(ChildForm source)
+                                  {
+                                    return null;
+                                  }
+                             }
+                             
+                             
+                             
+                             """).Should().Contain("AnsiConsole.MarkupLineInterpolated($\"[red]{error}[/]\")");
+    }
     
     [Fact]
     public void PropertyWithDefaultValueOtherSetGetsUsedAsDefault()
