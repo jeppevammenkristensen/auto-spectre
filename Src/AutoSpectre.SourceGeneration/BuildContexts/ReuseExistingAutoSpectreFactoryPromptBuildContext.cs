@@ -67,7 +67,7 @@ internal class ReuseExistingAutoSpectreFactoryPromptBuildContext : PromptBuilder
 
                 if (destination.{{Context.ConfirmedValidator.Name}}({{usedVariable}}) is {} error)
                 {
-                    AnsiConsole.Markup("[red]{error}[/]");
+                    AnsiConsole.MarkupLineInterpolated($"[red]{error}[/]");
                     isValid = false;
                 }
                 else 

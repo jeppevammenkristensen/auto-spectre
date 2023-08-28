@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <IsRoslynComponent>true</IsRoslynComponent>
-    <VersionPrefix>0.5.2</VersionPrefix>
+    <VersionPrefix>0.5.3</VersionPrefix>
 <!--    <VersionSuffix>preview.0.7</VersionSuffix>-->
   </PropertyGroup>
 
@@ -20,7 +20,7 @@
     <PackageProjectUrl>https://github.com/jeppevammenkristensen/auto-spectre</PackageProjectUrl>
     <RepositoryUrl>https://github.com/jeppevammenkristensen/auto-spectre</RepositoryUrl>
     <PackageTags>C#;Source Generator</PackageTags>
-    <PackageReleaseNotes>Fixed issue with conditions on TaskStep</PackageReleaseNotes>
+    <PackageReleaseNotes>Fixed issue with how error is displayed on validation error for TextPrompt with other form</PackageReleaseNotes>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
