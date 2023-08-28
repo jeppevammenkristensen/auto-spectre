@@ -14,7 +14,7 @@ public class CreateEmployeesForm
         _context = context;
     }
 
-    [TaskStep(UseStatus = true, StatusText = "Initializing")]
+    [TaskStep(UseStatus = true, StatusText = "Initializing",SpinnerStyle = "slowblink",SpinnerType = SpinnerKnownTypes.CircleQuarters)]
     public async Task Initalizing(IAnsiConsole console)
     {
         var employees = await _context.Employees
@@ -53,10 +53,21 @@ public class CreateEmployeesForm
     [SelectPrompt(Source = nameof(Titles))]
     public Title ExistingTitle { get; set; }
 
+    public string ExistingTitleConverter(Title title)
+    {
+        return $"[red]{title.Name}-{title.Paygroup}[/]";
+    }
+    
     public bool ExistingTitleCondition => UseExistingTitle && Titles.Count > 0;
 
-    [TextPrompt(Condition = nameof(ExistingTitleCondition), NegateCondition = true)]
+    [TextPrompt(Title = "Add data for new title",Condition = nameof(ExistingTitleCondition), NegateCondition = true)]
     public CreateTitle NewTitle { get; set; }
+
+    public string? NewTitleValidator(CreateTitle title)
+    {
+        return _context.Titles
+            .Any(x => x.Name == title.Name) ? $"The title {title.Name} already exist" : null;
+    }
 
     [TaskStep(UseStatus = true, StatusText = "Creating title", Condition = nameof(ExistingTitleCondition), NegateCondition = true)]
     public async Task CreateTitle()
@@ -69,6 +80,8 @@ public class CreateEmployeesForm
         _ = await _context.SaveChangesAsync();
         CreatedTitle = title;
     }
+    
+    
 
     public Title CreatedTitle { get; set; }
 
