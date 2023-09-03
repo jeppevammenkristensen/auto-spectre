@@ -16,6 +16,9 @@ public class LazyTypes
     private readonly Lazy<INamedTypeSymbol?> _autoSpectreForm;
     private readonly Lazy<INamedTypeSymbol?> _task;
     private readonly Lazy<INamedTypeSymbol?> _iAnsiConsole;
+    private readonly Lazy<INamedTypeSymbol?> _textPrompt;
+    private readonly Lazy<INamedTypeSymbol?> _selectPrompt;
+    private readonly Lazy<INamedTypeSymbol?> _taskStepPrompt;
 
     public INamedTypeSymbol? ListGeneric => _listGeneric.Value;
     public INamedTypeSymbol? HashSet => _hashSet.Value;
@@ -23,6 +26,9 @@ public class LazyTypes
     public INamedTypeSymbol? AutoSpectreForm => _autoSpectreForm.Value;
     public INamedTypeSymbol? Task => _task.Value;
     public INamedTypeSymbol? IAnsiConsole => _iAnsiConsole.Value;
+    public INamedTypeSymbol? TextPrompt => _textPrompt.Value;
+    public INamedTypeSymbol? SelectPrompt => _selectPrompt.Value;
+    public INamedTypeSymbol? TaskStepPrompt => _taskStepPrompt.Value;
 
 
     public LazyTypes(Compilation compilation)
@@ -38,5 +44,10 @@ public class LazyTypes
         _task = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName("System.Threading.Tasks.Task"));
         _iAnsiConsole =
             new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName("Spectre.Console.IAnsiConsole"));
+        _textPrompt = new Lazy<INamedTypeSymbol?>(() =>
+            compilation.GetTypeByMetadataName($"AutoSpectre.{nameof(TextPromptAttribute)}"));
+        _selectPrompt = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName($"AutoSpectre.{nameof(SelectPromptAttribute)}"));
+        _taskStepPrompt = new Lazy<INamedTypeSymbol?>(() =>
+            compilation.GetTypeByMetadataName($"AutoSpectre.{nameof(TaskStepAttribute)}"));
     }
 }

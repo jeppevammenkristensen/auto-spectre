@@ -24,16 +24,19 @@ public class TranslatedAttributeData
     public string? Condition { get; set; }
     public bool ConditionNegated { get; }
 
+    public string? TypeInitializer { get; private set; }
+
     public static TranslatedAttributeData TextPrompt(string title, string? validator,
         string? condition, bool conditionNegated, bool secret, char? mask, string? defaultValueStyle,
-        string? promptStyle)
+        string? promptStyle, string typeInitalizer)
     {
         return new(askType: AskTypeCopy.Normal, selectionSource: null, title: title, converter: null, validator: validator, condition: condition, conditionNegated: conditionNegated)
         {
             Secret = secret,
             Mask = mask,
             DefaultValueStyle = defaultValueStyle,
-            PromptStyle = promptStyle
+            PromptStyle = promptStyle,
+            TypeInitializer = typeInitalizer
         };
     }
 

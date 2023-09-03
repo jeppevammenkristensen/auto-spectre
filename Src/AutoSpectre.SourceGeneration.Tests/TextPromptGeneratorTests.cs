@@ -120,8 +120,98 @@ public class TextPromptGeneratorTests : AutoSpectreGeneratorTestsBase
     }
 
 
-    
-    
+    [Fact]
+    public void TextPromptWithReferenceToOtherThatHasNoEmptyPublicConstructor()
+    {
+        GetOutput("""
+                  using AutoSpectre;
+                  using System.Collections.Generic;
+
+                  namespace Test;
+
+                  [AutoSpectreForm]
+                  public class TestForm
+                  {
+                      [TextPrompt(Secret=true)]
+                      public Other Secret {get;set;}
+
+                  }
+
+                  [AutoSpectreForm]
+                  public class Other
+                  {
+                       public Other(int input)
+                       {
+                           
+                       }
+                  }
+
+                  """).ShouldHaveSourceGeneratorDiagnostic(DiagnosticIds.Id0020_InitializerNeeded);
+    }
+
+    [Fact]
+    public void TextPromptWithReferenceToOtherThatHasNoEmptyPublicConstructorButItHasInitializer()
+    {
+        GetOutput("""
+                  using AutoSpectre;
+                  using System.Collections.Generic;
+
+                  namespace Test;
+
+                  [AutoSpectreForm]
+                  public class TestForm
+                  {
+                      [TextPrompt(TypeInitializer=nameof(InitOther))]
+                      public Other Secret {get;set;}
+                      
+                      public Other InitOther()
+                      {
+                        return new Other(1);
+                      }
+
+                  }
+
+                  [AutoSpectreForm]
+                  public class Other
+                  {
+                       public Other(int input)
+                       {
+                           
+                       }
+                  }
+
+                  """).HasNoSourceGeneratorDiagnosticWith(DiagnosticIds.Id0020_InitializerNeeded).Output.Should().Contain("var item = destination.InitOther();");
+    }
+
+    [Fact]
+    public void TextPromptWithReferenceToOtherThatHasEmptyPublicConstructor()
+    {
+        GetOutput("""
+                  using AutoSpectre;
+                  using System.Collections.Generic;
+
+                  namespace Test;
+
+                  [AutoSpectreForm]
+                  public class TestForm
+                  {
+                      [TextPrompt(Secret=true)]
+                      public Other Secret {get;set;}
+
+                  }
+
+                  [AutoSpectreForm]
+                  public class Other
+                  {
+                       public Other()
+                       {
+                           
+                       }
+                  }
+
+                  """).HasNoSourceGeneratorDiagnosticWith(DiagnosticIds.Id0020_InitializerNeeded);
+    }
+
     [Fact]
     public void TextPromptWithSecretNoMaskGeneratesCorrectSecret()
     {

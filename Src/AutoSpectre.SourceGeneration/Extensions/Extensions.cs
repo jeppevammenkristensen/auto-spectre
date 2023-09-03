@@ -213,6 +213,61 @@ public static class Extensions
     }
 
 
+    /// <summary>
+    /// Gets all members and members of base types that are not interfaces
+    /// It will return all types of members. But will have a special focus on Properties
+    /// and Methods. If the method of a base class is virtual and it matches the signature of an existing members
+    /// in a derived class it will not be returned
+    /// </summary>
+    /// <param name="source"></param>
+    /// <returns></returns>
+    internal static List<ISymbol> GetAllMembers(this INamedTypeSymbol source)
+    {
+        List<ISymbol> members = new(source.GetMembers());
+
+        if (source.BaseType is {TypeKind: TypeKind.Class, SpecialType: SpecialType.None} baseType) 
+        {
+            foreach (var member in baseType.GetAllMembers())
+            {
+                if (member.IsAbstract)
+                    continue;
+                if (member.IsVirtual && members.Find(x => x.IsApproximateMemberMatch(member)) == null)
+                    continue;
+                members.Add(member);
+            }
+        }
+
+        return members;
+    }
+
+    internal static bool IsApproximateMemberMatch(this ISymbol source, ISymbol other)
+    {
+        if (source.Kind == other.Kind && source.Name == other.Name)
+        {
+            if (source is IMethodSymbol methodSymbol && other is IMethodSymbol otherMethodSymbol)
+            {
+                if (methodSymbol.Parameters.Length != otherMethodSymbol.Parameters.Length)
+                    return false;
+
+                for (int i = 0; i < methodSymbol.Parameters.Length; i++)
+                {
+                    if (!methodSymbol.Parameters[i].Type.Equals(otherMethodSymbol.Parameters[i].Type, SymbolEqualityComparer.Default))
+                        return false;
+                }
+
+                return true;
+            }
+            else if (source is IPropertySymbol propertySymbol && other is IPropertySymbol otherPropertySymbol)
+            {
+                return propertySymbol.Type.Equals(otherPropertySymbol.Type, SymbolEqualityComparer.Default);
+            }
+        }
+
+        // We currently only have interest in properties and symbols
+        return false;
+            
+    }
+
     internal static bool IsAttributeMatch(this string? source, string nameWithoutAttribute)
     {
         if (source == null)
@@ -376,6 +431,24 @@ public static class Extensions
         }
     }
 
+    public static bool IsDecoratedWithAttribute(this ISymbol symbol, INamedTypeSymbol attribute)
+    {
+        return symbol.IsDecoratedWithAnyAttribute(attribute);
+    }
+
+    public static IEnumerable<TSymbol> FilterDecoratedWithAnyAttribute<TSymbol>(this IEnumerable<TSymbol> symbols,
+        params INamedTypeSymbol[] attributes) where TSymbol : ISymbol
+    {
+        var hashset = new HashSet<INamedTypeSymbol>(attributes, SymbolEqualityComparer.Default);
+        return symbols.Where(x =>
+            x.GetAttributes().Any(y => y.AttributeClass is { } attributeClass && hashset.Contains(attributeClass)));
+    }
+
+    public static bool IsDecoratedWithAnyAttribute(this ISymbol symbol, params INamedTypeSymbol[] attributes)
+    {
+        var hashset = new HashSet<INamedTypeSymbol>(attributes, SymbolEqualityComparer.Default);
+        return symbol.GetAttributes().Any(x => x.AttributeClass is { } attribute && hashset.Contains(attribute));
+    }
     public static IEnumerable<ITypeSymbol> AllBaseTypes(this ITypeSymbol source)
     {
         ITypeSymbol? current = source;

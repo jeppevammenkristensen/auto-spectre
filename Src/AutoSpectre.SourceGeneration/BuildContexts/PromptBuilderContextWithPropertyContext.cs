@@ -12,7 +12,7 @@ internal abstract class PromptBuilderContextWithPropertyContext : PromptBuildCon
     {
         if (Context.ConfirmedConverter is { } converter)
         {
-            return $"{Environment.NewLine}.UseConverter(destination.{converter.Converter})";
+            return $".UseConverter(destination.{converter.Converter})";
         }
 
         return string.Empty;

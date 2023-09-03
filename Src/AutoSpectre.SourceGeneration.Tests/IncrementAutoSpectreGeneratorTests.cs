@@ -193,18 +193,18 @@ namespace Test;
 [AutoSpectreForm]
     public class Other
     {
-        [Ask]
+        [TextPrompt]
         public string Name { get; set; }
     }
 
     [AutoSpectreForm]
     public class ConverterForms
     {
-        [Ask] public List<Other> Other { get; set; }
+        [TextPrompt] public List<Other> Other { get; set; }
     }               
 
 """).Should().Contain("IOtherSpectreFactory OtherSpectreFactory = new OtherSpectreFactory();").And
-                .Contain("var newItem = OtherSpectreFactory.Get();");
+                .Contain("var newItem = new Test.Other();").And.Contain("OtherSpectreFactory.Get(newItem);");
         }
         
         [Fact]

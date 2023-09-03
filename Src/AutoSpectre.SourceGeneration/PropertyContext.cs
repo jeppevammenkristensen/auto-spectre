@@ -28,7 +28,7 @@ namespace AutoSpectre.SourceGeneration
     
     public class PropertyContext : IStepContext
     {
-        public bool IsAsync => false; //Rewrite if properties can become Async. :) 
+        public virtual bool IsAsync { get; }//Rewrite if properties can become Async. :) 
         
         public string PropertyName { get; }
         public IPropertySymbol PropertySymbol { get; }
@@ -39,6 +39,7 @@ namespace AutoSpectre.SourceGeneration
             PropertyName = propertyName;
             PropertySymbol = propertySymbol;
             BuildContext = buildContext;
+            IsAsync = buildContext.Context.RequiresAsync;
         }
     }
 }
