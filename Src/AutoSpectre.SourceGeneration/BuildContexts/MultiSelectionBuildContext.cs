@@ -41,7 +41,7 @@ internal class MultiSelectionBuildContext : SelectionBaseBuildContext
 
     public override string PromptPart(string? variableName = null)
     {
-        var type = UnderlyingSymbol.ToDisplayString();
+        var type = Context.GetSingleType().type.ToDisplayString();
 
         var conversion = NeedsConversion(TypeSymbol);
 

@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <VersionPrefix>0.5.0</VersionPrefix>
-<!--    <VersionSuffix>preview.0.6</VersionSuffix>-->
+    <VersionPrefix>0.6.0</VersionPrefix>
+    <VersionSuffix>preview.0.1</VersionSuffix>
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
@@ -10,8 +10,8 @@
     <Description>Classes used by the AutoSpectre.SourceGeneration package</Description>
     <Authors>Jeppe Roi Kristensen</Authors>
     <RepositoryUrl>https://github.com/jeppevammenkristensen/auto-spectre</RepositoryUrl>
-    <PackageReleaseNotes>Added support for TaskStep attribute. To have methods that do calculations or other custom things. Alligned major and minor version with the SourceGenerator
-    </PackageReleaseNotes>
+    <PackageReleaseNotes>Added better ability to define a intializer for a property type referenced that is decorated with the AutoSpectreFrom and 
+    fixing that it should be called correctly</PackageReleaseNotes>
     <PackageIcon>ghost.png</PackageIcon>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>    
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

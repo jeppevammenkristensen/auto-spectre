@@ -34,16 +34,44 @@ namespace Test
     //     }
     // }
     [AutoSpectreForm]
-    public class Testy
+    public class Testy : BaseClass
     {
-        [TaskStep()]
-        public void LetsGo()
-        {
-            
-        }
-        
-        [TextPrompt(PromptStyle = "italic blue on yellow")]
+        [TextPrompt]
         public string Name { get; set; }
+
+        [TextPrompt(TypeInitializer = nameof(InitSubclass))]
+        public Subclass Subclass { get; set; }
+
+        public Subclass InitSubclass()
+        {
+            return new Subclass(5);
+        }
+    }
+
+    public abstract class BaseClass
+    {
+        
+    }
+
+    [AutoSpectreForm]
+    public class Subclass
+    {
+
+        [TaskStep]
+        public void Hello(IAnsiConsole console)
+        {
+            console.Write(new FigletText($"The number is {Integ}"));
+        }
+
+        [TextPrompt]
+        public string Name { get; set; }
+
+        public Subclass(int i)
+        {
+            Integ = i;
+        }
+
+        public int Integ { get; set; }
     }
     
     class Program

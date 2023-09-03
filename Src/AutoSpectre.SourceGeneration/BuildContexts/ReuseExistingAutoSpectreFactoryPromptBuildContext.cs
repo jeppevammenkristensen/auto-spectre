@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Net.Mime;
 using System.Text;
 using AutoSpectre.SourceGeneration.Extensions;
@@ -10,6 +11,8 @@ internal class ReuseExistingAutoSpectreFactoryPromptBuildContext : PromptBuilder
 {
     public override bool DeclaresVariable => true;
 
+    private ConfirmedNamedTypeSource NamedTypeSource => Context.ConfirmedNamedTypeSource ?? throw new InvalidOperationException("Source was unexpectedly null");
+
     public string Title { get; }
     public INamedTypeSymbol NamedTypeSymbol { get; }
     public bool IsNullable { get; }
@@ -18,12 +21,20 @@ internal class ReuseExistingAutoSpectreFactoryPromptBuildContext : PromptBuilder
 
     public string FactoryInterface { get; }
     public string FactoryClassName { get; }
-    public string VariableName { get; set; }
+
+    /// <summary>
+    /// The name of the SpectreFactory variable used to hold the instance of the factory
+    /// </summary>
+    public string SpectreFactoryInstanceVariableName { get; set; }
 
 
     public ReuseExistingAutoSpectreFactoryPromptBuildContext(string title, INamedTypeSymbol namedTypeSymbol,
         bool isNullable, SinglePropertyEvaluationContext context) : base(context)
     {
+        if (context.ConfirmedNamedTypeSource is null)
+            throw new InvalidOperationException("Expected that context.ConfirmedNamedTypeSource is not null");
+
+
         Title = title;
         NamedTypeSymbol = namedTypeSymbol;
         IsNullable = isNullable;
@@ -31,7 +42,9 @@ internal class ReuseExistingAutoSpectreFactoryPromptBuildContext : PromptBuilder
         TypeNamespace = namedTypeSymbol.ContainingNamespace.ToString();
         FactoryClassName = namedTypeSymbol.GetSpectreFactoryClassName();
         FactoryInterface = namedTypeSymbol.GetSpectreFactoryInterfaceName();
-        VariableName = namedTypeSymbol.GetSpectreVariableName();
+        SpectreFactoryInstanceVariableName = namedTypeSymbol.GetSpectreVariableName();
+
+
     }
 
     public override string GenerateOutput(string destination)
@@ -48,22 +61,26 @@ internal class ReuseExistingAutoSpectreFactoryPromptBuildContext : PromptBuilder
     {
         if (Context.ConfirmedValidator == null || !Context.ConfirmedValidator.SingleValidation)
         {
+            var usedVariableName = variableName ?? "item";
+
             return $"""
             AnsiConsole.MarkupLine("{Title}");
-            var {variableName ?? "item"} = {VariableName}.Get();
+            { InitializeVariable(usedVariableName) }
+             { GetValueFromFactory(usedVariableName)}
             """;
         }
         else
         {
             var usedVariable = variableName ?? "item";
             return $$"""
-            {{Context.Type.ToDisplayString()}}? {{usedVariable}} = null;
+            
             bool isValid = false;
 
             while (!isValid)
             { 
                 AnsiConsole.MarkupLine("{{Title}}");
-                {{usedVariable}} = {{VariableName}}.Get();
+                {{ InitializeVariable(usedVariable) }}
+                {{ GetValueFromFactory(usedVariable)}}
 
                 if (destination.{{Context.ConfirmedValidator.Name}}({{usedVariable}}) is {} error)
                 {
@@ -79,6 +96,34 @@ internal class ReuseExistingAutoSpectreFactoryPromptBuildContext : PromptBuilder
         }
     }
 
+    private string InitializeVariable(string variableName)
+    {
+        // We are making (the probably dangerous assumption) that NamedTypeAnalysis is never null
+        // when we are in this Context. Just in case we will throw an exception if it is null
+      
+
+        if (NamedTypeSource.TypeConverter is { } initializer)
+        {
+            return $"var {variableName} = destination.{initializer}();";
+        }
+        else
+        {
+            return $"var {variableName} = new {NamedTypeSource.NamedTypeAnalysis.NamedTypeSymbol.ToDisplayString()}();";
+        }
+    }
+
+    private string GetValueFromFactory(string variableName)
+    {
+        if (NamedTypeSource.NamedTypeAnalysis.HasAnyAsyncDecoratedMethods)
+        {
+            return $"await {SpectreFactoryInstanceVariableName}.GetAsync({variableName});";
+        }
+        else
+        {
+            return $"{SpectreFactoryInstanceVariableName}.Get({variableName});";
+        }
+    }
+
     public override IEnumerable<string> Namespaces()
     {
             yield return TypeNamespace;
@@ -86,6 +131,6 @@ internal class ReuseExistingAutoSpectreFactoryPromptBuildContext : PromptBuilder
 
     public override IEnumerable<string> CodeInitializing()
     {
-            yield return $"""{FactoryInterface} {VariableName} = new {FactoryClassName}();""";
+            yield return $"""{FactoryInterface} {SpectreFactoryInstanceVariableName} = new {FactoryClassName}();""";
     }
 }

@@ -58,17 +58,27 @@ public class SinglePropertyEvaluationContext : IConditionContext
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
     
     private Lazy<PropertyDeclarationSyntax?> _propertySyntaxLazy;
+
+    public bool RequiresAsync => ConfirmedNamedTypeSource?.IsAsync ?? false;
     
-    public SinglePropertyEvaluationContext(IPropertySymbol property, bool isNullable, ITypeSymbol type, bool isEnumerable, ITypeSymbol underlyingType)
+    public SinglePropertyEvaluationContext(IPropertySymbol property, bool isNullable, ITypeSymbol type, bool isEnumerable, ITypeSymbol? underlyingType)
     {
         Property = property;
         IsNullable = isNullable;
         Type = type;
         IsEnumerable = isEnumerable;
-        UnderlyingType = underlyingType;
+        if (underlyingType is { })
+        {
+            var (underlyingCanBeNull, underlying) = underlyingType.GetTypeWithNullableInformation();
+            UnderlyingType = underlying;
+            UnderlyingTypeIsNullable = underlyingCanBeNull;
+        }
+        
         _propertySyntaxLazy = new Lazy<PropertyDeclarationSyntax?>(() =>
             Property.DeclaringSyntaxReferences[0].GetSyntax() as PropertyDeclarationSyntax);
     }
+
+    public bool UnderlyingTypeIsNullable { get;  }
 
     public IPropertySymbol Property { get; }
 
@@ -82,6 +92,8 @@ public class SinglePropertyEvaluationContext : IConditionContext
     public ITypeSymbol? UnderlyingType { get; }
 
     public ConfirmedSelectionSource ConfirmedSelectionSource { get; set; }
+
+    public ConfirmedNamedTypeSource? ConfirmedNamedTypeSource { get; set; }
     
     public ConfirmedConverter? ConfirmedConverter { get; set; }
     
@@ -95,7 +107,8 @@ public class SinglePropertyEvaluationContext : IConditionContext
     public bool? WrapAround { get; set; }
     public string? MoreChoicesText { get; set; }
     public string? InstructionsText { get; set; }
-    public string? HighlightStyle { get; set; }
+    public string? HighlightStyle { get; set; } //public NamedTypedAnalysis? NamedTypeAnalysis { get; set; }
+    
 
     public static SinglePropertyEvaluationContext GenerateFromPropertySymbol(IPropertySymbol property)
     {
@@ -107,4 +120,17 @@ public class SinglePropertyEvaluationContext : IConditionContext
                 isEnumerable: enumerable, underlyingType: underlying);
         return propertyEvaluationContext;
     }
+
+    /// <summary>
+    ///  Returns the Type is the type is not an enumerable or the underlying
+    /// type is it is an enumerable
+    /// </summary>
+    /// <returns></returns>
+    /// <exception cref="NotImplementedException"></exception>
+    public (bool nullable, ITypeSymbol type) GetSingleType() =>
+        IsEnumerable
+            ? (UnderlyingTypeIsNullable,
+                UnderlyingType ?? throw new InvalidOperationException("This should not be null"))
+            : (IsNullable, Type);
+
 }

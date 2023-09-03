@@ -92,8 +92,10 @@ public class StepWithAttributeData
             var mask = attributeData.GetAttributePropertyValue<char?>(nameof(TextPromptAttribute.Mask), '*');
             string? defaultValueStyle = attributeData.GetAttributePropertyValue<string>(nameof(TextPromptAttribute.DefaultValueStyle));
             string? promptStyle = attributeData.GetAttributePropertyValue<string>(nameof(TextPromptAttribute.PromptStyle));
+            string? typeInitializer =
+                attributeData.GetAttributePropertyValue<string>(nameof(TextPromptAttribute.TypeInitializer));
             
-            TranslatedAttribute = TranslatedAttributeData.TextPrompt(title,validator, condition, conditionNegated, secret, mask, defaultValueStyle, promptStyle);
+            TranslatedAttribute = TranslatedAttributeData.TextPrompt(title,validator, condition, conditionNegated, secret, mask, defaultValueStyle, promptStyle, typeInitializer);
 
         }
         

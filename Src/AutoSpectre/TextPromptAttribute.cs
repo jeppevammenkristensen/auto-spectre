@@ -36,7 +36,7 @@ public class TextPromptAttribute : AutoSpectreStepAttribute
     /// The mask to use. (The default is *). Is only relevant if <see cref="Secret"/> is set to true
     /// </summary>
     public char Mask { get; set; } = '*';
-    
+
     /// <summary>
     /// The style to apply to the display of the default value
     /// Note. To enable a DefaultValue use this style to declare the property like this
@@ -48,4 +48,12 @@ public class TextPromptAttribute : AutoSpectreStepAttribute
     /// The style to use for the prompting where the user inputs data
     /// </summary>
     public string? PromptStyle { get; set; }
+
+    /// <summary>
+    /// This method is only relevant if the property type is a type that is also
+    /// decorated with the <see cref="AutoSpectreFormAttribute"/>. It is used to
+    /// initialize an instance of the decorated property type. It is not needed
+    /// if the property type has an empty constructor. 
+    /// </summary>
+    public string TypeInitializer { get; set; }
 }

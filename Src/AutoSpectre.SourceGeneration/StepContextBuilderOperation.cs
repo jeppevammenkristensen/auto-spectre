@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using AutoSpectre.SourceGeneration.BuildContexts;
@@ -9,10 +10,47 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace AutoSpectre.SourceGeneration;
 
+public class NamedTypedAnalysis
+{
+    
+    
+    public NamedTypedAnalysis(INamedTypeSymbol namedTypeSymbol, bool isDecoratedWithValidAutoSpectreForm, bool hasAnyAsyncDecoratedMethods, bool hasEmptyConstructor)
+    {
+        NamedTypeSymbol = namedTypeSymbol;
+        IsDecoratedWithValidAutoSpectreForm = isDecoratedWithValidAutoSpectreForm;
+        HasAnyAsyncDecoratedMethods = hasAnyAsyncDecoratedMethods;
+        HasEmptyConstructor = hasEmptyConstructor;
+    }
+
+    public INamedTypeSymbol NamedTypeSymbol { get; }
+    
+    /// <summary>
+    /// This return true if the given type is decorated with AutoSpectreForm and has at least
+    /// one property or method decorated with a relevant attribute. It does not do a fuller analysis than
+    /// that. So there can be unique scenarios where a factory has not been generated for the given type but
+    /// this still is set to true. 
+    /// </summary>
+    public bool IsDecoratedWithValidAutoSpectreForm { get; }
+    public bool HasAnyAsyncDecoratedMethods { get; }
+    public bool HasEmptyConstructor { get; }
+}
+
 internal class StepContextBuilderOperation
 {
+    private readonly ConcurrentDictionary<INamedTypeSymbol, NamedTypedAnalysis> _analysedTypes =
+        new (SymbolEqualityComparer.Default);
+    
     public GeneratorAttributeSyntaxContext SyntaxContext { get; }
+    
+    /// <summary>
+    /// Methods or Properties on the <see cref="TargetType"/> that are
+    /// candidates to have a prompt or task executed.
+    /// </summary>
     public IReadOnlyList<StepWithAttributeData> StepCandidates { get; }
+    
+    /// <summary>
+    /// The target type (the type that has been decoreated with the AutoSpectreFormAttribute
+    /// </summary>
     public INamedTypeSymbol TargetType { get; }
     public SourceProductionContext ProductionContext { get; }
 
@@ -208,9 +246,11 @@ internal class StepContextBuilderOperation
         var propertyContext = SinglePropertyEvaluationContext.GenerateFromPropertySymbol(property);
 
         EvaluateCondition(propertyContext, attributeData);
+       
 
         if (attributeData.AskType == AskTypeCopy.Normal)
         {
+            EvaluateNamedType(propertyContext, attributeData);
             EvaluateDefaultValue(propertyContext, attributeData);
             EvaluatePromptStyle(propertyContext, attributeData);
             EvaluateValidation(propertyContext, attributeData);
@@ -232,7 +272,7 @@ internal class StepContextBuilderOperation
                     stepContexts.Add(new PropertyContext(property.Name,
                         property,
                         new MultiAddBuildContext(propertyContext.Type,
-                            propertyContext.UnderlyingType,
+                            propertyContext.GetSingleType().type,
                             types,
                             promptBuildContext,
                             propertyContext)));
@@ -293,6 +333,48 @@ internal class StepContextBuilderOperation
                     property.Locations.FirstOrDefault()));
             }
         }
+    }
+    
+    private void EvaluateNamedType(SinglePropertyEvaluationContext propertyContext, TranslatedAttributeData attributeData)
+    {
+        var namedTypeAnalysis = EvaluateType(propertyContext);
+        if (namedTypeAnalysis == null)
+            return;
+
+        var initializer = EvaluateAndReturnTypeInitializer(propertyContext, attributeData, namedTypeAnalysis);
+
+
+        if (namedTypeAnalysis is { IsDecoratedWithValidAutoSpectreForm: true, HasEmptyConstructor: false } && initializer is null)
+        {
+            
+            ProductionContext.ReportDiagnostic(Diagnostic.Create(
+                new(DiagnosticIds.Id0020_InitializerNeeded, $"The type needs a method to initialize it",
+                    $"The type {namedTypeAnalysis.NamedTypeSymbol.Name} decorated with AutoSpectreForm does not have an empty constructor. You need to provide a method that can initalize it",
+                    "General", DiagnosticSeverity.Error, true),
+                propertyContext.Property.Locations.FirstOrDefault()));
+        }
+
+        propertyContext.ConfirmedNamedTypeSource = new ConfirmedNamedTypeSource(namedTypeAnalysis, initializer);
+    }
+
+    private string? EvaluateAndReturnTypeInitializer(SinglePropertyEvaluationContext propertyContext, TranslatedAttributeData attributeData, NamedTypedAnalysis? namedTypedAnalysis)
+    {
+        if (attributeData.TypeInitializer is { } typeInitializer && namedTypedAnalysis is {})
+        {
+            var methodMatch = TargetType.GetAllMembers()
+                .Where(x => x.Kind == SymbolKind.Method && x.Name == typeInitializer)
+                .OfType<IMethodSymbol>()
+                .FirstOrDefault(x =>
+                    x.ReturnType.Equals(namedTypedAnalysis.NamedTypeSymbol,
+                        SymbolEqualityComparer.Default) && x.Parameters.Length == 0);
+
+            if (methodMatch is { })
+            {
+                return methodMatch.Name;
+            }
+        }
+
+        return null;
     }
 
     private void EvaluateSelectionSource(TranslatedAttributeData attributeData,
@@ -518,6 +600,40 @@ internal class StepContextBuilderOperation
                 context.Property.Locations.FirstOrDefault()));
         }
     }
+    
+    private NamedTypedAnalysis? EvaluateType(SinglePropertyEvaluationContext evaluationContext)
+    {
+        if (evaluationContext.GetSingleType().type is not INamedTypeSymbol namedTypeSymbol)
+            return null;
+
+        var namedType = _analysedTypes.GetOrAdd(namedTypeSymbol, symbol =>
+        {
+            var isDecoratedWithAutoSpectreForm = symbol.IsDecoratedWithAttribute(Types.AutoSpectreForm!);
+            if (!isDecoratedWithAutoSpectreForm)
+                return new NamedTypedAnalysis(symbol, isDecoratedWithAutoSpectreForm, false, false);
+
+            var decoratedMethods = symbol
+                .GetMembers()
+                .FilterDecoratedWithAnyAttribute(Types.TaskStepPrompt!, Types.TextPrompt!, Types.SelectPrompt!)
+                .ToList();
+            
+            // if (decoratedMethods.Count == 0)
+            //     return new NamedTypedAnalysis(symbol, false, false, false);
+            
+            var hasAnyAsyncDecoratedMethods = decoratedMethods
+                .OfType<IMethodSymbol>()
+                .Where(x => x.ReturnType.Equals(Types.Task, SymbolEqualityComparer.Default))
+                .FilterDecoratedWithAnyAttribute(Types.TaskStepPrompt!)
+                .Any();
+
+            var hasEmptyConstructor = symbol.InstanceConstructors.Any(x => x.Parameters.Length == 0);
+            return 
+                new NamedTypedAnalysis(symbol, isDecoratedWithAutoSpectreForm, hasAnyAsyncDecoratedMethods,
+                hasEmptyConstructor);
+        });
+
+        return namedType;
+    }
 
     public PromptBuildContext? GetTextPromptBuildContext(TranslatedAttributeData attributeData,
         SinglePropertyEvaluationContext evaluationContext)
@@ -536,12 +652,11 @@ internal class StepContextBuilderOperation
         }
         else if (type.SpecialType == SpecialType.None)
         {
-            if (type is INamedTypeSymbol namedType)
+            if (evaluationContext.ConfirmedNamedTypeSource is { } confirmedNamedTypeSource)
             {
-                if (namedType.GetAttributes().FirstOrDefault(x =>
-                        SymbolEqualityComparer.Default.Equals(x.AttributeClass, Types.AutoSpectreForm)) is { })
+                if (confirmedNamedTypeSource.NamedTypeAnalysis is {IsDecoratedWithValidAutoSpectreForm: true})
                 {
-                    return new ReuseExistingAutoSpectreFactoryPromptBuildContext(attributeData.Title, namedType,
+                    return new ReuseExistingAutoSpectreFactoryPromptBuildContext(attributeData.Title, confirmedNamedTypeSource.NamedTypeAnalysis.NamedTypeSymbol,
                         evaluationContext.IsNullable, evaluationContext);
                 }
                 else
