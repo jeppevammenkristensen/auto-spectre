@@ -343,7 +343,6 @@ internal class StepContextBuilderOperation
 
         var initializer = EvaluateAndReturnTypeInitializer(propertyContext, attributeData, namedTypeAnalysis);
 
-
         if (namedTypeAnalysis is { IsDecoratedWithValidAutoSpectreForm: true, HasEmptyConstructor: false } && initializer is null)
         {
             
@@ -356,10 +355,12 @@ internal class StepContextBuilderOperation
 
         propertyContext.ConfirmedNamedTypeSource = new ConfirmedNamedTypeSource(namedTypeAnalysis, initializer);
     }
-
+    
     private string? EvaluateAndReturnTypeInitializer(SinglePropertyEvaluationContext propertyContext, TranslatedAttributeData attributeData, NamedTypedAnalysis? namedTypedAnalysis)
     {
-        if (attributeData.TypeInitializer is { } typeInitializer && namedTypedAnalysis is {})
+        var typeInitializer = attributeData.TypeInitializer ?? $"Init{propertyContext.Type.Name}";
+        
+        if (namedTypedAnalysis is {})
         {
             var methodMatch = TargetType.GetAllMembers()
                 .Where(x => x.Kind == SymbolKind.Method && x.Name == typeInitializer)

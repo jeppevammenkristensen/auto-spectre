@@ -20,7 +20,7 @@ public record TestOutput(string Output, ImmutableArray<Diagnostic> CompileDiagno
         return this;
     }
 
-    public TestOutput OutputShouldContains(string part)
+    public TestOutput OutputShouldContain(string part)
     {
         this.Output.Should().Contain(part);
         return this;

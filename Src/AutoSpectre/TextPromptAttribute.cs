@@ -53,7 +53,8 @@ public class TextPromptAttribute : AutoSpectreStepAttribute
     /// This method is only relevant if the property type is a type that is also
     /// decorated with the <see cref="AutoSpectreFormAttribute"/>. It is used to
     /// initialize an instance of the decorated property type. It is not needed
-    /// if the property type has an empty constructor. 
+    /// if the property type has an empty constructor. You can leave this out if you
+    /// have a method called Init{TypeName} 
     /// </summary>
-    public string TypeInitializer { get; set; }
+    public string? TypeInitializer { get; set; }
 }

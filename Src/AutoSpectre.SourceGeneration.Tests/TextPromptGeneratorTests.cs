@@ -164,7 +164,7 @@ public class TextPromptGeneratorTests : AutoSpectreGeneratorTestsBase
                       [TextPrompt(TypeInitializer=nameof(InitOther))]
                       public Other Secret {get;set;}
                       
-                      public Other InitOther()
+                      public Other IniOther()
                       {
                         return new Other(1);
                       }
@@ -183,6 +183,42 @@ public class TextPromptGeneratorTests : AutoSpectreGeneratorTestsBase
                   """).HasNoSourceGeneratorDiagnosticWith(DiagnosticIds.Id0020_InitializerNeeded).Output.Should().Contain("var item = destination.InitOther();");
     }
 
+    [Fact]
+    public void TextPromptWithReferenceToOtherNoEmptyConstructorButInitializerThroughConvention()
+    {
+        GetOutput("""
+                  using AutoSpectre;
+                  using System.Collections.Generic;
+
+                  namespace Test;
+
+                  [AutoSpectreForm]
+                  public class TestForm
+                  {
+                      [TextPrompt()]
+                      public Other Secret {get;set;}
+                      
+                      public Other InitOther()
+                      {
+                          return new Other("Test");
+                      }
+
+                  }
+
+                  [AutoSpectreForm]
+                  public class Other
+                  {
+                       public Other(string name)
+                       {
+                           
+                       }
+                  }
+
+                  """)
+            .HasNoSourceGeneratorDiagnosticWith(DiagnosticIds.Id0020_InitializerNeeded)
+            .OutputShouldContain("var item = destination.InitOther();");
+    }
+    
     [Fact]
     public void TextPromptWithReferenceToOtherThatHasEmptyPublicConstructor()
     {
