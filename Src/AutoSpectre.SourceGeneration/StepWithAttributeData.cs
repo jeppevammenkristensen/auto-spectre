@@ -21,7 +21,7 @@ public class StepWithAttributeData
     
     public IMethodSymbol? Method { get; }
 
-    public TranslatedAttributeData TranslatedAttribute { get; }
+    public TranslatedMemberAttributeData TranslatedMemberAttribute { get; }
 
     public StepWithAttributeData(IMethodSymbol method, AttributeData attributeData)
     {
@@ -48,7 +48,7 @@ public class StepWithAttributeData
             spinnerType = value;
         } 
         
-        TranslatedAttribute = TranslatedAttributeData.TaskPrompt(title, condition, conditionNegated, useStatus, statusText, spinnerStyle, spinnerType);
+        TranslatedMemberAttribute = TranslatedMemberAttributeData.TaskPrompt(title, condition, conditionNegated, useStatus, statusText, spinnerStyle, spinnerType);
     }
     
     public StepWithAttributeData(IPropertySymbol property, AttributeData attributeData)
@@ -75,8 +75,8 @@ public class StepWithAttributeData
             var converter = attributeData.GetAttributePropertyValue<string?>("Converter") ?? null;
             var validator = attributeData.GetAttributePropertyValue<string>(nameof(AskAttribute.Validator));
 #pragma warning restore CS0618 // Type or member is obsolete            
-            TranslatedAttribute =
-                new TranslatedAttributeData(
+            TranslatedMemberAttribute =
+                new TranslatedMemberAttributeData(
                     askType: askType,
                     selectionSource: selectionSource,
                     title: title,
@@ -95,7 +95,7 @@ public class StepWithAttributeData
             string? typeInitializer =
                 attributeData.GetAttributePropertyValue<string>(nameof(TextPromptAttribute.TypeInitializer));
             
-            TranslatedAttribute = TranslatedAttributeData.TextPrompt(title,validator, condition, conditionNegated, secret, mask, defaultValueStyle, promptStyle, typeInitializer);
+            TranslatedMemberAttribute = TranslatedMemberAttributeData.TextPrompt(title,validator, condition, conditionNegated, secret, mask, defaultValueStyle, promptStyle, typeInitializer);
 
         }
         
@@ -109,7 +109,7 @@ public class StepWithAttributeData
             var instructionsText = attributeData.GetAttributePropertyValue<string?>(nameof(SelectPromptAttribute.InstructionsText)) ?? null;
             var highlightStyle = attributeData.GetAttributePropertyValue<string?>(nameof(SelectPromptAttribute.HighlightStyle)) ?? null;
 
-            TranslatedAttribute = TranslatedAttributeData.SelectPrompt(title, selectionSource, converter, condition, conditionNegated, pageSize, wrapAround, moreChoicesText, instructionsText, highlightStyle);
+            TranslatedMemberAttribute = TranslatedMemberAttributeData.SelectPrompt(title, selectionSource, converter, condition, conditionNegated, pageSize, wrapAround, moreChoicesText, instructionsText, highlightStyle);
         }
         
         else
@@ -118,10 +118,10 @@ public class StepWithAttributeData
         }
     }
 
-    public void Deconstruct(out IPropertySymbol? property, out IMethodSymbol? method,  out TranslatedAttributeData attributeData)
+    public void Deconstruct(out IPropertySymbol? property, out IMethodSymbol? method,  out TranslatedMemberAttributeData memberAttributeData)
     {
         property = Property;
-        attributeData = TranslatedAttribute;
+        memberAttributeData = TranslatedMemberAttribute;
         method = Method;
     }
 }

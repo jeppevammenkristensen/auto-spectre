@@ -9,15 +9,15 @@ namespace AutoSpectre.SourceGeneration.BuildContexts;
 
 internal class TextPromptBuildContext : PromptBuilderContextWithPropertyContext
 {
-    private readonly TranslatedAttributeData _attributeData;
-    public string Title => _attributeData.Title;
+    private readonly TranslatedMemberAttributeData _memberAttributeData;
+    public string Title => _memberAttributeData.Title;
     public ITypeSymbol TypeSymbol { get; }
     public bool Nullable { get; }
 
-    public TextPromptBuildContext(TranslatedAttributeData attributeData, ITypeSymbol typeSymbol, bool nullable,
+    public TextPromptBuildContext(TranslatedMemberAttributeData memberAttributeData, ITypeSymbol typeSymbol, bool nullable,
         SinglePropertyEvaluationContext context) : base(context)
     {
-        _attributeData = attributeData;
+        _memberAttributeData = memberAttributeData;
         TypeSymbol = typeSymbol;
         Nullable = context.IsNullable;
     }
@@ -37,6 +37,8 @@ internal class TextPromptBuildContext : PromptBuilderContextWithPropertyContext
         {
             builder.AppendLine(".AllowEmpty()");
         }
+        
+        BuildCulture(builder);
 
         BuildSecret(builder);
         BuildDefaultValue(builder);
@@ -88,9 +90,9 @@ internal class TextPromptBuildContext : PromptBuilderContextWithPropertyContext
 
     private void BuildSecret(StringBuilder builder)
     {
-        if (_attributeData.Secret)
+        if (_memberAttributeData.Secret)
         {
-            string mask = _attributeData.Mask switch
+            string mask = _memberAttributeData.Mask switch
             {
                 null => "null",
                 { } s => $"'{s}'",
@@ -99,5 +101,10 @@ internal class TextPromptBuildContext : PromptBuilderContextWithPropertyContext
 
             builder.AppendLine($".Secret({mask})");
         }
+    }
+
+    private void BuildCulture(StringBuilder builder)
+    {
+        builder.AppendLine($".WithCulture({CodeBuildConstants.CultureVariableName})");
     }
 }

@@ -9,5 +9,5 @@ namespace AutoSpectre;
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
 public class AutoSpectreForm : Attribute
 {
-    
+    public string? Culture { get; set; }
 }

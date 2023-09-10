@@ -7,7 +7,7 @@
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <IsRoslynComponent>true</IsRoslynComponent>
     <VersionPrefix>0.6.0</VersionPrefix>
-    <VersionSuffix>preview.0.1</VersionSuffix>
+    <VersionSuffix>preview.0.4</VersionSuffix>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -21,7 +21,8 @@
     <PackageProjectUrl>https://github.com/jeppevammenkristensen/auto-spectre</PackageProjectUrl>
     <RepositoryUrl>https://github.com/jeppevammenkristensen/auto-spectre</RepositoryUrl>
     <PackageTags>C#;Source Generator</PackageTags>
-    <PackageReleaseNotes>Fixed issue with how error is displayed on validation error for TextPrompt with other form</PackageReleaseNotes>
+    <PackageReleaseNotes>Added better ability to define a intializer for a property type that is decorated with the AutoSpectreFrom and
+      fixing that it should be called correctly. Support for using inheritance. Support for using Culture settable on the root AutpSpectreForm</PackageReleaseNotes>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>

@@ -103,28 +103,37 @@ internal class StepContextBuilderOperation
         return stepContexts;
     }
 
-    private void HandleMethod(IMethodSymbol method, TranslatedAttributeData attributeData, List<IStepContext> stepContexts, LazyTypes types)
+    private void HandleMethod(IMethodSymbol method, TranslatedMemberAttributeData memberAttributeData, List<IStepContext> stepContexts, LazyTypes types)
     {
-
-
+        if (!method.IsPublicInstance())
+        {
+            ProductionContext.ReportDiagnostic(Diagnostic.Create(
+                new(DiagnosticIds.Id0021_CandidateMustBePublicInstance,
+                    "Method must be public instance",
+                    $"The method {method.Name} is not public instance",
+                    "General", DiagnosticSeverity.Warning, true),
+                method.Locations.FirstOrDefault()));
+            return;
+        }
+        
         if (EvaluateSingleMethodEvaluationContext(method) is not {} singleMethodEvaluationContext)
         {
             return;
         }
 
-        EvaluateCondition(singleMethodEvaluationContext, attributeData);
+        EvaluateCondition(singleMethodEvaluationContext, memberAttributeData);
 
-        EvaluateStatus(attributeData, singleMethodEvaluationContext);
+        EvaluateStatus(memberAttributeData, singleMethodEvaluationContext);
 
 
 
         stepContexts.Add(new MethodContext(singleMethodEvaluationContext,
-            new TaskStepBuildContext(attributeData.Title, singleMethodEvaluationContext)));
+            new TaskStepBuildContext(memberAttributeData.Title, singleMethodEvaluationContext)));
     }
 
-    private void EvaluateStatus(TranslatedAttributeData attributeData, SingleMethodEvaluationContext singleMethodEvaluationContext)
+    private void EvaluateStatus(TranslatedMemberAttributeData memberAttributeData, SingleMethodEvaluationContext singleMethodEvaluationContext)
     {
-        if (attributeData.UseStatus == false)
+        if (memberAttributeData.UseStatus == false)
             return;
 
         var methodWalker = new MethodWalker(SyntaxContext.SemanticModel);
@@ -140,11 +149,11 @@ internal class StepContextBuilderOperation
         }
 
 
-        if (attributeData.StatusText is { })
+        if (memberAttributeData.StatusText is { })
         {
-            singleMethodEvaluationContext.ConfirmedStatus = new ConfirmedStatusWrap(attributeData.StatusText);
-            EvaluateSpinnerStyle(attributeData, singleMethodEvaluationContext);
-            EvaluateSpinnerType(attributeData, singleMethodEvaluationContext);
+            singleMethodEvaluationContext.ConfirmedStatus = new ConfirmedStatusWrap(memberAttributeData.StatusText);
+            EvaluateSpinnerStyle(memberAttributeData, singleMethodEvaluationContext);
+            EvaluateSpinnerType(memberAttributeData, singleMethodEvaluationContext);
 
         }
         else
@@ -158,17 +167,17 @@ internal class StepContextBuilderOperation
         }
     }
 
-    private void EvaluateSpinnerType(TranslatedAttributeData attributeData, SingleMethodEvaluationContext singleMethodEvaluationContext)
+    private void EvaluateSpinnerType(TranslatedMemberAttributeData memberAttributeData, SingleMethodEvaluationContext singleMethodEvaluationContext)
     {
-        if (attributeData.SpinnerType is { })
+        if (memberAttributeData.SpinnerType is { })
         {
-            singleMethodEvaluationContext.SpinnerKnownType = attributeData.SpinnerType.ToString();
+            singleMethodEvaluationContext.SpinnerKnownType = memberAttributeData.SpinnerType.ToString();
         }
     }
 
-    private void EvaluateSpinnerStyle(TranslatedAttributeData attributeData, SingleMethodEvaluationContext singleMethodEvaluationContext)
+    private void EvaluateSpinnerStyle(TranslatedMemberAttributeData memberAttributeData, SingleMethodEvaluationContext singleMethodEvaluationContext)
     {
-        if (attributeData.SpinnerStyle is { } style)
+        if (memberAttributeData.SpinnerStyle is { } style)
         {
             if (style.EvaluateStyle())
             {
@@ -240,24 +249,34 @@ internal class StepContextBuilderOperation
         return null;
     }
 
-    private void HandleProperty(IPropertySymbol property, TranslatedAttributeData attributeData, List<IStepContext> stepContexts,
+    private void HandleProperty(IPropertySymbol property, TranslatedMemberAttributeData memberAttributeData, List<IStepContext> stepContexts,
         LazyTypes types)
     {
+        if (!property.IsPublicInstance())
+        {
+            ProductionContext.ReportDiagnostic(Diagnostic.Create(
+                new(DiagnosticIds.Id0021_CandidateMustBePublicInstance, "Property must be public instance",
+                    $"The property {property.Name} was not public instance",
+                    "General", DiagnosticSeverity.Error, true),
+                property.Locations.FirstOrDefault()));
+            return;
+        }
+        
         var propertyContext = SinglePropertyEvaluationContext.GenerateFromPropertySymbol(property);
 
-        EvaluateCondition(propertyContext, attributeData);
+        EvaluateCondition(propertyContext, memberAttributeData);
        
 
-        if (attributeData.AskType == AskTypeCopy.Normal)
+        if (memberAttributeData.AskType == AskTypeCopy.Normal)
         {
-            EvaluateNamedType(propertyContext, attributeData);
-            EvaluateDefaultValue(propertyContext, attributeData);
-            EvaluatePromptStyle(propertyContext, attributeData);
-            EvaluateValidation(propertyContext, attributeData);
+            EvaluateNamedType(propertyContext, memberAttributeData);
+            EvaluateDefaultValue(propertyContext, memberAttributeData);
+            EvaluatePromptStyle(propertyContext, memberAttributeData);
+            EvaluateValidation(propertyContext, memberAttributeData);
 
             if (!propertyContext.IsEnumerable)
             {
-                if (GetTextPromptBuildContext(attributeData, propertyContext) is
+                if (GetTextPromptBuildContext(memberAttributeData, propertyContext) is
                     { } promptBuildContext)
                 {
                     stepContexts.Add(new PropertyContext(property.Name, property,
@@ -266,7 +285,7 @@ internal class StepContextBuilderOperation
             }
             else
             {
-                if (GetTextPromptBuildContext(attributeData, propertyContext) is
+                if (GetTextPromptBuildContext(memberAttributeData, propertyContext) is
                     { } promptBuildContext)
                 {
                     stepContexts.Add(new PropertyContext(property.Name,
@@ -280,21 +299,22 @@ internal class StepContextBuilderOperation
             }
         }
 
-        if (attributeData.AskType == AskTypeCopy.Selection)
+        if (memberAttributeData.AskType == AskTypeCopy.Selection)
         {
-            EvaluateSelectionSource(attributeData, propertyContext);
-            EvaluateSelectionConverter(attributeData, propertyContext);
-            EvaluatePageSize(attributeData, ref propertyContext);
-            EvaluateWrapAround(attributeData, ref propertyContext);
-            EvaluateMoreChoicesText(attributeData, ref propertyContext);
-            EvaluateInstructionText(attributeData, ref propertyContext);
-            EvaluateHighlightStyle(propertyContext, attributeData);
+            EvaluateSelectionSource(memberAttributeData, propertyContext);
+            EvaluateSelectionConverter(memberAttributeData, propertyContext);
+            EvaluatePageSize(memberAttributeData, ref propertyContext);
+            EvaluateWrapAround(memberAttributeData, ref propertyContext);
+            EvaluateMoreChoicesText(memberAttributeData, ref propertyContext);
+            EvaluateInstructionText(memberAttributeData, ref propertyContext);
+            EvaluateHighlightStyle(propertyContext, memberAttributeData);
 
-            var selectionSource = attributeData.SelectionSource ?? $"{propertyContext.Property.Name}Source";
+            var selectionSource = memberAttributeData.SelectionSource ?? $"{propertyContext.Property.Name}Source";
 
             var match = TargetType
-                .GetMembers()
+                .GetAllMembers()
                 .Where(x => x.Name == selectionSource)
+                .Where(x => x.IsPublic() && x.IsInstance())
                 .FirstOrDefault(x => x is IMethodSymbol
                 {
                     Parameters.Length: 0
@@ -311,13 +331,13 @@ internal class StepContextBuilderOperation
                 if (!propertyContext.IsEnumerable)
                 {
                     stepContexts.Add(new PropertyContext(property.Name, property,
-                        new SelectionPromptBuildContext(attributeData.Title, propertyContext,
+                        new SelectionPromptBuildContext(memberAttributeData.Title, propertyContext,
                             selectionSource, selectionType)));
                 }
                 else
                 {
                     stepContexts.Add(new PropertyContext(property.Name, property,
-                        new MultiSelectionBuildContext(title: attributeData.Title,
+                        new MultiSelectionBuildContext(title: memberAttributeData.Title,
                             propertyContext,
                             selectionTypeName: selectionSource,
                             selectionType: selectionType, types)));
@@ -328,20 +348,20 @@ internal class StepContextBuilderOperation
                 ProductionContext.ReportDiagnostic(Diagnostic.Create(
                     new("AutoSpectre_JJK0005",
                         "Not a valid selection source",
-                        $"The source {attributeData.SelectionSource} was not found on type",
+                        $"The source {memberAttributeData.SelectionSource} was not found on type",
                         "General", DiagnosticSeverity.Warning, true),
                     property.Locations.FirstOrDefault()));
             }
         }
     }
     
-    private void EvaluateNamedType(SinglePropertyEvaluationContext propertyContext, TranslatedAttributeData attributeData)
+    private void EvaluateNamedType(SinglePropertyEvaluationContext propertyContext, TranslatedMemberAttributeData memberAttributeData)
     {
         var namedTypeAnalysis = EvaluateType(propertyContext);
         if (namedTypeAnalysis == null)
             return;
 
-        var initializer = EvaluateAndReturnTypeInitializer(propertyContext, attributeData, namedTypeAnalysis);
+        var initializer = EvaluateAndReturnTypeInitializer(propertyContext, memberAttributeData, namedTypeAnalysis);
 
         if (namedTypeAnalysis is { IsDecoratedWithValidAutoSpectreForm: true, HasEmptyConstructor: false } && initializer is null)
         {
@@ -356,9 +376,9 @@ internal class StepContextBuilderOperation
         propertyContext.ConfirmedNamedTypeSource = new ConfirmedNamedTypeSource(namedTypeAnalysis, initializer);
     }
     
-    private string? EvaluateAndReturnTypeInitializer(SinglePropertyEvaluationContext propertyContext, TranslatedAttributeData attributeData, NamedTypedAnalysis? namedTypedAnalysis)
+    private string? EvaluateAndReturnTypeInitializer(SinglePropertyEvaluationContext propertyContext, TranslatedMemberAttributeData memberAttributeData, NamedTypedAnalysis? namedTypedAnalysis)
     {
-        var typeInitializer = attributeData.TypeInitializer ?? $"Init{propertyContext.Type.Name}";
+        var typeInitializer = memberAttributeData.TypeInitializer ?? $"Init{propertyContext.Type.Name}";
         
         if (namedTypedAnalysis is {})
         {
@@ -378,14 +398,15 @@ internal class StepContextBuilderOperation
         return null;
     }
 
-    private void EvaluateSelectionSource(TranslatedAttributeData attributeData,
+    private void EvaluateSelectionSource(TranslatedMemberAttributeData memberAttributeData,
         SinglePropertyEvaluationContext propertyContext)
     {
-        var selectionSource = attributeData.SelectionSource ?? $"{propertyContext.Property.Name}Source";
+        var selectionSource = memberAttributeData.SelectionSource ?? $"{propertyContext.Property.Name}Source";
 
         var match = TargetType
-            .GetMembers()
+            .GetAllMembers()
             .Where(x => x.Name == selectionSource)
+            .Where(x => x.IsPublic() && x.IsInstance())
             .FirstOrDefault(x => x is IMethodSymbol
             {
                 Parameters.Length: 0
@@ -405,7 +426,7 @@ internal class StepContextBuilderOperation
             ProductionContext.ReportDiagnostic(Diagnostic.Create(
                 new("AutoSpectre_JJK0005",
                     "Not a valid selection source",
-                    $"The selectionsource {attributeData.SelectionSource} was not found on type",
+                    $"The selectionsource {memberAttributeData.SelectionSource} was not found on type",
                     "General", DiagnosticSeverity.Warning, true),
                 propertyContext.Property.Locations.FirstOrDefault()));
         }
@@ -415,37 +436,37 @@ internal class StepContextBuilderOperation
     // Note. It might seems extra ceremonious for these methods that just transfers the value. But it's just in
     // case they get extra "complex". They probably won't.
 
-    private void EvaluateInstructionText(TranslatedAttributeData attributeData,
+    private void EvaluateInstructionText(TranslatedMemberAttributeData memberAttributeData,
         ref SinglePropertyEvaluationContext propertyContext)
     {
-        if (attributeData.InstructionsText is { })
+        if (memberAttributeData.InstructionsText is { })
         {
-            propertyContext.InstructionsText = attributeData.InstructionsText;
+            propertyContext.InstructionsText = memberAttributeData.InstructionsText;
         }
     }
 
-    private void EvaluateMoreChoicesText(TranslatedAttributeData attributeData,
+    private void EvaluateMoreChoicesText(TranslatedMemberAttributeData memberAttributeData,
         ref SinglePropertyEvaluationContext propertyContext)
     {
-        if (attributeData.MoreChoicesText is { })
+        if (memberAttributeData.MoreChoicesText is { })
         {
-            propertyContext.MoreChoicesText = attributeData.MoreChoicesText;
+            propertyContext.MoreChoicesText = memberAttributeData.MoreChoicesText;
         }
     }
 
-    private void EvaluateWrapAround(TranslatedAttributeData attributeData,
+    private void EvaluateWrapAround(TranslatedMemberAttributeData memberAttributeData,
         ref SinglePropertyEvaluationContext propertyContext)
     {
-        if (attributeData.WrapAround is { })
+        if (memberAttributeData.WrapAround is { })
         {
-            propertyContext.WrapAround = attributeData.WrapAround;
+            propertyContext.WrapAround = memberAttributeData.WrapAround;
         }
     }
 
-    private void EvaluatePageSize(TranslatedAttributeData attributeData,
+    private void EvaluatePageSize(TranslatedMemberAttributeData memberAttributeData,
         ref SinglePropertyEvaluationContext propertyContext)
     {
-        if (attributeData.PageSize is { } pageSize)
+        if (memberAttributeData.PageSize is { } pageSize)
         {
             if (pageSize < 3)
             {
@@ -458,14 +479,14 @@ internal class StepContextBuilderOperation
             }
 
 
-            propertyContext.PageSize = attributeData.PageSize;
+            propertyContext.PageSize = memberAttributeData.PageSize;
         }
     }
 
-    private void EvaluatePromptStyle(SinglePropertyEvaluationContext propertyContext, TranslatedAttributeData attribute)
+    private void EvaluatePromptStyle(SinglePropertyEvaluationContext propertyContext, TranslatedMemberAttributeData memberAttribute)
     {
         propertyContext.PromptStyle =
-            EvaluateStyle(attribute.PromptStyle, nameof(propertyContext.PromptStyle), propertyContext);
+            EvaluateStyle(memberAttribute.PromptStyle, nameof(propertyContext.PromptStyle), propertyContext);
     }
 
     private string? EvaluateStyle(string? style, string propertyName, SinglePropertyEvaluationContext propertyContext)
@@ -488,10 +509,10 @@ internal class StepContextBuilderOperation
     }
 
     private void EvaluateHighlightStyle(SinglePropertyEvaluationContext propertyContext,
-        TranslatedAttributeData attributeData)
+        TranslatedMemberAttributeData memberAttributeData)
     {
-        propertyContext.HighlightStyle = EvaluateStyle(attributeData.HighlightStyle,
-            nameof(attributeData.HighlightStyle), propertyContext);
+        propertyContext.HighlightStyle = EvaluateStyle(memberAttributeData.HighlightStyle,
+            nameof(memberAttributeData.HighlightStyle), propertyContext);
     }
 
 
@@ -501,11 +522,11 @@ internal class StepContextBuilderOperation
     /// </summary>
     /// <param name="propertyContext"></param>
     /// <param name="translatedAttributeData"></param>
-    /// <param name="attributeData"></param>
+    /// <param name="memberAttributeData"></param>
     private void EvaluateDefaultValue(SinglePropertyEvaluationContext propertyContext,
-        TranslatedAttributeData attributeData)
+        TranslatedMemberAttributeData memberAttributeData)
     {
-        var parsedDefaultValue = EvaluateStyle(attributeData.DefaultValueStyle, nameof(attributeData.DefaultValueStyle),
+        var parsedDefaultValue = EvaluateStyle(memberAttributeData.DefaultValueStyle, nameof(memberAttributeData.DefaultValueStyle),
             propertyContext);
 
         if (propertyContext.PropertySyntax is { Initializer: { } equal })
@@ -553,13 +574,13 @@ internal class StepContextBuilderOperation
     /// Evalutes the Converter set on the attributeData. If it's correct a valid converter is set on the context.
     /// if it is set but not valid a warning is reported.
     /// </summary>
-    /// <param name="attributeData"></param>
+    /// <param name="memberAttributeData"></param>
     /// <param name="context"></param>
-    private void EvaluateSelectionConverter(TranslatedAttributeData attributeData,
+    private void EvaluateSelectionConverter(TranslatedMemberAttributeData memberAttributeData,
         SinglePropertyEvaluationContext context)
     {
-        bool guessed = attributeData.Converter == null;
-        var converterName = attributeData.Converter ?? $"{context.Property.Name}Converter";
+        bool guessed = memberAttributeData.Converter == null;
+        var converterName = memberAttributeData.Converter ?? $"{context.Property.Name}Converter";
 
         bool ConverterMethodOrProperty(ISymbol symbol)
         {
@@ -581,8 +602,9 @@ internal class StepContextBuilderOperation
         }
 
         var candidates = TargetType
-            .GetMembers()
+            .GetAllMembers()
             .Where(x => x.Name == converterName)
+            .Where(x => x.IsPublic() && x.IsInstance())
             .ToList();
 
         var match = candidates.FirstOrDefault(ConverterMethodOrProperty);
@@ -595,8 +617,8 @@ internal class StepContextBuilderOperation
         {
             ProductionContext.ReportDiagnostic(Diagnostic.Create(
                 new("AutoSpectre_JJK0008",
-                    $"Converter {attributeData.Converter} should be a method taking a {context.UnderlyingType} as input and return string on the class",
-                    $"Could not find a correct method to match {attributeData.Converter} supported", "General",
+                    $"Converter {memberAttributeData.Converter} should be a method taking a {context.UnderlyingType} as input and return string on the class",
+                    $"Could not find a correct method to match {memberAttributeData.Converter} supported", "General",
                     DiagnosticSeverity.Warning, true),
                 context.Property.Locations.FirstOrDefault()));
         }
@@ -614,7 +636,8 @@ internal class StepContextBuilderOperation
                 return new NamedTypedAnalysis(symbol, isDecoratedWithAutoSpectreForm, false, false);
 
             var decoratedMethods = symbol
-                .GetMembers()
+                .GetAllMembers()
+                .Where(x => x.IsPublicInstance())
                 .FilterDecoratedWithAnyAttribute(Types.TaskStepPrompt!, Types.TextPrompt!, Types.SelectPrompt!)
                 .ToList();
             
@@ -636,19 +659,19 @@ internal class StepContextBuilderOperation
         return namedType;
     }
 
-    public PromptBuildContext? GetTextPromptBuildContext(TranslatedAttributeData attributeData,
+    public PromptBuildContext? GetTextPromptBuildContext(TranslatedMemberAttributeData memberAttributeData,
         SinglePropertyEvaluationContext evaluationContext)
     {
         var type = evaluationContext.IsEnumerable ? evaluationContext.UnderlyingType : evaluationContext.Type;
 
         if (type.SpecialType == SpecialType.System_Boolean)
         {
-            return new ConfirmPromptBuildContext(attributeData.Title, type, evaluationContext.IsNullable,
+            return new ConfirmPromptBuildContext(memberAttributeData.Title, type, evaluationContext.IsNullable,
                 evaluationContext);
         }
         else if (type.TypeKind == TypeKind.Enum)
         {
-            return new EnumPromptBuildContext(attributeData.Title, type, evaluationContext.IsNullable,
+            return new EnumPromptBuildContext(memberAttributeData.Title, type, evaluationContext.IsNullable,
                 evaluationContext);
         }
         else if (type.SpecialType == SpecialType.None)
@@ -657,7 +680,7 @@ internal class StepContextBuilderOperation
             {
                 if (confirmedNamedTypeSource.NamedTypeAnalysis is {IsDecoratedWithValidAutoSpectreForm: true})
                 {
-                    return new ReuseExistingAutoSpectreFactoryPromptBuildContext(attributeData.Title, confirmedNamedTypeSource.NamedTypeAnalysis.NamedTypeSymbol,
+                    return new ReuseExistingAutoSpectreFactoryPromptBuildContext(memberAttributeData.Title, confirmedNamedTypeSource.NamedTypeAnalysis.NamedTypeSymbol,
                         evaluationContext.IsNullable, evaluationContext);
                 }
                 else
@@ -682,16 +705,16 @@ internal class StepContextBuilderOperation
 
         else
         {
-            return new TextPromptBuildContext(attributeData, type, evaluationContext.IsNullable, evaluationContext);
+            return new TextPromptBuildContext(memberAttributeData, type, evaluationContext.IsNullable, evaluationContext);
         }
     }
 
     private void EvaluateCondition(IConditionContext propertyContext,
-        TranslatedAttributeData attributeData)
+        TranslatedMemberAttributeData memberAttributeData)
     {
-        bool isGuess = attributeData.Condition == null;
-        string condition = attributeData.Condition ?? $"{propertyContext.Name}Condition";
-        bool negateCondition = attributeData.ConditionNegated;
+        bool isGuess = memberAttributeData.Condition == null;
+        string condition = memberAttributeData.Condition ?? $"{propertyContext.Name}Condition";
+        bool negateCondition = memberAttributeData.ConditionNegated;
 
         bool IsConditionMatch(ISymbol symbol)
         {
@@ -754,10 +777,10 @@ internal class StepContextBuilderOperation
     }
 
     private void EvaluateValidation(SinglePropertyEvaluationContext propertyContext,
-        TranslatedAttributeData attributeData)
+        TranslatedMemberAttributeData memberAttributeData)
     {
-        bool isGuess = attributeData.Validator == null;
-        string validator = attributeData.Validator ?? $"{propertyContext.Property.Name}Validator";
+        bool isGuess = memberAttributeData.Validator == null;
+        string validator = memberAttributeData.Validator ?? $"{propertyContext.Property.Name}Validator";
         var type = propertyContext.IsEnumerable ? propertyContext.UnderlyingType : propertyContext.Type;
 
         bool IsMethodMatch(ISymbol symbol)
@@ -801,7 +824,9 @@ internal class StepContextBuilderOperation
         }
 
         var candidates =
-            TargetType.GetMembers(validator)
+            TargetType
+                .GetAllMembers()
+                .Where(x => x.IsPublicInstance() && x.Name == validator)
                 .ToList();
 
         var match = candidates.FirstOrDefault(IsMethodMatch);

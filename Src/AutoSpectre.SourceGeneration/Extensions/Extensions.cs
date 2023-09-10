@@ -212,6 +212,26 @@ public static class Extensions
         return null;
     }
 
+    internal static bool IsPublicInstance(this ISymbol source)
+    {
+        return source.IsPublic() && source.IsInstance();
+    }
+    
+    internal static bool IsPublic(this ISymbol source)
+    {
+        return source.DeclaredAccessibility == Accessibility.Public;
+    }
+    
+    internal static bool IsInternal(this ISymbol source)
+    {
+        return source.DeclaredAccessibility == Accessibility.Internal;
+    }
+
+    internal static bool IsInstance(this ISymbol source)
+    {
+        return !source.IsStatic;
+    }
+
 
     /// <summary>
     /// Gets all members and members of base types that are not interfaces
@@ -327,7 +347,7 @@ public static class Extensions
 
     public static IEnumerable<(IPropertySymbol? property,IMethodSymbol? method)> GetPropertiesWithSetterAndMethods(this INamedTypeSymbol typeSymbol)
     {
-        foreach (var member in typeSymbol.GetMembers())
+        foreach (var member in typeSymbol.GetAllMembers())
         {
             if (member is IPropertySymbol { SetMethod: { } } property)
             {

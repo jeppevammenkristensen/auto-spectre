@@ -2,9 +2,19 @@
 
 namespace AutoSpectre.SourceGeneration;
 
-public class TranslatedAttributeData
+public class TranslatedFormAttributeData
 {
-    public TranslatedAttributeData(AskTypeCopy askType, string? selectionSource, string title, string? converter, string? validator, string? condition, bool conditionNegated)
+    public string? Culture { get; }
+
+    public TranslatedFormAttributeData(string? culture)
+    {
+        Culture = culture;
+    }
+}
+
+public class TranslatedMemberAttributeData
+{
+    public TranslatedMemberAttributeData(AskTypeCopy askType, string? selectionSource, string title, string? converter, string? validator, string? condition, bool conditionNegated)
     {
         AskType = askType;
         SelectionSource = selectionSource;
@@ -26,7 +36,7 @@ public class TranslatedAttributeData
 
     public string? TypeInitializer { get; private set; }
 
-    public static TranslatedAttributeData TextPrompt(string title, string? validator,
+    public static TranslatedMemberAttributeData TextPrompt(string title, string? validator,
         string? condition, bool conditionNegated, bool secret, char? mask, string? defaultValueStyle,
         string? promptStyle, string typeInitalizer)
     {
@@ -48,7 +58,7 @@ public class TranslatedAttributeData
 
     public bool Secret { get; set; }
 
-    public static TranslatedAttributeData SelectPrompt(string title, string? selectionSource, string? converter,
+    public static TranslatedMemberAttributeData SelectPrompt(string title, string? selectionSource, string? converter,
         string? condition, bool conditionNegated, int? pageSize, bool? wrapAround, string? moreChoicesText,
         string? instructionsText, string? highlightStyle)
     {
@@ -69,9 +79,9 @@ public class TranslatedAttributeData
         };
     }
 
-    public static TranslatedAttributeData TaskPrompt(string title, string? condition, bool conditionNegated, bool useStatus, string? statusText, string? spinnerStyle,SpinnerKnownTypesCopy? spinnerType)
+    public static TranslatedMemberAttributeData TaskPrompt(string title, string? condition, bool conditionNegated, bool useStatus, string? statusText, string? spinnerStyle,SpinnerKnownTypesCopy? spinnerType)
     {
-        return new TranslatedAttributeData(AskTypeCopy.Task, null, title, null, null, condition, conditionNegated)
+        return new TranslatedMemberAttributeData(AskTypeCopy.Task, null, title, null, null, condition, conditionNegated)
         {
             UseStatus = useStatus,
             StatusText = statusText,

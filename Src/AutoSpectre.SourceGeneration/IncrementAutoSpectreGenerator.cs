@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using AutoSpectre.SourceGeneration.Extensions;
 using AutoSpectre.SourceGeneration.Models;
@@ -11,6 +12,11 @@ namespace AutoSpectre.SourceGeneration;
 [Generator]
 public class IncrementAutoSpectreGenerator : IIncrementalGenerator
 {
+    private HashSet<string> _memberAttributeNames = new HashSet<string>()
+    {
+        "AskAttribute", nameof(TextPromptAttribute), nameof(SelectPromptAttribute), nameof(TaskStepAttribute)
+    };
+    
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var syntaxNodes = context.SyntaxProvider.ForAttributeWithMetadataName(
@@ -21,8 +27,12 @@ public class IncrementAutoSpectreGenerator : IIncrementalGenerator
         {
             try
             {
-                if (syntaxContext.TargetSymbol is INamedTypeSymbol targetNamedType)
+                if (syntaxContext.TargetSymbol is INamedTypeSymbol targetNamedType && (targetNamedType.IsPublic() || targetNamedType.IsInternal()) )
                 {
+                    var attribute = syntaxContext.Attributes.FirstOrDefault();
+                    if (attribute is null)
+                        return;
+                    
                     var candidates = targetNamedType
                         .GetPropertiesWithSetterAndMethods()
                         .Select(x =>
@@ -33,12 +43,11 @@ public class IncrementAutoSpectreGenerator : IIncrementalGenerator
                             var attribute = symbol!.GetAttributes().FirstOrDefault(a =>
                                 a.AttributeClass is
                                 {
-                                    MetadataName: "AskAttribute" or nameof(TextPromptAttribute) or nameof(SelectPromptAttribute) or nameof(TaskStepAttribute),
                                     ContainingNamespace:
                                     {
                                         IsGlobalNamespace: false, Name: "AutoSpectre"
                                     }
-                                });
+                                } && _memberAttributeNames.Contains(a.AttributeClass.MetadataName));
 
                             
                             return new
@@ -62,10 +71,15 @@ public class IncrementAutoSpectreGenerator : IIncrementalGenerator
                     // Check if there are any candidates
                     if (candidates.Any())
                     {
+                        var formEvaluation = new TargetFormEvaluator(attribute, targetNamedType, productionContext,
+                            syntaxContext);
+
+                        var singleFormEvaluationContext = formEvaluation.GetFormContext();
+                        
                         var stepContexts = StepContextBuilderOperation.GetStepContexts(syntaxContext,
                             candidates, targetNamedType, productionContext);
 
-                        var builder = new NewCodeBuilder(targetNamedType, stepContexts);
+                        var builder = new NewCodeBuilder(targetNamedType, stepContexts, singleFormEvaluationContext);
                         var code = builder.Code();
                         if (string.IsNullOrWhiteSpace(code))
                         {

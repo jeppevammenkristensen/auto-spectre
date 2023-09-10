@@ -9,26 +9,36 @@ using System.Text;
 
 namespace AutoSpectre.SourceGeneration;
 
+public class CodeBuildConstants
+{
+    public const string CultureVariableName = "culture";
+}
+
 internal class NewCodeBuilder
 {
-    private static readonly IReadOnlyList<string> InitalNamespaces = new List<string>()
+    private static readonly IReadOnlyList<string> InitialNamespaces = new List<string>()
     {
         "Spectre.Console",
         "System",
         "System.Collections.Generic",
         "System.Linq",
-        "System.Collections.Immutable"
+        "System.Collections.Immutable",
+        "System.Globalization",
+        "AutoSpectre.Extensions"
     };
 
     public INamedTypeSymbol Type { get; }
     public List<IStepContext> StepContexts { get; }
-    
+    public SingleFormEvaluationContext SingleFormEvaluationContext { get; }
+
     public bool HasEmptyConstructor { get; }
 
-    public NewCodeBuilder(INamedTypeSymbol type, List<IStepContext> stepContexts)
+    public NewCodeBuilder(INamedTypeSymbol type, List<IStepContext> stepContexts,
+        SingleFormEvaluationContext singleFormEvaluationContext)
     {
         Type = type;
         StepContexts = stepContexts;
+        SingleFormEvaluationContext = singleFormEvaluationContext;
         HasEmptyConstructor = EvaluateConstructors();
         // A note about hasEmptyConstructor. If there are no empty constructors we will
         // instantiate the type so it's required to pass it in. So we remove the default value and
@@ -52,9 +62,6 @@ internal class NewCodeBuilder
         if (!HasEmptyConstructor)
             returnTypeName = isAsync ? "Task" : "void";
         
-        
-        
-
         var result = $$"""
 {{ BuildUsingStatements() }}
 
@@ -78,6 +85,7 @@ namespace {{ Type.ContainingNamespace}}
             {{PreInitalization()}}
 
             {{( HasEmptyConstructor ? $"destination ??= new { name }   ();" : string.Empty )}}
+            {{ InitCulture() }}
 {{ members}} 
             {{ ( HasEmptyConstructor ? "return destination;" : string.Empty)  }}
         }
@@ -86,6 +94,17 @@ namespace {{ Type.ContainingNamespace}}
 """ ;
 
         return SyntaxFactory.ParseCompilationUnit(result).NormalizeWhitespace().ToFullString();
+    }
+
+    private string InitCulture()
+    {
+        var cultureInitializer = SingleFormEvaluationContext.ConfirmedCulture switch
+        {
+            { } cult => $"new CultureInfo(\"{cult.Culture}\")",
+            _ => "CultureInfo.CurrentUICulture"
+        };
+
+        return $"var {CodeBuildConstants.CultureVariableName} = {cultureInitializer};";
     }
 
     private bool EvaluateConstructors()
@@ -108,7 +127,7 @@ namespace {{ Type.ContainingNamespace}}
     private string BuildUsingStatements()
     {
         var builder = new StringBuilder();
-        foreach (var nmSpace in InitalNamespaces.Concat(StepContexts.SelectMany(x => x.BuildContext.Namespaces())).Distinct().Where(x => x != Type.ContainingNamespace.ToString()))
+        foreach (var nmSpace in InitialNamespaces.Concat(StepContexts.SelectMany(x => x.BuildContext.Namespaces())).Distinct().Where(x => x != Type.ContainingNamespace.ToString()))
         {
             builder.AppendLine($"using {nmSpace};");
         }
@@ -174,16 +193,8 @@ namespace {{ Type.ContainingNamespace}}
             {
                 AddLine();
             }
-            
-            
-            
-
-            
-            
         }
-
-        return builder.ToString();
-
         
+        return builder.ToString();
     }
 }
