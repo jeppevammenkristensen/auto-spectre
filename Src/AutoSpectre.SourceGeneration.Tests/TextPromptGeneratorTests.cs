@@ -164,7 +164,7 @@ public class TextPromptGeneratorTests : AutoSpectreGeneratorTestsBase
                       [TextPrompt(TypeInitializer=nameof(InitOther))]
                       public Other Secret {get;set;}
                       
-                      public Other IniOther()
+                      public Other InitOther()
                       {
                         return new Other(1);
                       }

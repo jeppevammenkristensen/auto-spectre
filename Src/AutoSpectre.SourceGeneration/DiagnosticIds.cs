@@ -17,4 +17,6 @@ public static class DiagnosticIds
     public const string Id0018_StatusTextIsRequired = "AutoSpectre_JJK0018";
     public const string Id0019_SpinnerStyleNotValid = "AutoSpectre_JJK0019";
     public const string Id0020_InitializerNeeded = "AutoSpectre_JJK0020";
+    public const string Id0021_CandidateMustBePublicInstance = "AutoSpectre_JJK021";
+    public const string Id0022_CannotParseCulture = "AutoSpectre_JJK022";
 }

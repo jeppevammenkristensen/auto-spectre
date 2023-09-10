@@ -50,6 +50,21 @@ public interface IConditionContext
     public ConfirmedCondition? ConfirmedCondition { get; set; }
 }
 
+public class SingleFormEvaluationContext
+{
+    public ConfirmedCulture? ConfirmedCulture { get; set; }
+}
+
+public class ConfirmedCulture
+{
+    public string Culture { get; }
+
+    public ConfirmedCulture(string culture)
+    {
+        Culture = culture;
+    }
+}
+
 public class SinglePropertyEvaluationContext : IConditionContext
 {
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
