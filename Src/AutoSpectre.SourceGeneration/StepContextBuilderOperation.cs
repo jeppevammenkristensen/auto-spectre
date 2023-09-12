@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using AutoSpectre.SourceGeneration.BuildContexts;
+using AutoSpectre.SourceGeneration.Evaluation;
 using AutoSpectre.SourceGeneration.Extensions;
 using AutoSpectre.SourceGeneration.Models;
 using Microsoft.CodeAnalysis;
@@ -353,6 +354,33 @@ internal class StepContextBuilderOperation
                     property.Locations.FirstOrDefault()));
             }
         }
+    }
+
+    private void EvaluateChoices(SinglePropertyEvaluationContext propertyEvaluationContext,
+        TranslatedMemberAttributeData memberAttributeData)
+    {
+        var nameCandidate = memberAttributeData.ChoicesSource ?? $"{propertyEvaluationContext.Property.Name}Choices";
+        var isGuess = memberAttributeData.ChoicesSource == null;
+
+        var methodSpecification = Check.Method<ISymbol>()
+            .WithParameters(0)
+            .WithReturnType(propertyEvaluationContext.Type);
+
+        var property = Check.Property<ISymbol>()
+            .WithExpectedType(propertyEvaluationContext.Type);
+
+        var candidates = TargetType
+            .GetMembers()
+            .Where(x => x.Name == nameCandidate)
+            .ToList();
+
+        if (candidates.Count > 0)
+        {
+            var firstOrDefault = candidates.FirstOrDefault(methodSpecification.Or(property).And(new IsPublicSpecification<ISymbol>()));
+            
+        }
+        
+
     }
     
     private void EvaluateNamedType(SinglePropertyEvaluationContext propertyContext, TranslatedMemberAttributeData memberAttributeData)

@@ -1,6 +1,6 @@
 ﻿using AutoSpectre.SourceGeneration.BuildContexts;
 
-namespace AutoSpectre.SourceGeneration;
+namespace AutoSpectre.SourceGeneration.Evaluation;
 
 public class ConfirmedSelectionSource
 {
