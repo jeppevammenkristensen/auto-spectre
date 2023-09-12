@@ -38,7 +38,8 @@ public class TranslatedMemberAttributeData
 
     public static TranslatedMemberAttributeData TextPrompt(string title, string? validator,
         string? condition, bool conditionNegated, bool secret, char? mask, string? defaultValueStyle,
-        string? promptStyle, string typeInitalizer)
+        string? promptStyle, string typeInitalizer, string? choiceSource, string? choicesStyle,
+        string? choicesInvalidText)
     {
         return new(askType: AskTypeCopy.Normal, selectionSource: null, title: title, converter: null, validator: validator, condition: condition, conditionNegated: conditionNegated)
         {
@@ -46,9 +47,18 @@ public class TranslatedMemberAttributeData
             Mask = mask,
             DefaultValueStyle = defaultValueStyle,
             PromptStyle = promptStyle,
-            TypeInitializer = typeInitalizer
+            TypeInitializer = typeInitalizer,
+            ChoicesSource = choiceSource,
+            ChoicesStyle = choicesStyle,
+            ChoicesInvalidText = choicesInvalidText
         };
     }
+
+    public string? ChoicesInvalidText { get; set; }
+
+    public string? ChoicesStyle { get; set; }
+
+    public string? ChoicesSource { get; set; }
 
     public string? PromptStyle { get; set; }
 

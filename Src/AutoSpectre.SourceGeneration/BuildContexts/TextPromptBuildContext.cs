@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Net.Mime;
 using System.Text;
+using AutoSpectre.SourceGeneration.Evaluation;
 using Microsoft.CodeAnalysis;
 using Spectre.Console;
 

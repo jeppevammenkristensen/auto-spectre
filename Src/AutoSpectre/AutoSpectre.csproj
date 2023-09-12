@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <VersionPrefix>0.6.0</VersionPrefix>
-    <!-- <VersionSuffix>preview.0.2</VersionSuffix> -->
+    <VersionPrefix>0.7.0</VersionPrefix>
+    <VersionSuffix>preview.0.1</VersionSuffix>
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
@@ -10,9 +10,7 @@
     <Description>Classes used by the AutoSpectre.SourceGeneration package</Description>
     <Authors>Jeppe Roi Kristensen</Authors>
     <RepositoryUrl>https://github.com/jeppevammenkristensen/auto-spectre</RepositoryUrl>
-    <PackageReleaseNotes>Added Culture to be set on the AutoSpectreFormAttribute. Added better ability to define a intializer for a property type that is decorated with the AutoSpectreFrom and 
-    fixing that it should be called correctly. Added a new override of TextPrompt to enable a custom converter from string back to the desired type. 
-    And an extension method to enable setting the culture</PackageReleaseNotes>
+    <PackageReleaseNotes>s</PackageReleaseNotes>
     <PackageIcon>ghost.png</PackageIcon>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>    
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

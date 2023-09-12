@@ -48,6 +48,8 @@ public class StepWithAttributeData
             spinnerType = value;
         } 
         
+        
+        
         TranslatedMemberAttribute = TranslatedMemberAttributeData.TaskPrompt(title, condition, conditionNegated, useStatus, statusText, spinnerStyle, spinnerType);
     }
     
@@ -92,11 +94,12 @@ public class StepWithAttributeData
             var mask = attributeData.GetAttributePropertyValue<char?>(nameof(TextPromptAttribute.Mask), '*');
             string? defaultValueStyle = attributeData.GetAttributePropertyValue<string>(nameof(TextPromptAttribute.DefaultValueStyle));
             string? promptStyle = attributeData.GetAttributePropertyValue<string>(nameof(TextPromptAttribute.PromptStyle));
-            string? typeInitializer =
-                attributeData.GetAttributePropertyValue<string>(nameof(TextPromptAttribute.TypeInitializer));
-            
-            TranslatedMemberAttribute = TranslatedMemberAttributeData.TextPrompt(title,validator, condition, conditionNegated, secret, mask, defaultValueStyle, promptStyle, typeInitializer);
+            string? typeInitializer = attributeData.GetAttributePropertyValue<string>(nameof(TextPromptAttribute.TypeInitializer));
+            var choicesSource = attributeData.GetAttributePropertyValue<string>(nameof(TextPromptAttribute.ChoicesSource));
+            var choicesStyle = attributeData.GetAttributePropertyValue<string>(nameof(TextPromptAttribute.ChoicesStyle));
+            var choicesInvalidText = attributeData.GetAttributePropertyValue<string>(nameof(TextPromptAttribute.ChoicesInvalidText));
 
+            TranslatedMemberAttribute = TranslatedMemberAttributeData.TextPrompt(title,validator, condition, conditionNegated, secret, mask, defaultValueStyle, promptStyle, typeInitializer, choicesSource, choicesStyle, choicesInvalidText);
         }
         
         else if (attributeData.AttributeClass.Name == nameof(SelectPromptAttribute))

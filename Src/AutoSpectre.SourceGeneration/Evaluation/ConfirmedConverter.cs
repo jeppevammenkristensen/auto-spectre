@@ -1,4 +1,4 @@
-namespace AutoSpectre.SourceGeneration;
+namespace AutoSpectre.SourceGeneration.Evaluation;
 
 public class ConfirmedConverter
 {

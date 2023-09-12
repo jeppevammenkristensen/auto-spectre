@@ -56,4 +56,20 @@ public class TextPromptAttribute : AutoSpectreStepAttribute
     /// have a method called Init{TypeName} 
     /// </summary>
     public string? TypeInitializer { get; set; }
+    
+    /// <summary>
+    /// Use this to limit the values allowed to be entered. They will be displayed in the
+    /// prompt and you be able to autocomplete with tab. The convention is {PropertyName}Choices
+    /// </summary>
+    public string? ChoicesSource { get; set; }
+    
+    /// <summary>
+    /// The style used to display the choices in the prompt
+    /// </summary>
+    public string? ChoicesStyle { get; set; }
+    
+    /// <summary>
+    /// This is the text that will be displayed to the user if an invalid text is used
+    /// </summary>
+    public string? ChoicesInvalidText { get; set; }
 }
