@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using AutoSpectre.SourceGeneration.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;

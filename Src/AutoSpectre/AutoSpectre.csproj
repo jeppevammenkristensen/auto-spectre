@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <VersionPrefix>0.6.0</VersionPrefix>
-    <VersionSuffix>preview.0.2</VersionSuffix>
+    <!-- <VersionSuffix>preview.0.2</VersionSuffix> -->
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>

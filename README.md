@@ -13,7 +13,7 @@ Decorate a class with the AutoSpectreForm attribute and then decorate the proper
 ### Example input
 
 ```csharp
-[AutoSpectreForm]
+[AutoSpectreForm(Culture = "da-DK")]
 public class Example
 {
     [TextPrompt(Title = "Add item")] public int[] IntItems { get; set; } = Array.Empty<int>();
@@ -228,7 +228,32 @@ preinitializedForm = formFactory.Get(preinitializedForm);
 
 The class that you wan't populated, should be decorated with the `AutoSpectreForm` attribute. If it has at least one valid property or method decorated with an attribute the SpectreFactory is generated.
 
-Since version 0.5.0 the class is allowed to not have an empty constructor. But in that case the Get/GetAsync method will change to be for instance. Requirering you to new up the class before calling the Get method
+### Culture
+
+You can control the overall culture used by setting the culture property. This will be used for TextPrompts. If it's isn't set the CurrentUICulture will be used.
+
+### Inheritance
+
+This class can inherit from other classes that has the properties or methods decorated with attributes. It is not required that the baseclass has the AutoSpectreForm. The steps on the base class will be generated last
+
+```csharp
+public class BaseClass 
+{
+    [TextPrompt]
+    public string BaseProperty { get;set;}
+}
+
+[AutoSpectreForm]
+public class DerivedClass : BaseClass
+{
+    [TextPrompt]
+    public string DerivedProperty { get;set;}
+}
+```
+
+### Constructor
+
+Since version 0.5.0 the class is allowed to not have an empty constructor. But in that case the Get/GetAsync method will change to be for a passed in instance. Requirering you to new up the class before calling the Get method.
 
 ```csharp
 public void Get(Example destination)
@@ -274,6 +299,7 @@ The textprompt allows you to
 * add [validation](#validation), see more below
 * add a password prompt by using the `Secret` and/or `Mask` property
 * control styles with the `DefaultValueStyle`for the DefaultValue and `PromptStyle` for the prompt itself. See [styles](#styles)
+
 
 ### SelectPromptAttribute
 
@@ -503,6 +529,47 @@ ctx =>
 }
 ```
 
+## Type initialization
+
+If you have a property type that is another form. For instance
+
+```csharp
+[AutoSpectreForm]
+public class MainForm 
+{
+    [TextPrompt]
+    public OtherForm ChildForm { get; set; }
+}
+
+[AutoSpectreForm]
+public class OtherForm
+{
+    
+    public OtherForm(string title)
+    {
+
+    }
+
+    ...
+}
+```
+
+If the constructor of the other type is not empty (no parameters), you will get an error. This can however be amended by using the `TypeInitalizer` and point it to a method that return the type you want to initalize. The method pointing to should be public or internal and should return the given type and not have any parameters.
+
+```csharp
+...
+
+[TextPrompt(TypeInitializer = nameof(InitializeChildForm))]
+public OtherForm ChildForm { get;set; }
+
+public OtherForm InitializeChildForm() => new("Some title");
+
+...
+```
+
+Like in other scenarios this can also be achieved by convention. This is done by naming the method Init{TypeName} and have the correct signature.
+
+```csharp
 ## Styles
 
 There are different properties to control the style. We won't go into detail here but we take a string as input and try to evaluate the style. If it can't be parsed an error will be outputted in the build log(since it's a source generator it will often first appear after a build).
