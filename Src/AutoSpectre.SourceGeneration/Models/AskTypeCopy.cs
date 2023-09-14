@@ -3,7 +3,7 @@
 public enum AskTypeCopy
 {
     /// <summary>
-    /// Default. 
+    /// Default. A TextPrompt where you prompt the user for input
     /// </summary>
     Normal,
     /// <summary>

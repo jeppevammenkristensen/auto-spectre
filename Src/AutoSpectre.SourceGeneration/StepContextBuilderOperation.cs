@@ -5,9 +5,11 @@ using System.Linq;
 using AutoSpectre.SourceGeneration.BuildContexts;
 using AutoSpectre.SourceGeneration.Evaluation;
 using AutoSpectre.SourceGeneration.Extensions;
+using AutoSpectre.SourceGeneration.Extensions.Specification;
 using AutoSpectre.SourceGeneration.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using static AutoSpectre.SourceGeneration.Extensions.Specification.SpecificationRecipes;
 
 namespace AutoSpectre.SourceGeneration;
 
@@ -79,21 +81,27 @@ internal class StepContextBuilderOperation
         return operation.GetStepContexts();
     }
 
+    /// <summary>
+    /// This loops through the members (properties or methods) evaluates
+    /// and return valid candidates
+    /// </summary>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException"></exception>
     public List<IStepContext> GetStepContexts()
     {
         var types = new LazyTypes(SyntaxContext.SemanticModel.Compilation);
 
-        List<IStepContext> stepContexts = new();
+        List<IStepContext> result = new();
 
         foreach (var (property, method, attributeData) in StepCandidates)
         {
             if (property is { })
             {
-                HandleProperty(property, attributeData, stepContexts, types);
+                HandleProperty(property, attributeData, result, types);
             }
             else if (method is { })
             {
-                HandleMethod(method, attributeData, stepContexts,types);
+                HandleMethod(method, attributeData, result,types);
             }
             else
             {
@@ -101,7 +109,7 @@ internal class StepContextBuilderOperation
             }
         }
 
-        return stepContexts;
+        return result;
     }
 
     private void HandleMethod(IMethodSymbol method, TranslatedMemberAttributeData memberAttributeData, List<IStepContext> stepContexts, LazyTypes types)
@@ -123,10 +131,7 @@ internal class StepContextBuilderOperation
         }
 
         EvaluateCondition(singleMethodEvaluationContext, memberAttributeData);
-
         EvaluateStatus(memberAttributeData, singleMethodEvaluationContext);
-
-
 
         stepContexts.Add(new MethodContext(singleMethodEvaluationContext,
             new TaskStepBuildContext(memberAttributeData.Title, singleMethodEvaluationContext)));
@@ -253,7 +258,7 @@ internal class StepContextBuilderOperation
     private void HandleProperty(IPropertySymbol property, TranslatedMemberAttributeData memberAttributeData, List<IStepContext> stepContexts,
         LazyTypes types)
     {
-        if (!property.IsPublicInstance())
+        if (IsPublicAndInstanceSpec != property)
         {
             ProductionContext.ReportDiagnostic(Diagnostic.Create(
                 new(DiagnosticIds.Id0021_CandidateMustBePublicInstance, "Property must be public instance",
@@ -266,15 +271,15 @@ internal class StepContextBuilderOperation
         var propertyContext = SinglePropertyEvaluationContext.GenerateFromPropertySymbol(property);
 
         EvaluateCondition(propertyContext, memberAttributeData);
-       
-
+        
         if (memberAttributeData.AskType == AskTypeCopy.Normal)
         {
             EvaluateNamedType(propertyContext, memberAttributeData);
             EvaluateDefaultValue(propertyContext, memberAttributeData);
             EvaluatePromptStyle(propertyContext, memberAttributeData);
             EvaluateValidation(propertyContext, memberAttributeData);
-
+            EvaluateChoices(propertyContext,memberAttributeData);
+            
             if (!propertyContext.IsEnumerable)
             {
                 if (GetTextPromptBuildContext(memberAttributeData, propertyContext) is
@@ -309,13 +314,13 @@ internal class StepContextBuilderOperation
             EvaluateMoreChoicesText(memberAttributeData, ref propertyContext);
             EvaluateInstructionText(memberAttributeData, ref propertyContext);
             EvaluateHighlightStyle(propertyContext, memberAttributeData);
-
+            
             var selectionSource = memberAttributeData.SelectionSource ?? $"{propertyContext.Property.Name}Source";
 
             var match = TargetType
                 .GetAllMembers()
                 .Where(x => x.Name == selectionSource)
-                .Where(x => x.IsPublic() && x.IsInstance())
+                .Where( IsPublicAndInstanceSpec)
                 .FirstOrDefault(x => x is IMethodSymbol
                 {
                     Parameters.Length: 0
@@ -362,25 +367,54 @@ internal class StepContextBuilderOperation
         var nameCandidate = memberAttributeData.ChoicesSource ?? $"{propertyEvaluationContext.Property.Name}Choices";
         var isGuess = memberAttributeData.ChoicesSource == null;
 
-        var methodSpecification = Check.Method<ISymbol>()
-            .WithParameters(0)
-            .WithReturnType(propertyEvaluationContext.Type);
+        var typeSpec = EnumerableOfTypeSpec(propertyEvaluationContext.Type);
+        
+        var methodSpecification = MethodWithNoParametersSpec
+            .WithTypeSpec(typeSpec);
 
-        var property = Check.Property<ISymbol>()
-            .WithExpectedType(propertyEvaluationContext.Type);
+        var propertySpecification = PropertyOfTypeSpec(typeSpec);
 
         var candidates = TargetType
             .GetMembers()
             .Where(x => x.Name == nameCandidate)
             .ToList();
+        
+        var publicMethodOrPropertyMatchSpec = (methodSpecification | propertySpecification) & IsPublicAndInstanceSpec;
+
+
+        // Maybe the operator overloading of | and & might be a bit overkill. :)
 
         if (candidates.Count > 0)
         {
-            var firstOrDefault = candidates.FirstOrDefault(methodSpecification.Or(property).And(new IsPublicSpecification<ISymbol>()));
-            
-        }
-        
+            if (candidates.FirstOrDefault(publicMethodOrPropertyMatchSpec) is { } match)
+            {
+                string? choiceStyle = null;
+                string? choiceInvalidText = null;
 
+                if (memberAttributeData.ChoicesStyle is {} style && style.EvaluateStyle())
+                {
+                    choiceStyle = style;
+                }
+
+                ChoiceSourceType choiceSourceType = default;
+
+                if (methodSpecification.IsSatisfiedBy(match))
+                    choiceSourceType = ChoiceSourceType.Method;
+                else if (propertySpecification.IsSatisfiedBy(match))
+                    choiceSourceType = ChoiceSourceType.Property;
+                else
+                    throw new InvalidOperationException(
+                        "This should not occur. But was not able to determine if source was a method or a property");
+
+                if (memberAttributeData.ChoicesInvalidText is { } invalidText)
+                {
+                    choiceInvalidText = invalidText;
+                }
+
+                propertyEvaluationContext.ConfirmedChoices = new ConfirmedChoices(nameCandidate, choiceSourceType,
+                    choiceStyle, choiceInvalidText);
+            }
+        }  
     }
     
     private void EvaluateNamedType(SinglePropertyEvaluationContext propertyContext, TranslatedMemberAttributeData memberAttributeData)
@@ -393,7 +427,6 @@ internal class StepContextBuilderOperation
 
         if (namedTypeAnalysis is { IsDecoratedWithValidAutoSpectreForm: true, HasEmptyConstructor: false } && initializer is null)
         {
-            
             ProductionContext.ReportDiagnostic(Diagnostic.Create(
                 new(DiagnosticIds.Id0020_InitializerNeeded, $"The type needs a method to initialize it",
                     $"The type {namedTypeAnalysis.NamedTypeSymbol.Name} decorated with AutoSpectreForm does not have an empty constructor. You need to provide a method that can initalize it",
@@ -454,7 +487,7 @@ internal class StepContextBuilderOperation
             ProductionContext.ReportDiagnostic(Diagnostic.Create(
                 new("AutoSpectre_JJK0005",
                     "Not a valid selection source",
-                    $"The selectionsource {memberAttributeData.SelectionSource} was not found on type",
+                    $"The selection source {memberAttributeData.SelectionSource} was not found on type",
                     "General", DiagnosticSeverity.Warning, true),
                 propertyContext.Property.Locations.FirstOrDefault()));
         }

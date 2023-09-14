@@ -10,7 +10,7 @@
     <Description>Classes used by the AutoSpectre.SourceGeneration package</Description>
     <Authors>Jeppe Roi Kristensen</Authors>
     <RepositoryUrl>https://github.com/jeppevammenkristensen/auto-spectre</RepositoryUrl>
-    <PackageReleaseNotes>s</PackageReleaseNotes>
+    <PackageReleaseNotes>Added support for Choices on the TextPromptAttribute</PackageReleaseNotes>
     <PackageIcon>ghost.png</PackageIcon>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>    
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

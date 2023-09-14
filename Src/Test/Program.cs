@@ -10,9 +10,8 @@ namespace Test
     {
         public static async Task Main()
         {
-            ExampleSpectreFactory factory = new();
-            factory.Get(new Example());
-                
+            // ExampleSpectreFactory factory = new();
+            // factory.Get(new Example());
         }
     }
 
