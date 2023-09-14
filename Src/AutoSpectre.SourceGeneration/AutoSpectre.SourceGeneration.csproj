@@ -6,8 +6,8 @@
     <Nullable>enable</Nullable>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <IsRoslynComponent>true</IsRoslynComponent>
-    <VersionPrefix>0.6.0</VersionPrefix>
-    <!-- <VersionSuffix>preview.0.4</VersionSuffix> -->
+    <VersionPrefix>0.7.0</VersionPrefix>
+     <VersionSuffix>preview.0.1</VersionSuffix> 
   </PropertyGroup>
 
   <PropertyGroup>
@@ -21,8 +21,7 @@
     <PackageProjectUrl>https://github.com/jeppevammenkristensen/auto-spectre</PackageProjectUrl>
     <RepositoryUrl>https://github.com/jeppevammenkristensen/auto-spectre</RepositoryUrl>
     <PackageTags>C#;Source Generator</PackageTags>
-    <PackageReleaseNotes>Added better ability to define a intializer for a property type that is decorated with the AutoSpectreFrom and
-      fixing that it should be called correctly. Support for using inheritance. Support for using Culture settable on the root AutpSpectreForm</PackageReleaseNotes>
+    <PackageReleaseNotes>Added support for setting Choices on the TextPromptAttribute</PackageReleaseNotes>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
@@ -50,6 +49,7 @@
   <ItemGroup>
     <ProjectReference Include="..\AutoSpectre\AutoSpectre.csproj" />
   </ItemGroup>
+
 
 
 </Project>

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Mime;
 using System.Text;
@@ -44,6 +45,7 @@ internal class TextPromptBuildContext : PromptBuilderContextWithPropertyContext
         BuildSecret(builder);
         BuildDefaultValue(builder);
         BuildPromptStyle(builder);
+        BuildChoices(builder);
 
         if (Context.ConfirmedValidator is { SingleValidation:true })
         {
@@ -58,6 +60,33 @@ internal class TextPromptBuildContext : PromptBuilderContextWithPropertyContext
 
         builder.Append(")");
         return builder.ToString();
+    }
+
+    private void BuildChoices(StringBuilder builder)
+    {
+        if (Context.ConfirmedChoices is { } choices)
+        {
+            builder.Append(".AddChoices(destination.");
+            if (choices.SourceType == ChoiceSourceType.Method)
+                builder.Append($"{choices.SourceName}()");
+            else if (choices.SourceType == ChoiceSourceType.Property)
+                builder.Append(choices.SourceName);
+            else
+                throw new InvalidOperationException(
+                    $"The source type {choices.SourceType} is not handled. Needs code adjustment to fix");
+            builder.AppendLine(")");
+
+            if (choices.Style is { } style)
+            {
+                builder.AppendLine($".ChoicesStyle(\"{style}\")");
+            }
+
+            if (choices.InvalidErrorText is { } invalidText)
+            {
+                builder.AppendLine($".InvalidChoiceMessage(\"{invalidText}\")");
+            }
+
+        }
     }
 
     private void BuildPromptStyle(StringBuilder builder)

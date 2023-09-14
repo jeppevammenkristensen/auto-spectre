@@ -114,8 +114,8 @@ public class SinglePropertyEvaluationContext : IConditionContext
     
     public ConfirmedValidator? ConfirmedValidator { get; set; }
     public ConfirmedCondition? ConfirmedCondition { get; set; }
-    
     public ConfirmedDefaultValue? ConfirmedDefaultValue { get; set; }
+    public ConfirmedChoices? ConfirmedChoices { get; set; }
     public PropertyDeclarationSyntax? PropertySyntax => _propertySyntaxLazy.Value;
     public string? PromptStyle { get; set; }
     public int? PageSize { get; set; }
@@ -123,7 +123,7 @@ public class SinglePropertyEvaluationContext : IConditionContext
     public string? MoreChoicesText { get; set; }
     public string? InstructionsText { get; set; }
     public string? HighlightStyle { get; set; } //public NamedTypedAnalysis? NamedTypeAnalysis { get; set; }
-    
+
 
     public static SinglePropertyEvaluationContext GenerateFromPropertySymbol(IPropertySymbol property)
     {
