@@ -5,38 +5,12 @@ using System.Linq;
 using AutoSpectre.SourceGeneration.BuildContexts;
 using AutoSpectre.SourceGeneration.Evaluation;
 using AutoSpectre.SourceGeneration.Extensions;
-using AutoSpectre.SourceGeneration.Extensions.Specification;
 using AutoSpectre.SourceGeneration.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static AutoSpectre.SourceGeneration.Extensions.Specification.SpecificationRecipes;
 
 namespace AutoSpectre.SourceGeneration;
-
-public class NamedTypedAnalysis
-{
-    
-    
-    public NamedTypedAnalysis(INamedTypeSymbol namedTypeSymbol, bool isDecoratedWithValidAutoSpectreForm, bool hasAnyAsyncDecoratedMethods, bool hasEmptyConstructor)
-    {
-        NamedTypeSymbol = namedTypeSymbol;
-        IsDecoratedWithValidAutoSpectreForm = isDecoratedWithValidAutoSpectreForm;
-        HasAnyAsyncDecoratedMethods = hasAnyAsyncDecoratedMethods;
-        HasEmptyConstructor = hasEmptyConstructor;
-    }
-
-    public INamedTypeSymbol NamedTypeSymbol { get; }
-    
-    /// <summary>
-    /// This return true if the given type is decorated with AutoSpectreForm and has at least
-    /// one property or method decorated with a relevant attribute. It does not do a fuller analysis than
-    /// that. So there can be unique scenarios where a factory has not been generated for the given type but
-    /// this still is set to true. 
-    /// </summary>
-    public bool IsDecoratedWithValidAutoSpectreForm { get; }
-    public bool HasAnyAsyncDecoratedMethods { get; }
-    public bool HasEmptyConstructor { get; }
-}
 
 internal class StepContextBuilderOperation
 {
@@ -381,7 +355,6 @@ internal class StepContextBuilderOperation
         
         var publicMethodOrPropertyMatchSpec = (methodSpecification | propertySpecification) & IsPublicAndInstanceSpec;
 
-
         // Maybe the operator overloading of | and & might be a bit overkill. :)
 
         if (candidates.Count > 0)
@@ -414,7 +387,26 @@ internal class StepContextBuilderOperation
                 propertyEvaluationContext.ConfirmedChoices = new ConfirmedChoices(nameCandidate, choiceSourceType,
                     choiceStyle, choiceInvalidText);
             }
-        }  
+            else
+            {
+                ProductionContext.ReportDiagnostic(Diagnostic.Create(
+                    new(DiagnosticIds.Id0023_ChoiceCandidate_NotValid, $"The match for Choice source {nameCandidate} was not valid",
+                        $"The source with name {nameCandidate} must be public instance and be either a method with no parameters or a property returning any kind of enumerable of type {propertyEvaluationContext.GetSingleType()}",
+                        "General", DiagnosticSeverity.Warning, true),
+                    propertyEvaluationContext.Property.Locations.FirstOrDefault()));
+            }
+        }
+        else
+        {
+            if (!isGuess)
+            {
+                ProductionContext.ReportDiagnostic(Diagnostic.Create(
+                    new(DiagnosticIds.Id0024_ChoiceCandidate_NotFound, $"No matches found for Choice source {nameCandidate} ",
+                        $"No candidate with name {nameCandidate} was found",
+                        "General", DiagnosticSeverity.Warning, true),
+                    propertyEvaluationContext.Property.Locations.FirstOrDefault()));
+            }
+        }
     }
     
     private void EvaluateNamedType(SinglePropertyEvaluationContext propertyContext, TranslatedMemberAttributeData memberAttributeData)
