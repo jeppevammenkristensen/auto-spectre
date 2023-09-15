@@ -19,4 +19,6 @@ public static class DiagnosticIds
     public const string Id0020_InitializerNeeded = "AutoSpectre_JJK0020";
     public const string Id0021_CandidateMustBePublicInstance = "AutoSpectre_JJK021";
     public const string Id0022_CannotParseCulture = "AutoSpectre_JJK022";
+    public const string Id0023_ChoiceCandidate_NotValid = "AutoSpectre_JJK023";
+    public const string Id0024_ChoiceCandidate_NotFound = "AutoSpectre_JJK024";
 }

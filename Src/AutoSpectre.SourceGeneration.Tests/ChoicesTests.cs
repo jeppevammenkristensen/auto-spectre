@@ -91,7 +91,7 @@ public class ChoicesTests : AutoSpectreGeneratorTestsBase
     }
     
     [Fact]
-    public void InvalidChoicesStyleApplied()
+    public void InvalidChoicesTextApplied()
     {
         GetOutput($$"""
                     using AutoSpectre;
@@ -108,6 +108,76 @@ public class ChoicesTests : AutoSpectreGeneratorTestsBase
                          public IEnumerable<string> TheStrings => null;
                     }
                     """).OutputShouldContain(".InvalidChoiceMessage(\"Invalid text\")");
+    }
+    
+    [Theory]
+    [InlineData("public static string[] TheStrings => new string[0]")]
+    [InlineData("private string[] TheStrings => new string[0];")]
+    [InlineData("public int[] TheStrings => new [] {45};")]
+    [InlineData("public string[] TheStrings(string input) => new string[0];")]
+    public void SourceMatchIsInvalidReturnsExpectedDiagnostic(string invalidSource)
+    {
+        GetOutput($$"""
+                    using AutoSpectre;
+                    using System.Collections.Generic;
+
+                    namespace Test;
+
+                    [AutoSpectreForm]
+                    public class TestForm
+                    {
+                         [TextPrompt(ChoicesSource = nameof(TheStrings), ChoicesInvalidText = "Invalid text")]
+                         public string Test {get;set;}
+                         
+                         {{invalidSource}}
+                    }
+                    """).ShouldHaveSourceGeneratorDiagnostic(DiagnosticIds.Id0023_ChoiceCandidate_NotValid);
+    }
+    
+    [Theory]
+    [InlineData("public static string[] TestChoices => new string[0];")]
+    [InlineData("private List<string> TestChoices => new();")]
+    [InlineData("public List<int> TestChoices => new() {45};")]
+    [InlineData("public HashSet<string> TestChoices(int parameter) => new HasSet<string>();")]
+    public void SourceMatchByConventionIsInvalidReturnsExpectedDiagnostic(string invalidSource)
+    {
+        GetOutput($$"""
+                    using AutoSpectre;
+                    using System.Collections.Generic;
+
+                    namespace Test;
+
+                    [AutoSpectreForm]
+                    public class TestForm
+                    {
+                         [TextPrompt(ChoicesInvalidText = "Invalid text")]
+                         public string Test {get;set;}
+                         
+                         {{invalidSource}}
+                    }
+                    """).ShouldHaveSourceGeneratorDiagnostic(DiagnosticIds.Id0023_ChoiceCandidate_NotValid);
+    }
+    
+    [Theory]
+    [InlineData("public string[] WrongSource => new string[0];")]
+    [InlineData("public List<string> WrongSource() => new();")]
+    public void NoSourceMatchByNameReturnsExpectedDiagnostic(string invalidSource)
+    {
+        GetOutput($$"""
+                    using AutoSpectre;
+                    using System.Collections.Generic;
+
+                    namespace Test;
+
+                    [AutoSpectreForm]
+                    public class TestForm
+                    {
+                         [TextPrompt(ChoicesSource = "ExpectedSource", ChoicesInvalidText = "Invalid text")]
+                         public string Test {get;set;}
+                         
+                         {{invalidSource}}
+                    }
+                    """).ShouldHaveSourceGeneratorDiagnostic(DiagnosticIds.Id0024_ChoiceCandidate_NotFound);
     }
     
 }
