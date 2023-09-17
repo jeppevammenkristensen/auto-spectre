@@ -7,6 +7,7 @@ using AutoSpectre.SourceGeneration.Evaluation;
 using AutoSpectre.SourceGeneration.Extensions;
 using AutoSpectre.SourceGeneration.Models;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static AutoSpectre.SourceGeneration.Extensions.Specification.SpecificationRecipes;
 
@@ -609,6 +610,10 @@ internal class StepContextBuilderOperation
                     new ConfirmedDefaultValue(DefaultValueType.Literal,
                         equal.Value.ToString(),
                         parsedDefaultValue);
+            }
+            else if (equal.Value.IsKind(SyntaxKind.SuppressNullableWarningExpression))
+            {
+                return;
             }
             else
             {
