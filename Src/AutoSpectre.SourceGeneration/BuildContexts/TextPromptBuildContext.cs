@@ -101,13 +101,20 @@ internal class TextPromptBuildContext : PromptBuilderContextWithPropertyContext
     {
         if (Context.ConfirmedDefaultValue is { } confirmed)
         {
-            if (confirmed.Type == DefaultValueType.Literal)
+            var name = confirmed.Instance ? $"destination.{confirmed.Name}" : $"{Context.TargetType.Name}.{confirmed.Name}";
+            
+            if (confirmed.Type == DefaultValueType.Property)
             {
-                builder.AppendLine($".DefaultValue({confirmed.Name})");
+                builder.AppendLine($".DefaultValue({name})");
+            }
+            else if (confirmed.Type == DefaultValueType.Method)
+            {
+                
+                builder.AppendLine($".DefaultValue({name}());");
             }
             else
             {
-                builder.AppendLine($".DefaultValue({Context.Property.ContainingType.Name}.{confirmed.Name});");
+                throw new InvalidOperationException($"It was unexpected. Value {confirmed.Type} was not supported");
             }
 
             if (confirmed.Style is { } style)

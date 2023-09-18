@@ -98,8 +98,22 @@ public class StepWithAttributeData
             var choicesSource = attributeData.GetAttributePropertyValue<string>(nameof(TextPromptAttribute.ChoicesSource));
             var choicesStyle = attributeData.GetAttributePropertyValue<string>(nameof(TextPromptAttribute.ChoicesStyle));
             var choicesInvalidText = attributeData.GetAttributePropertyValue<string>(nameof(TextPromptAttribute.ChoicesInvalidText));
+            var defaultValueSource =
+                attributeData.GetAttributePropertyValue<string>(nameof(TextPromptAttribute.DefaultValueSource));
 
-            TranslatedMemberAttribute = TranslatedMemberAttributeData.TextPrompt(title,validator, condition, conditionNegated, secret, mask, defaultValueStyle, promptStyle, typeInitializer, choicesSource, choicesStyle, choicesInvalidText);
+            TranslatedMemberAttribute = TranslatedMemberAttributeData.TextPrompt(title,
+                validator,
+                condition,
+                conditionNegated,
+                secret,
+                mask,
+                defaultValueStyle,
+                promptStyle,
+                typeInitializer,
+                choicesSource,
+                choicesStyle,
+                choicesInvalidText,
+                defaultValueSource);
         }
         
         else if (attributeData.AttributeClass.Name == nameof(SelectPromptAttribute))

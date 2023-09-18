@@ -15,19 +15,23 @@ public class ConfirmedValidator
 public class ConfirmedDefaultValue
 {
     public DefaultValueType Type { get; }
+    
     public string Name { get; }
     public string? Style { get; }
 
-    public ConfirmedDefaultValue(DefaultValueType type, string name, string? style)
+    public bool Instance { get; set; }
+
+    public ConfirmedDefaultValue(DefaultValueType type, string name, string? style, bool instance)
     {
         Type = type;
         Name = name;
         Style = style;
+        Instance = instance;
     }
 }
 
 public enum DefaultValueType
 {
-    Literal,
-    Call
+    Method,
+    Property
 }

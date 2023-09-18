@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.CodeAnalysis;
 
 namespace AutoSpectre.SourceGeneration.Extensions.Specification;
 
@@ -49,5 +50,25 @@ public abstract class Specification<T> : ISpecification
     public static bool operator !=(Specification<T> left, T? right)
     {
         return !(left == right);
+    }
+
+    public Specification<T> Not()
+    {
+        return new NotSpecification<T>(this);
+    }
+}
+
+public class NotSpecification<T> : Specification<T>
+{
+    private readonly Specification<T> _specification;
+
+    public NotSpecification(Specification<T> specification)
+    {
+        _specification = specification;
+    }
+
+    public override bool IsSatisfiedBy(T obj)
+    {
+        return !_specification.IsSatisfiedBy(obj);
     }
 }

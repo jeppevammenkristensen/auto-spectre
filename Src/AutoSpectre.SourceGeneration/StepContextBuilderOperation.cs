@@ -243,7 +243,7 @@ internal class StepContextBuilderOperation
             return;
         }
         
-        var propertyContext = SinglePropertyEvaluationContext.GenerateFromPropertySymbol(property);
+        var propertyContext = SinglePropertyEvaluationContext.GenerateFromPropertySymbol(property, TargetType);
 
         EvaluateCondition(propertyContext, memberAttributeData);
         
@@ -355,8 +355,6 @@ internal class StepContextBuilderOperation
             .ToList();
         
         var publicMethodOrPropertyMatchSpec = (methodSpecification | propertySpecification) & IsPublicAndInstanceSpec;
-
-        // Maybe the operator overloading of | and & might be a bit overkill. :)
 
         if (candidates.Count > 0)
         {
@@ -575,57 +573,59 @@ internal class StepContextBuilderOperation
     /// Like for instance public bool Confirm {get;set;} = true
     /// </summary>
     /// <param name="propertyContext"></param>
-    /// <param name="translatedAttributeData"></param>
     /// <param name="memberAttributeData"></param>
     private void EvaluateDefaultValue(SinglePropertyEvaluationContext propertyContext,
         TranslatedMemberAttributeData memberAttributeData)
     {
-        var parsedDefaultValue = EvaluateStyle(memberAttributeData.DefaultValueStyle, nameof(memberAttributeData.DefaultValueStyle),
+        var parsedStyle = EvaluateStyle(memberAttributeData.DefaultValueStyle, nameof(memberAttributeData.DefaultValueStyle),
             propertyContext);
 
-        if (propertyContext.PropertySyntax is { Initializer: { } equal })
+        var defaultValue = memberAttributeData.DefaultValue ?? $"{propertyContext.Property.Name}DefaultValue";
+        var isGuess = memberAttributeData.DefaultValue == null;
+        
+        var candidates = TargetType
+            .GetMembers()
+            .Where(x => x.Name.ToString() == defaultValue)
+            .ToList();
+
+        var singleReturnType = propertyContext.GetSingleType().type;
+        var method = MethodWithNoParametersSpec.WithReturnType(singleReturnType);
+        var property = PropertyOfTypeSpec(singleReturnType);
+        var filter = (method | property) & IsPublic;
+
+        if (candidates.FirstOrDefault(filter) is { } candidate)
         {
-            // We try to catch a property initialized with for instance = "Hello", = 5, = true
-            if (equal.Value is LiteralExpressionSyntax)
+            DefaultValueType? valueType = null;
+            var instance = IsInstance == candidate;
+            if (method == candidate)
             {
-                propertyContext.ConfirmedDefaultValue =
-                    new ConfirmedDefaultValue(DefaultValueType.Literal,
-                        equal.Value.ToString(),
-                        parsedDefaultValue);
+                valueType = DefaultValueType.Method;
             }
-            else if (equal.Value is IdentifierNameSyntax or InvocationExpressionSyntax
-                     {
-                         Expression: IdentifierNameSyntax
-                     })
+            else if (property == candidate)
             {
-                // Note that it can be necessary to make this more robust.
-                propertyContext.ConfirmedDefaultValue =
-                    new ConfirmedDefaultValue(DefaultValueType.Call,
-                        equal.Value.ToString(),
-                        parsedDefaultValue);
+                valueType = DefaultValueType.Property;
             }
-            else if (equal.Value.ToString().Equals("string.empty", StringComparison.OrdinalIgnoreCase))
-            {
-                propertyContext.ConfirmedDefaultValue =
-                    new ConfirmedDefaultValue(DefaultValueType.Literal,
-                        equal.Value.ToString(),
-                        parsedDefaultValue);
-            }
-            else if (equal.Value.IsKind(SyntaxKind.SuppressNullableWarningExpression))
-            {
-                return;
-            }
-            else
+
+            if (valueType == null)
+                throw new InvalidOperationException(
+                    $"Could not derive the value type of candidate with name {defaultValue}");
+
+            propertyContext.ConfirmedDefaultValue =
+                new ConfirmedDefaultValue(valueType.Value, defaultValue, parsedStyle, instance);
+            return;
+        }
+        else
+        {
+            if (!isGuess)
             {
                 ProductionContext.ReportDiagnostic(Diagnostic.Create(
-                    new(DiagnosticIds.Id0012_UnsupportedDefaultValue,
-                        $"The default value defined for property {propertyContext.Property.Name} is not supported",
-                        $"The supported initializers for a properties are literals (for instance 5, 70), simple public static constants, properties, fields, method invocations",
-                        "General",
-                        DiagnosticSeverity.Info, true),
-                    propertyContext.PropertySyntax.Initializer!.GetLocation()));
+                    new(DiagnosticIds.Id0025_DefaultValueSource_NotFound, $"Default value {memberAttributeData.DefaultValue} was not found. It should be a method with no parameters or a property returning a single type",
+                        $"Could not find a valid correct method or property with name {memberAttributeData.DefaultValue} in the target class", "General",
+                        DiagnosticSeverity.Error, true),
+                    propertyContext.Property.Locations.FirstOrDefault()));
             }
         }
+        
     }
 
     /// <summary>

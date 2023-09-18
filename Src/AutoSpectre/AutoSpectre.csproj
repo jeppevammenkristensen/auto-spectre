@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <VersionPrefix>0.7.0</VersionPrefix>
-    <VersionSuffix>preview.0.1</VersionSuffix>
+    <VersionSuffix>preview.0.3</VersionSuffix>
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
@@ -10,7 +10,7 @@
     <Description>Classes used by the AutoSpectre.SourceGeneration package</Description>
     <Authors>Jeppe Roi Kristensen</Authors>
     <RepositoryUrl>https://github.com/jeppevammenkristensen/auto-spectre</RepositoryUrl>
-    <PackageReleaseNotes>Added support for Choices on the TextPromptAttribute</PackageReleaseNotes>
+    <PackageReleaseNotes>Added support for Choices on the TextPromptAttribute. Added DefaultValueSource property</PackageReleaseNotes>
     <PackageIcon>ghost.png</PackageIcon>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>    
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

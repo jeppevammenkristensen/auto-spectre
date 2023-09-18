@@ -14,7 +14,13 @@ public class TranslatedFormAttributeData
 
 public class TranslatedMemberAttributeData
 {
-    public TranslatedMemberAttributeData(AskTypeCopy askType, string? selectionSource, string title, string? converter, string? validator, string? condition, bool conditionNegated)
+    public TranslatedMemberAttributeData(AskTypeCopy askType,
+        string? selectionSource,
+        string title,
+        string? converter,
+        string? validator,
+        string? condition,
+        bool conditionNegated)
     {
         AskType = askType;
         SelectionSource = selectionSource;
@@ -35,11 +41,13 @@ public class TranslatedMemberAttributeData
     public bool ConditionNegated { get; }
 
     public string? TypeInitializer { get; private set; }
+    
+    public string? DefaultValue { get; private set; }
 
     public static TranslatedMemberAttributeData TextPrompt(string title, string? validator,
         string? condition, bool conditionNegated, bool secret, char? mask, string? defaultValueStyle,
-        string? promptStyle, string typeInitalizer, string? choiceSource, string? choicesStyle,
-        string? choicesInvalidText)
+        string? promptStyle, string? typeInitalizer, string? choiceSource, string? choicesStyle,
+        string? choicesInvalidText, string? defaultValue)
     {
         return new(askType: AskTypeCopy.Normal, selectionSource: null, title: title, converter: null, validator: validator, condition: condition, conditionNegated: conditionNegated)
         {
@@ -50,7 +58,8 @@ public class TranslatedMemberAttributeData
             TypeInitializer = typeInitalizer,
             ChoicesSource = choiceSource,
             ChoicesStyle = choicesStyle,
-            ChoicesInvalidText = choicesInvalidText
+            ChoicesInvalidText = choicesInvalidText,
+            DefaultValue = defaultValue
         };
     }
 
