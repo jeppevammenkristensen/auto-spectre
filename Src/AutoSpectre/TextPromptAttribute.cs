@@ -72,4 +72,9 @@ public class TextPromptAttribute : AutoSpectreStepAttribute
     /// This is the text that will be displayed to the user if an invalid text is used
     /// </summary>
     public string? ChoicesInvalidText { get; set; }
+    
+    /// <summary>
+    /// The value to choose as default value
+    /// </summary>
+    public string? DefaultValueSource { get; set; }
 }

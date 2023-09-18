@@ -69,19 +69,20 @@ public class SinglePropertyEvaluationContext : IConditionContext
 {
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
     public static SinglePropertyEvaluationContext Empty = new SinglePropertyEvaluationContext(default(IPropertySymbol),
-        false, default(ITypeSymbol), false, default(ITypeSymbol));
+        false, default(ITypeSymbol), false, default(ITypeSymbol), default(INamedTypeSymbol));
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
     
     private Lazy<PropertyDeclarationSyntax?> _propertySyntaxLazy;
 
     public bool RequiresAsync => ConfirmedNamedTypeSource?.IsAsync ?? false;
     
-    public SinglePropertyEvaluationContext(IPropertySymbol property, bool isNullable, ITypeSymbol type, bool isEnumerable, ITypeSymbol? underlyingType)
+    public SinglePropertyEvaluationContext(IPropertySymbol property, bool isNullable, ITypeSymbol type, bool isEnumerable, ITypeSymbol? underlyingType, INamedTypeSymbol targetType)
     {
         Property = property;
         IsNullable = isNullable;
         Type = type;
         IsEnumerable = isEnumerable;
+        TargetType = targetType;
         if (underlyingType is { })
         {
             var (underlyingCanBeNull, underlying) = underlyingType.GetTypeWithNullableInformation();
@@ -104,6 +105,7 @@ public class SinglePropertyEvaluationContext : IConditionContext
     public bool IsNullable { get; }
     public ITypeSymbol Type { get; }
     public bool IsEnumerable { get; }
+    public INamedTypeSymbol TargetType { get; }
     public ITypeSymbol? UnderlyingType { get; }
 
     public ConfirmedSelectionSource ConfirmedSelectionSource { get; set; }
@@ -125,14 +127,15 @@ public class SinglePropertyEvaluationContext : IConditionContext
     public string? HighlightStyle { get; set; } //public NamedTypedAnalysis? NamedTypeAnalysis { get; set; }
 
 
-    public static SinglePropertyEvaluationContext GenerateFromPropertySymbol(IPropertySymbol property)
+    public static SinglePropertyEvaluationContext GenerateFromPropertySymbol(IPropertySymbol property,
+        INamedTypeSymbol namedTypeSymbol)
     {
         var (nullable, originalType) = property.Type.GetTypeWithNullableInformation();
         var (enumerable, underlying) = property.Type.IsEnumerableOfTypeButNotString();
 
         var propertyEvaluationContext =
             new SinglePropertyEvaluationContext(property: property, isNullable: nullable, type: originalType,
-                isEnumerable: enumerable, underlyingType: underlying);
+                isEnumerable: enumerable, underlyingType: underlying, namedTypeSymbol);
         return propertyEvaluationContext;
     }
 

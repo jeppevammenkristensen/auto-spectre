@@ -7,7 +7,7 @@
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <IsRoslynComponent>true</IsRoslynComponent>
     <VersionPrefix>0.7.0</VersionPrefix>
-     <VersionSuffix>preview.0.2</VersionSuffix> 
+     <VersionSuffix>preview.0.3</VersionSuffix> 
   </PropertyGroup>
 
   <PropertyGroup>
@@ -21,7 +21,7 @@
     <PackageProjectUrl>https://github.com/jeppevammenkristensen/auto-spectre</PackageProjectUrl>
     <RepositoryUrl>https://github.com/jeppevammenkristensen/auto-spectre</RepositoryUrl>
     <PackageTags>C#;Source Generator</PackageTags>
-    <PackageReleaseNotes>Added support for setting Choices on the TextPromptAttribute</PackageReleaseNotes>
+    <PackageReleaseNotes>Added support for setting Choices on the TextPromptAttribute. Rewrote logic for DefaultValue. Retired old solution</PackageReleaseNotes>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>

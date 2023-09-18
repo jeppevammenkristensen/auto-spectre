@@ -36,7 +36,12 @@ public static class SpecificationRecipes
     /// <summary>
     /// Returns a <see cref="Specification{T}"/> that evaluates if a given symbol is Public and an Instance
     /// </summary>
-    public static Specification<ISymbol> IsPublicAndInstanceSpec => new IsPublicSpecification<ISymbol>() & new IsInstanceSpecification<ISymbol>();
+    public static Specification<ISymbol> IsPublicAndInstanceSpec => IsPublic & new IsInstanceSpecification<ISymbol>();
+
+    public static Specification<ISymbol> IsPublic => new IsPublicSpecification<ISymbol>();
+
+    public static IsInstanceSpecification<ISymbol> IsInstance = new IsInstanceSpecification<ISymbol>();
+    public static Specification<ISymbol> IsStatic = IsInstance.Not(); 
     
     public static MethodSpecification<ISymbol> MethodWithNoParametersSpec =>
         new MethodSpecification<ISymbol>().WithParameters(0);
