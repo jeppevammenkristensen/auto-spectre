@@ -55,6 +55,9 @@ public static class SpecificationRecipes
     public static Specification<ISymbol> PropertyOfTypeSpec(Specification<ITypeSymbol> typeSymbol) =>
         new PropertySpecification<ISymbol>().WithTypeSpec(typeSymbol);
 
+    public static Specification<ISymbol> FieldOfTypeSpec(ITypeSymbol typeSymbol) =>
+        new FieldSpecification<ISymbol>().WithType(typeSymbol);
+
 
 
 }

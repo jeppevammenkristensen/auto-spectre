@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace AutoSpectre.SourceGeneration.Extensions.Specification;
 
@@ -26,6 +27,34 @@ public class EnumerableSpecification<T> : Specification<T> where T : ITypeSymbol
     public EnumerableSpecification<T> WithUnderlyingType(ITypeSymbol typeSymbol)
     {
         Type = typeSymbol;
+        return this;
+    }
+}
+
+public class FieldSpecification<T> : Specification<T> where T : ISymbol
+{
+    private ITypeSymbol? _typeSymbol;
+
+    public override bool IsSatisfiedBy(T obj)
+    {
+        if (obj.Kind != SymbolKind.Field) return false;
+
+        if (obj is IFieldSymbol fieldSymbol)
+        {
+            if (_typeSymbol is {} && !fieldSymbol.Type.Equals(_typeSymbol, SymbolEqualityComparer.Default))
+                return false;
+        }
+        else
+        {
+            return false;
+        }
+        
+        return true;
+    }
+
+    public FieldSpecification<T> WithType(ITypeSymbol typeSymbol)
+    {
+        _typeSymbol = typeSymbol;
         return this;
     }
 }

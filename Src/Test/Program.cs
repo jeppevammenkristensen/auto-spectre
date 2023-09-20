@@ -11,19 +11,18 @@ namespace Test
     {
         public static async Task Main()
         {
-            // ExampleSpectreFactory factory = new();
-            // factory.Get(new Example());
+            ExampleSpectreFactory factory = new();
+            factory.Get(new Example());
         }
     }
-
-
+    
     [AutoSpectreForm(Culture = "da-DK")]
 public class Example
 {
-    [TextPrompt(ChoicesSource = nameof(NameChoices), Title = "Vælg et andet tal",
-        ChoicesInvalidText = "What are you doing")]
+    [TextPrompt(DefaultValueSource = nameof(DefaultName))]
     public string Name { get; set; } = null!;
 
+    public static string DefaultName  = "Jeppe";
    public static IEnumerable<int> NameChoices 
    {
        get
