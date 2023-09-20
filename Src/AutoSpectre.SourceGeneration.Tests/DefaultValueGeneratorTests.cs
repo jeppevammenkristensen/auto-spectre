@@ -33,6 +33,11 @@ public class DefaultValueGeneratorTests : AutoSpectreGeneratorTestsBase
     [InlineData("public static string DefaultValueSource {get;set}", ".DefaultValue(TestForm.DefaultValueSource)")]
     [InlineData("public static string DefaultValueSource() => string.Empty;", ".DefaultValue(TestForm.DefaultValueSource())")]
     [InlineData("public string DefaultValueSource() => string.Empty;", ".DefaultValue(destination.DefaultValueSource())")]
+    [InlineData("public const string DefaultValueSource = string.Empty;", "TestForm.DefaultValueSource")]
+    [InlineData("public static readonly string DefaultValueSource = string.Empty;", "TestForm.DefaultValueSource")]
+    [InlineData("public static string DefaultValueSource = string.Empty;", "TestForm.DefaultValueSource")]
+    [InlineData("public string DefaultValueSource = string.Empty;", "destination.DefaultValueSource")]
+    [InlineData("public readonly string DefaultValueSource = string.Empty;", "destination.DefaultValueSource")]
     public void DefaultValueValidSource(string source, string expected)
     {
         GetOutput($$"""
@@ -56,7 +61,8 @@ public class DefaultValueGeneratorTests : AutoSpectreGeneratorTestsBase
     [InlineData("private string DefaultValueSource {get;set}")]
     [InlineData("private static string DefaultValueSource {get;set}")]
     [InlineData("private static string DefaultValueSource() => string.Empty;")]
-    [InlineData("public int DefaultValueSource() => string.Empty;")]
+    [InlineData("public int DefaultValueSource() => 45")]
+  
     public void DefaultValueIsInvalidReturnsDiagnostic(string source)
     {
         GetOutput($$"""
@@ -99,4 +105,6 @@ public class DefaultValueGeneratorTests : AutoSpectreGeneratorTestsBase
                     }
                     """).OutputShouldContain(expected);
     }
+
+   
 }

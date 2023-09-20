@@ -591,7 +591,9 @@ internal class StepContextBuilderOperation
         var singleReturnType = propertyContext.GetSingleType().type;
         var method = MethodWithNoParametersSpec.WithReturnType(singleReturnType);
         var property = PropertyOfTypeSpec(singleReturnType);
-        var filter = (method | property) & IsPublic;
+        var field = FieldOfTypeSpec(singleReturnType);
+        
+        var filter = (method | property | field) & IsPublic;
 
         if (candidates.FirstOrDefault(filter) is { } candidate)
         {
@@ -601,7 +603,7 @@ internal class StepContextBuilderOperation
             {
                 valueType = DefaultValueType.Method;
             }
-            else if (property == candidate)
+            else if ((property | field) == candidate)
             {
                 valueType = DefaultValueType.Property;
             }
@@ -620,7 +622,7 @@ internal class StepContextBuilderOperation
             {
                 ProductionContext.ReportDiagnostic(Diagnostic.Create(
                     new(DiagnosticIds.Id0025_DefaultValueSource_NotFound, $"Default value {memberAttributeData.DefaultValue} was not found. It should be a method with no parameters or a property returning a single type",
-                        $"Could not find a valid correct method or property with name {memberAttributeData.DefaultValue} in the target class", "General",
+                        $"Could not find a valid correct method, property or field with name {memberAttributeData.DefaultValue} in the target class", "General",
                         DiagnosticSeverity.Error, true),
                     propertyContext.Property.Locations.FirstOrDefault()));
             }
