@@ -44,6 +44,16 @@ public class TextPromptAttribute : AutoSpectreStepAttribute
     public string? DefaultValueStyle { get; set; }
 
     /// <summary>
+    /// The value to choose as default value. The source must be public
+    /// and available in the class. Static or instance and be available through one of the
+    /// below
+    /// * A field 
+    /// * A method with no parameters
+    /// * A property
+    ///  </summary>
+    public string? DefaultValueSource { get; set; }
+
+    /// <summary>
     /// The style to use for the prompting where the user inputs data
     /// </summary>
     public string? PromptStyle { get; set; }
@@ -56,25 +66,20 @@ public class TextPromptAttribute : AutoSpectreStepAttribute
     /// have a method called Init{TypeName} 
     /// </summary>
     public string? TypeInitializer { get; set; }
-    
+
     /// <summary>
     /// Use this to limit the values allowed to be entered. They will be displayed in the
     /// prompt and you be able to autocomplete with tab. The convention is {PropertyName}Choices
     /// </summary>
     public string? ChoicesSource { get; set; }
-    
+
     /// <summary>
     /// The style used to display the choices in the prompt
     /// </summary>
     public string? ChoicesStyle { get; set; }
-    
+
     /// <summary>
     /// This is the text that will be displayed to the user if an invalid text is used
     /// </summary>
     public string? ChoicesInvalidText { get; set; }
-    
-    /// <summary>
-    /// The value to choose as default value
-    /// </summary>
-    public string? DefaultValueSource { get; set; }
 }

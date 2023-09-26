@@ -5,6 +5,7 @@ using System.Linq;
 using AutoSpectre.SourceGeneration.BuildContexts;
 using AutoSpectre.SourceGeneration.Evaluation;
 using AutoSpectre.SourceGeneration.Extensions;
+using AutoSpectre.SourceGeneration.Extensions.Specification;
 using AutoSpectre.SourceGeneration.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -12,6 +13,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static AutoSpectre.SourceGeneration.Extensions.Specification.SpecificationRecipes;
 
 namespace AutoSpectre.SourceGeneration;
+
+
+
 
 internal class StepContextBuilderOperation
 {
@@ -290,38 +294,19 @@ internal class StepContextBuilderOperation
             EvaluateInstructionText(memberAttributeData, ref propertyContext);
             EvaluateHighlightStyle(propertyContext, memberAttributeData);
             
-            var selectionSource = memberAttributeData.SelectionSource ?? $"{propertyContext.Property.Name}Source";
-
-            var match = TargetType
-                .GetAllMembers()
-                .Where(x => x.Name == selectionSource)
-                .Where( IsPublicAndInstanceSpec)
-                .FirstOrDefault(x => x is IMethodSymbol
-                {
-                    Parameters.Length: 0
-                } or IPropertySymbol { GetMethod: { } });
-
-            if (match is { })
+            if (propertyContext.ConfirmedSelectionSource is { })
             {
-                SelectionPromptSelectionType selectionType = match switch
-                {
-                    IMethodSymbol => SelectionPromptSelectionType.Method,
-                    IPropertySymbol => SelectionPromptSelectionType.Property,
-                    _ => throw new NotSupportedException(),
-                };
                 if (!propertyContext.IsEnumerable)
                 {
                     stepContexts.Add(new PropertyContext(property.Name, property,
-                        new SelectionPromptBuildContext(memberAttributeData.Title, propertyContext,
-                            selectionSource, selectionType)));
+                        new SelectionPromptBuildContext(memberAttributeData.Title, propertyContext)));
                 }
                 else
                 {
                     stepContexts.Add(new PropertyContext(property.Name, property,
                         new MultiSelectionBuildContext(title: memberAttributeData.Title,
                             propertyContext,
-                            selectionTypeName: selectionSource,
-                            selectionType: selectionType, types)));
+                             types)));
                 }
             }
             else
@@ -454,24 +439,27 @@ internal class StepContextBuilderOperation
         SinglePropertyEvaluationContext propertyContext)
     {
         var selectionSource = memberAttributeData.SelectionSource ?? $"{propertyContext.Property.Name}Source";
-
+        TypeFieldMethodPropertySpecifiations specs =
+            new TypeFieldMethodPropertySpecifiations(EnumerableOfTypeSpec(propertyContext.GetSingleType().type));
+            
         var match = TargetType
             .GetAllMembers()
             .Where(x => x.Name == selectionSource)
-            .Where(x => x.IsPublic() && x.IsInstance())
-            .FirstOrDefault(x => x is IMethodSymbol
-            {
-                Parameters.Length: 0
-            } or IPropertySymbol { GetMethod: { } });
+            .Where(specs.Field.Or(specs.Method).Or(specs.Property))
+            .FirstOrDefault(x => x.IsPublic());
 
         if (match is { })
         {
-            propertyContext.ConfirmedSelectionSource = match switch
-            {
-                IMethodSymbol => new ConfirmedSelectionSource(selectionSource, SelectionPromptSelectionType.Method),
-                IPropertySymbol => new ConfirmedSelectionSource(selectionSource, SelectionPromptSelectionType.Property),
-                _ => throw new NotSupportedException(),
-            };
+            bool isStatic = match.IsStatic;
+
+            if (specs.Method == match)
+                propertyContext.ConfirmedSelectionSource =
+                    new ConfirmedSelectionSource(selectionSource, SelectionPromptSelectionType.Method, isStatic);
+            else if (specs.Field == match || specs.Property == match)
+                propertyContext.ConfirmedSelectionSource =
+                    new ConfirmedSelectionSource(selectionSource, SelectionPromptSelectionType.Property, isStatic);
+            else
+                throw new NotSupportedException();
         }
         else
         {
@@ -911,5 +899,25 @@ internal class StepContextBuilderOperation
                     $"No candiates where found with name {validator}", "General", DiagnosticSeverity.Warning, true),
                 propertyContext.Property.Locations.FirstOrDefault()));
         }
+    }
+
+    public class TypeFieldMethodPropertySpecifiations
+    {
+        private readonly Specification<ITypeSymbol> _type;
+
+        public TypeFieldMethodPropertySpecifiations(Specification<ITypeSymbol> type)
+        {
+            _type = type;
+
+            Method = MethodWithNoParametersSpec.WithTypeSpec(_type);
+            Property = PropertyOfTypeSpec(_type);
+            Field = FieldOfTypeSpec(_type);
+        }
+
+        public FieldSpecification<ISymbol> Field { get;  }
+
+        public Specification<ISymbol> Property { get;  }
+
+        public MethodSpecification<ISymbol> Method { get; }
     }
 }

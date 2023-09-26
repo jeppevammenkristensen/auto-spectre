@@ -108,7 +108,7 @@ public class SinglePropertyEvaluationContext : IConditionContext
     public INamedTypeSymbol TargetType { get; }
     public ITypeSymbol? UnderlyingType { get; }
 
-    public ConfirmedSelectionSource ConfirmedSelectionSource { get; set; }
+    public ConfirmedSelectionSource? ConfirmedSelectionSource { get; set; }
 
     public ConfirmedNamedTypeSource? ConfirmedNamedTypeSource { get; set; }
     

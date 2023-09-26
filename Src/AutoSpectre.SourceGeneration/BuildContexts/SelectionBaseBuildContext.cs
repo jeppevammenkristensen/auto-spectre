@@ -1,4 +1,6 @@
-﻿namespace AutoSpectre.SourceGeneration.BuildContexts;
+﻿using System;
+
+namespace AutoSpectre.SourceGeneration.BuildContexts;
 
 /// <summary>
 /// Since a SelectPrompt and MultiSelectPrompt are so similar, this class contains some common code
@@ -47,4 +49,16 @@ internal abstract class SelectionBaseBuildContext : PromptBuilderContextWithProp
 
         return string.Empty;
     }
+
+    protected string GetChoicePrepend()
+    {
+        return Context.ConfirmedSelectionSource.IsStatic ? Context.TargetType.Name : "destination";
+    }
+
+    protected string GetSelector() => Context.ConfirmedSelectionSource!.Source switch
+    {
+        SelectionPromptSelectionType.Method => $"{Context.ConfirmedSelectionSource.Name}()",
+        SelectionPromptSelectionType.Property => Context.ConfirmedSelectionSource.Name,
+        _ => throw new InvalidOperationException("Unsupported SelectionType")
+    };
 }

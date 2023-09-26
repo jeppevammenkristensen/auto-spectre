@@ -9,16 +9,14 @@ internal class SelectionPromptBuildContext : SelectionBaseBuildContext
 {
     public ITypeSymbol TypeSymbol { get; }
     public bool Nullable { get; }
-    public string SelectionTypeName { get; set; }
-    public SelectionPromptSelectionType SelectionType { get; }
+    
 
-
-    public SelectionPromptBuildContext(string title, SinglePropertyEvaluationContext context, string selectionTypeName, SelectionPromptSelectionType selectionType) : base(title,context)
+    public SelectionPromptBuildContext(string title, SinglePropertyEvaluationContext context) : base(title,context)
     {
         TypeSymbol = context.Type;
         Nullable = context.IsNullable;
-        SelectionTypeName = selectionTypeName ?? throw new ArgumentNullException(nameof(selectionTypeName));
-        SelectionType = selectionType;
+        if (context.ConfirmedSelectionSource is null)
+            throw new ArgumentException("The selection source cannot be null");
     }
 
     public override string GenerateOutput(string destination)
@@ -39,18 +37,7 @@ internal class SelectionPromptBuildContext : SelectionBaseBuildContext
             {GenerateWrapAround()}
             {GenerateMoreChoicesText()}
             {GenerateHighlightStyle()}
-            .AddChoices(destination.{GetSelector()}.ToArray()))
+            .AddChoices({GetChoicePrepend()}.{GetSelector()}.ToArray()))
         """;
     }
-    
-    
-   
-    
-
-    private string GetSelector() => SelectionType switch
-    {
-        SelectionPromptSelectionType.Method => $"{SelectionTypeName}()",
-        SelectionPromptSelectionType.Property => SelectionTypeName,
-        _ => throw new InvalidOperationException("Unsupported SelectionType")
-    };
 }

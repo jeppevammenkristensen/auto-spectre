@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Text;
+using AutoSpectre.SourceGeneration.Evaluation;
 using AutoSpectre.SourceGeneration.Extensions;
 using Microsoft.CodeAnalysis;
 
@@ -12,23 +13,21 @@ internal class MultiSelectionBuildContext : SelectionBaseBuildContext
 
     public delegate void ConversionDelegate(StringBuilder builder, string prompt);
 
-    public MultiSelectionBuildContext(string title, SinglePropertyEvaluationContext context, string selectionTypeName, SelectionPromptSelectionType selectionType, LazyTypes lazyTypes) : base(title, context)
+    public MultiSelectionBuildContext(string title, SinglePropertyEvaluationContext context,  LazyTypes lazyTypes) : base(title, context)
     {
+        if (context.ConfirmedSelectionSource is null)
+        {
+            throw new ArgumentException("The selection source should not be null",
+                nameof(context.ConfirmedSelectionSource));
+        }
         _lazyTypes = lazyTypes;
         TypeSymbol = context.Type;
         UnderlyingSymbol = context.UnderlyingType;
         Nullable = context.IsNullable;
-        SelectionTypeName = selectionTypeName;
-        SelectionType = selectionType;
     }
     public ITypeSymbol TypeSymbol { get; }
     public ITypeSymbol? UnderlyingSymbol { get; }
     public bool Nullable { get; }
-
-    public string SelectionTypeName { get; set; }
-    public SelectionPromptSelectionType SelectionType { get; }
-    
-
 
     public override string GenerateOutput(string destination)
     {
@@ -55,7 +54,7 @@ new MultiSelectionPrompt<{type}>()
 {GenerateWrapAround()}
 {GenerateMoreChoicesText()}
 {GenerateInstructionsText()}
-.AddChoices(destination.{GetSelector()}.ToArray()))
+.AddChoices({GetChoicePrepend()}.{GetSelector()}.ToArray()))
 """;
         var builder = new StringBuilder(150);
 
@@ -142,11 +141,4 @@ new MultiSelectionPrompt<{type}>()
     {
         return Nullable ? ".NotRequired()" : string.Empty;
     }
-
-    private string GetSelector() => SelectionType switch
-    {
-        SelectionPromptSelectionType.Method => $"{SelectionTypeName}()",
-        SelectionPromptSelectionType.Property => SelectionTypeName,
-        _ => throw new InvalidOperationException("Unsupported SelectionType")
-    };
 }

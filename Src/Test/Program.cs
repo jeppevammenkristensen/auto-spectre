@@ -19,11 +19,11 @@ namespace Test
     [AutoSpectreForm(Culture = "da-DK")]
 public class Example
 {
-    [TextPrompt(DefaultValueSource = nameof(DefaultName))]
+    [SelectPrompt(Source = nameof(NameSource))]
     public string Name { get; set; } = null!;
 
     public static string DefaultName  = "Jeppe";
-   public static IEnumerable<int> NameChoices 
+   public static IEnumerable<int> NameSource 
    {
        get
        {

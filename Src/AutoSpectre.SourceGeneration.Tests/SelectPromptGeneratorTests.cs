@@ -70,4 +70,30 @@ public class SelectPromptGeneratorTests : AutoSpectreGeneratorTestsBase
                              }
                              """).Should().Contain(".WrapAround(true)");
     }
+    
+    [Theory]
+    [InlineData("public static int[] SelectNumbersSource { get; set; }", "TestForm.SelectNumbersSource.")]
+    [InlineData("public readonly int[] SelectNumbersSource;", "destination.SelectNumbersSource.")]
+    [InlineData("public const int[] SelectNumbersSource;", "TestForm.SelectNumbersSource.")]
+    [InlineData("public int[] SelectNumbersSource;", "destination.SelectNumbersSource.")]
+    [InlineData("public static int[] SelectNumbersSource() => null;", "TestForm.SelectNumbersSource().")]
+    [InlineData("public int[] SelectNumbersSource() => null;", "destination.SelectNumbersSource().")]
+    public void SelectPromptWithValidVariation(string variation, string expected)
+    {
+        GetOutput($$"""
+                    using AutoSpectre;
+                    using System.Collections.Generic;
+
+                    namespace Test;
+
+                    [AutoSpectreForm]
+                    public class TestForm
+                    {
+                       [SelectPrompt(HighlightStyle="red")]
+                       public int SelectNumbers {get;set;}
+                    
+                      {{variation}}
+                    }
+                    """).OutputShouldContain(expected);
+    }
 }

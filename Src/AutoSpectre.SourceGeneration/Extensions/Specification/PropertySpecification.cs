@@ -26,7 +26,9 @@ public class EnumerableSpecification<T> : Specification<T> where T : ITypeSymbol
     
     public EnumerableSpecification<T> WithUnderlyingType(ITypeSymbol typeSymbol)
     {
-        Type = typeSymbol;
+        var (isEnumerable, underlyingType) = typeSymbol.IsEnumerableOfTypeButNotString();
+        
+        Type = isEnumerable ? underlyingType : typeSymbol;
         return this;
     }
 }
@@ -34,6 +36,7 @@ public class EnumerableSpecification<T> : Specification<T> where T : ITypeSymbol
 public class FieldSpecification<T> : Specification<T> where T : ISymbol
 {
     private ITypeSymbol? _typeSymbol;
+    private Specification<ITypeSymbol>? _typeSpec;
 
     public override bool IsSatisfiedBy(T obj)
     {
@@ -42,6 +45,8 @@ public class FieldSpecification<T> : Specification<T> where T : ISymbol
         if (obj is IFieldSymbol fieldSymbol)
         {
             if (_typeSymbol is {} && !fieldSymbol.Type.Equals(_typeSymbol, SymbolEqualityComparer.Default))
+                return false;
+            if (_typeSpec is { } && _typeSpec != fieldSymbol.Type)
                 return false;
         }
         else
@@ -55,6 +60,12 @@ public class FieldSpecification<T> : Specification<T> where T : ISymbol
     public FieldSpecification<T> WithType(ITypeSymbol typeSymbol)
     {
         _typeSymbol = typeSymbol;
+        return this;
+    }
+
+    public FieldSpecification<T> WithTypeSpec(Specification<ITypeSymbol> typeSpec)
+    {
+        _typeSpec = typeSpec;
         return this;
     }
 }
