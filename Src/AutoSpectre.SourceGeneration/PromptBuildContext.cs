@@ -41,4 +41,9 @@ public abstract class PromptBuildContext
     {
         return Enumerable.Empty<string>();
     }
+    
+    protected string GetStaticOrInstancePrepend(bool isStatic)
+    {
+        return isStatic ? Context.TargetType.Name : "destination";
+    }
 }
