@@ -311,12 +311,8 @@ internal class StepContextBuilderOperation
             }
             else
             {
-                ProductionContext.ReportDiagnostic(Diagnostic.Create(
-                    new("AutoSpectre_JJK0005",
-                        "Not a valid selection source",
-                        $"The source {memberAttributeData.SelectionSource} was not found on type",
-                        "General", DiagnosticSeverity.Warning, true),
-                    property.Locations.FirstOrDefault()));
+                // Diagnostic should have been added before this point
+                return;
             }
         }
     }
@@ -461,13 +457,22 @@ internal class StepContextBuilderOperation
             else
                 throw new NotSupportedException();
         }
+        else if(memberAttributeData.SelectionSource is {})
+        {
+            ProductionContext.ReportDiagnostic(Diagnostic.Create(
+                new(DiagnosticIds.Id0005_SelectionSourceNotFound,
+                    "Not a valid selection source",
+                    $"The selection source {memberAttributeData.SelectionSource} was not found on type",
+                    "General", DiagnosticSeverity.Error, true),
+                propertyContext.Property.Locations.FirstOrDefault()));
+        }
         else
         {
             ProductionContext.ReportDiagnostic(Diagnostic.Create(
-                new("AutoSpectre_JJK0005",
-                    "Not a valid selection source",
-                    $"The selection source {memberAttributeData.SelectionSource} was not found on type",
-                    "General", DiagnosticSeverity.Warning, true),
+                new(DiagnosticIds.Id0026_NoSelectionSource,
+                    "No selection source set",
+                    $"No selection source was set. You can fix this by setting the source or following the name convention for a valid source",
+                    "General", DiagnosticSeverity.Error, true),
                 propertyContext.Property.Locations.FirstOrDefault()));
         }
     }
@@ -619,7 +624,7 @@ internal class StepContextBuilderOperation
     }
 
     /// <summary>
-    /// Evalutes the Converter set on the attributeData. If it's correct a valid converter is set on the context.
+    /// Evaluates the Converter set on the attributeData. If it's correct a valid converter is set on the context.
     /// if it is set but not valid a warning is reported.
     /// </summary>
     /// <param name="memberAttributeData"></param>
@@ -629,6 +634,7 @@ internal class StepContextBuilderOperation
     {
         bool guessed = memberAttributeData.Converter == null;
         var converterName = memberAttributeData.Converter ?? $"{context.Property.Name}Converter";
+        
 
         bool ConverterMethodOrProperty(ISymbol symbol)
         {
@@ -652,21 +658,21 @@ internal class StepContextBuilderOperation
         var candidates = TargetType
             .GetAllMembers()
             .Where(x => x.Name == converterName)
-            .Where(x => x.IsPublic() && x.IsInstance())
+            .Where(x => x.IsPublic())
             .ToList();
 
         var match = candidates.FirstOrDefault(ConverterMethodOrProperty);
 
         if (match is { })
         {
-            context.ConfirmedConverter = new ConfirmedConverter(converterName);
+            context.ConfirmedConverter = new ConfirmedConverter(converterName, match.IsStatic);
         }
         else if (!guessed || candidates.Count > 0)
         {
             ProductionContext.ReportDiagnostic(Diagnostic.Create(
                 new("AutoSpectre_JJK0008",
                     $"Converter {memberAttributeData.Converter} should be a method taking a {context.UnderlyingType} as input and return string on the class",
-                    $"Could not find a correct method to match {memberAttributeData.Converter} supported", "General",
+                    $"Could not find a correct method to match {converterName} supported", "General",
                     DiagnosticSeverity.Warning, true),
                 context.Property.Locations.FirstOrDefault()));
         }

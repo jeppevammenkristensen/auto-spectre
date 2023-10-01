@@ -70,6 +70,65 @@ public class SelectPromptGeneratorTests : AutoSpectreGeneratorTestsBase
                              }
                              """).Should().Contain(".WrapAround(true)");
     }
+
+    [Fact]
+    public void MissingSource_GeneratesCorrectDiagnostic()
+    {
+        GetOutput($$"""
+                    using AutoSpectre;
+                    using System.Collections.Generic;
+
+                    namespace Test;
+
+                    [AutoSpectreForm]
+                    public class TestForm
+                    {
+                         [SelectPrompt()]
+                         public string Source {get;set;}
+                    }
+                    """).ShouldHaveSourceGeneratorDiagnosticOnlyOnce(DiagnosticIds.Id0026_NoSelectionSource);
+            ;
+    }
+    
+    [Fact]
+    public void MissingSource_NameMatchButInvalidFormGeneratesCorrectDiagnostic()
+    {
+        GetOutput($$"""
+                    using AutoSpectre;
+                    using System.Collections.Generic;
+
+                    namespace Test;
+
+                    [AutoSpectreForm]
+                    public class TestForm
+                    {
+                         [SelectPrompt()]
+                         public string Source {get;set;}
+                         
+                         public bool SourceSource() => true;
+                    }
+                    """).ShouldHaveSourceGeneratorDiagnosticOnlyOnce(DiagnosticIds.Id0026_NoSelectionSource);
+    }
+    
+    [Fact]
+    public void SourcePresent_NameMatchButInvalidFormGeneratesCorrectDiagnostic()
+    {
+        GetOutput($$"""
+                    using AutoSpectre;
+                    using System.Collections.Generic;
+
+                    namespace Test;
+
+                    [AutoSpectreForm]
+                    public class TestForm
+                    {
+                         [SelectPrompt(Source = nameof(PropertySource))]
+                         public string Property {get;set;}
+                         
+                         public bool PropertySource() => true;
+                    }
+                    """).ShouldHaveSourceGeneratorDiagnosticOnlyOnce(DiagnosticIds.Id0005_SelectionSourceNotFound);
+    }
     
     [Theory]
     [InlineData("public static int[] SelectNumbersSource { get; set; }", "TestForm.SelectNumbersSource.")]

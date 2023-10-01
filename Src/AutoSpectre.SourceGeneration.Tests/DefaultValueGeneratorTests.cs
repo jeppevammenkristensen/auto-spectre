@@ -79,7 +79,7 @@ public class DefaultValueGeneratorTests : AutoSpectreGeneratorTestsBase
                          
                          {{ source }}
                     }
-                    """).ShouldHaveSourceGeneratorDiagnostic(DiagnosticIds.Id0025_DefaultValueSource_NotFound);
+                    """).ShouldHaveSourceGeneratorDiagnosticOnlyOnce(DiagnosticIds.Id0025_DefaultValueSource_NotFound);
     }
     
     [Theory]

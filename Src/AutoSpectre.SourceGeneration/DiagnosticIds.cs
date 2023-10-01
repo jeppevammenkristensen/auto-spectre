@@ -2,6 +2,7 @@
 
 public static class DiagnosticIds
 {
+    public const string Id0005_SelectionSourceNotFound = "AutoSpectre_JJK0005";
     
     public const string Id0008_ValidatorNameMatchInvalid = "AutoSpectre_JJK0008";
     public const string Id0009_ValidatorNameNotFound = "AutoSpectre_JJK0009";
@@ -22,4 +23,5 @@ public static class DiagnosticIds
     public const string Id0023_ChoiceCandidate_NotValid = "AutoSpectre_JJK023";
     public const string Id0024_ChoiceCandidate_NotFound = "AutoSpectre_JJK024";
     public const string Id0025_DefaultValueSource_NotFound = "AutoSpectre_JJK025";
+    public const string Id0026_NoSelectionSource = "AutoSpectre_JJK0026";
 }
