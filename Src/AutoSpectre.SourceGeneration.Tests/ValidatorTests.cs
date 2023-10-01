@@ -9,11 +9,13 @@ public class ValidatorTests : AutoSpectreGeneratorTestsBase
     public ValidatorTests(ITestOutputHelper helper) : base(helper)
     {
     }
-
-    [Fact]
-    public void PropertyWithValidatorDefinedThatIsValidReturnsExpected()
+    
+    [Theory]
+    [InlineData("""public string? ValidateName(string name) { return name == "Jumping jack flash"; }""", "destination")]
+    [InlineData("""public static string? ValidateName(string name) { return name == "Jumping jack flash"; }""", "ValidateClass")]
+    public void PropertyWithValidatorDefinedThatIsValidReturnsExpected(string validValidator, string access)
     {
-        GetGeneratedOutput("""
+        GetGeneratedOutput($$"""
 using AutoSpectre;
 using System.Collections.Generic;
 
@@ -25,16 +27,13 @@ public class ValidateClass
     [Ask(Validator=nameof(ValidateName))]
     public string Name { get; set;}
 
-    public string? ValidateName(string name)
-    {
-        return name == "Jumping jack flash";
-    }
+    {{ validValidator}}
 }
-""").Should().Contain(@".Validate(ctx =>
-            {
-                var result = destination.ValidateName(ctx);
+""").Should().Contain($@".Validate(ctx =>
+            {{
+                var result = {access}.ValidateName(ctx);
                 return result == null ? ValidationResult.Success() : ValidationResult.Error(result);
-            })");
+            }})");
     }
 
     
@@ -96,14 +95,14 @@ namespace Test;
 [AutoSpectreForm]
 public class Inner 
 {
-    [Ask]
+    [TextPrompt]
     public string Title {get;set;}
 }
 
 [AutoSpectreForm]
 public class Example
 {
-    [Ask()]
+    [TextPrompt()]
     public Inner[] InnerItems { get; set; } = Array.Empty<Inner>();
 
     public string? InnerItemsValidator(List<Inner> items, Inner item)
@@ -143,10 +142,12 @@ public class Example
 """).Should().Contain("destination.InnerItemValidator(item)");
     }
     
-    [Fact]
-    public void PropertyPointingToListWithOtherClassDecoratedWithAutoSpectreFromReturnsExpected()
+    [Theory]
+    [InlineData("public string? InnerItemValidator(Inner[] items, Inner item){ return null }", "destination.InnerItemValidator(items, newItem)")]
+    [InlineData("public static string? InnerItemValidator(Inner[] items, Inner item){ return null }", "Example.InnerItemValidator(items, newItem)")]
+    public void PropertyPointingToListWithOtherClassDecoratedWithAutoSpectreFromReturnsExpectedOutput(string validator, string expectedOutput)
     {
-        GetGeneratedOutput("""
+        GetOutput($$"""
 using AutoSpectre;
 using System.Collections.Generic;
 
@@ -164,20 +165,19 @@ public class Example
     [Ask()]
     public Inner[] InnerItem { get; set; }
 
-    public string? InnerItemValidator(Inner[] items, Inner item)
-    {
-        return null;
-    }   
+    {{ validator }}
 }
-""").Should().Contain("destination.InnerItemValidator(items, newItem)");
+""").OutputShouldContain(expectedOutput);
     }
 
     
     
-    [Fact]
-    public void PropertyWithEnumerableResultValidatorByConventionReturnsExpected()
+    [Theory]
+    [InlineData(false, "destination")]
+    [InlineData(true, "Example")]
+    public void PropertyWithEnumerableResultValidatorByConventionReturnsExpected(bool isStatic, string access)
     {
-        GetGeneratedOutput("""
+        GetGeneratedOutput($$"""
 using AutoSpectre;
 using System.Collections.Generic;
 
@@ -189,7 +189,7 @@ public class Example
     [Ask()]
     public int[] Ages { get; set; } = Array.Empty<int>();
 
-    public string? AgesValidator(List<int> items, int item)
+    public {{ (isStatic ? "static" : "") }} string? AgesValidator(List<int> items, int item)
     {
         if (ValidateAge(item) is { } error)
             return error;
@@ -207,16 +207,18 @@ public class Example
         return age >= 18 ? null : "Age must be at least 18";
     }
 }
-""").Should().Contain(@"var validationResult = destination.AgesValidator(items, item);
-                        if (validationResult is { } error)
-                        {
-                            AnsiConsole.MarkupLine($""[red]{error}[/]"");
-                            valid = false;
-                        }
-                        else
-                        {
-                            valid = true;
-                            items.Add(item);
-                        }");
+""").Should().Contain($$"""
+                      var validationResult = {{ access }}.AgesValidator(items, item);
+                                              if (validationResult is { } error)
+                                              {
+                                                  AnsiConsole.MarkupLine($"[red]{error}[/]");
+                                                  valid = false;
+                                              }
+                                              else
+                                              {
+                                                  valid = true;
+                                                  items.Add(item);
+                                              }
+                      """);
     }
 }

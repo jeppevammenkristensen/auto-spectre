@@ -880,14 +880,14 @@ internal class StepContextBuilderOperation
         var candidates =
             TargetType
                 .GetAllMembers()
-                .Where(x => x.IsPublicInstance() && x.Name == validator)
+                .Where(x => x.IsPublic() && x.Name == validator)
                 .ToList();
 
         var match = candidates.FirstOrDefault(IsMethodMatch);
 
         if (match is { })
         {
-            propertyContext.ConfirmedValidator = new ConfirmedValidator(validator, !propertyContext.IsEnumerable);
+            propertyContext.ConfirmedValidator = new ConfirmedValidator(validator, !propertyContext.IsEnumerable, match.IsStatic);
         }
         else if (candidates.Count > 0)
         {

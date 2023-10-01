@@ -18,8 +18,5 @@ internal abstract class PromptBuilderContextWithPropertyContext : PromptBuildCon
         return string.Empty;
     }
 
-    protected string GetStaticOrInstancePrepend(bool isStatic)
-    {
-        return isStatic ? Context.TargetType.Name : "destination";
-    }
+   
 }

@@ -11,8 +11,12 @@
 
 * Based on the new properties in TextPrompt, the source generation has been updated to support these new properties.
 * New solution for defining DefaultValueSource. Old way discarded.
+* Fixed double diagnostics if source was missing
 * Added support for defining Sources that are Static. And allow them to be fields
-    1. SelectPrompt. Migrated to `Source`, `Converter`
+    1. Source on SelectPrompt now supports fields and static
+    2. Converter on SelectPrompt now supports static method
+    3. Validator on TextPrompt now supports static method.
+    4. 
 
 ## 0.6.0
 

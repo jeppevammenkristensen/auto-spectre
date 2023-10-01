@@ -52,7 +52,7 @@ internal class TextPromptBuildContext : PromptBuilderContextWithPropertyContext
             builder.AppendLine(
                 $$"""
 .Validate(ctx => {
-    var result = destination.{{Context.ConfirmedValidator.Name}}(ctx);
+    var result = {{GetStaticOrInstancePrepend(Context.ConfirmedValidator.IsStatic)}}.{{Context.ConfirmedValidator.Name}}(ctx);
     return result == null ? ValidationResult.Success() : ValidationResult.Error(result);
 })
 """);

@@ -87,7 +87,7 @@ public class MultiAddBuildContext : PromptBuildContext
                     while (!valid) {
 
                         {{_buildContext.PromptPart("newItem")}};
-                        var validationResult = destination.{{validator.Name}}(items,newItem);
+                        var validationResult = {{ GetStaticOrInstancePrepend(validator.IsStatic)}}.{{validator.Name}}(items,newItem);
                         if (validationResult is {} error)
                         {
                             AnsiConsole.MarkupLine($"[red]{error}[/]");
@@ -122,7 +122,7 @@ public class MultiAddBuildContext : PromptBuildContext
                     while (!valid) {
 
                         var item = {{_buildContext.PromptPart()}};
-                        var validationResult = destination.{{validator.Name}}(items,item);
+                        var validationResult = {{GetStaticOrInstancePrepend(validator.IsStatic)}}.{{validator.Name}}(items,item);
                         if (validationResult is {} error)
                         {
                             AnsiConsole.MarkupLine($"[red]{error}[/]");

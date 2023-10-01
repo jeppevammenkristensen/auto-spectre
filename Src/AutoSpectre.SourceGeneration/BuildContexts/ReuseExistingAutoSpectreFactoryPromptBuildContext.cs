@@ -83,7 +83,7 @@ internal class ReuseExistingAutoSpectreFactoryPromptBuildContext : PromptBuilder
                 {{ InitializeVariable(usedVariable) }}
                 {{ GetValueFromFactory(usedVariable)}}
 
-                if (destination.{{Context.ConfirmedValidator.Name}}({{usedVariable}}) is {} error)
+                if ({{GetStaticOrInstancePrepend(Context.ConfirmedValidator.IsStatic)}}.{{Context.ConfirmedValidator.Name}}({{usedVariable}}) is {} error)
                 {
                     AnsiConsole.MarkupLineInterpolated($"[red]{error}[/]");
                     isValid = false;
