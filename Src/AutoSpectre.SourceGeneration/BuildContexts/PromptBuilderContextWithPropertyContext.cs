@@ -12,10 +12,14 @@ internal abstract class PromptBuilderContextWithPropertyContext : PromptBuildCon
     {
         if (Context.ConfirmedConverter is { } converter)
         {
-            return $".UseConverter(destination.{converter.Converter})";
+            return $".UseConverter({GetStaticOrInstancePrepend(converter.IsStatic)}.{converter.Converter})";
         }
 
         return string.Empty;
     }
 
+    protected string GetStaticOrInstancePrepend(bool isStatic)
+    {
+        return isStatic ? Context.TargetType.Name : "destination";
+    }
 }

@@ -10,7 +10,9 @@
 ### AutoSpectre.SourceGeneration
 
 * Based on the new properties in TextPrompt, the source generation has been updated to support these new properties.
-* New solution for defining DefaultValueSource. Old way discarded. 
+* New solution for defining DefaultValueSource. Old way discarded.
+* Added support for defining Sources that are Static. And allow them to be fields
+    1. SelectPrompt. Migrated to `Source`, `Converter`
 
 ## 0.6.0
 

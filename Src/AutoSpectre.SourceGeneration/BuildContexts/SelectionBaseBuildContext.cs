@@ -52,7 +52,7 @@ internal abstract class SelectionBaseBuildContext : PromptBuilderContextWithProp
 
     protected string GetChoicePrepend()
     {
-        return Context.ConfirmedSelectionSource.IsStatic ? Context.TargetType.Name : "destination";
+        return GetStaticOrInstancePrepend(Context.ConfirmedSelectionSource!.IsStatic);
     }
 
     protected string GetSelector() => Context.ConfirmedSelectionSource!.Source switch

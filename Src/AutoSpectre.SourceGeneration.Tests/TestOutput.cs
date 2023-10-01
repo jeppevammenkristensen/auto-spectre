@@ -14,13 +14,14 @@ public record TestOutput(ImmutableArray<Diagnostic> CompileDiagnostics,
     public string Output => OutputCompilation.SyntaxTrees.Last().ToString();
     
     
-    public TestOutput ShouldHaveSourceGeneratorDiagnostic(string id)
+    public TestOutput ShouldHaveSourceGeneratorDiagnosticOnlyOnce(string id)
     {
         var testId = id;
-        GeneratorDiagnostics.Should().ContainEquivalentOf(new { Id = id}, $"a source generator diagnostic matching id {id} should be present");
+        GeneratorDiagnostics.Should().ContainSingle(x => x.Id == id, $"a source generator diagnostic matching id {id} should be present only once");
         return this;
     }
-
+    
+    
     public TestOutput HasNoSourceGeneratorDiagnosticWith(string id)
     {
         GeneratorDiagnostics.Should()
