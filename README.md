@@ -18,24 +18,35 @@ public class Example
 {
     [TextPrompt(Title = "Add item")] public int[] IntItems { get; set; } = Array.Empty<int>();
 
-    [TextPrompt(Title = "Enter first name", DefaultValueStyle = "bold")]
-    public string? FirstName { get; set; } = "John Doe"; // Default value in prompt
+    [TextPrompt(Title = "Enter first name", DefaultValueStyle = "bold",
+        DefaultValueSource = nameof(FirstNameDefaultValue))]
+    public string? FirstName { get; set; }
 
-    [TextPrompt(PromptStyle = "green bold")] 
+    public readonly string? FirstNameDefaultValue = "John Doe";
+
+
+    [TextPrompt(PromptStyle = "green bold")]
     public bool LeftHanded { get; set; }
 
-    [TextPrompt(Title = "Choose your [red]value[/]" )]
+    [TextPrompt(Title = "Choose your [red]value[/]")]
     public SomeEnum Other { get; set; }
-    
+
     [TextPrompt(Secret = true, Mask = '*')]
     public string? Password { get; set; }
+
+    [TextPrompt(ChoicesSource = nameof(NameChoices), ChoicesStyle = "red on yellow",
+        ChoicesInvalidText = "Must be one of the names")]
+    public string Name { get; set; } = null!;
+
+    public static readonly string[] NameChoices = new[] {"Kurt", "Krist", "David", "Pat"};
 
     [TextPrompt] public OtherAutoSpectreFormClass ChildForm { get; set; } = new();
 
     [TextPrompt]
     public IReadOnlyList<OtherAutoSpectreFormClass> Investors { get; set; } = new List<OtherAutoSpectreFormClass>();
 
-    [TaskStep(UseStatus = true, StatusText = "This will take a while", SpinnerType = SpinnerKnownTypes.Christmas, SpinnerStyle = "green on yellow")]
+    [TaskStep(UseStatus = true, StatusText = "This will take a while", SpinnerType = SpinnerKnownTypes.Christmas,
+        SpinnerStyle = "green on yellow")]
     public void DoSomething(IAnsiConsole console)
     {
         console.Write(new FigletText("A figlet text is needed"));
@@ -46,14 +57,14 @@ public class Example
     //[SelectPrompt(Source = nameof(ItemSource))]
     public string Item { get; set; } = string.Empty;
 
-    public List<string> ItemSource { get; } = new() { "Alpha", "Bravo", "Charlie" };
+    public List<string> ItemSource { get; } = new() {"Alpha", "Bravo", "Charlie"};
 
     [SelectPrompt(InstructionsText = "Check the special items you want to select")]
     //[SelectPrompt(Converter = nameof(SpecialProjectionConverter))]
     public List<int> SpecialProjection { get; set; } = new();
 
     public string SpecialProjectionConverter(int source) => $"Number {source}";
-    public List<int> SpecialProjectionSource { get; set; } = new() { 1, 2, 3, 4 };
+    public List<int> SpecialProjectionSource { get; set; } = new() {1, 2, 3, 4};
 
     [TextPrompt]
     // [TextPrompt(Validator = nameof(EnterYearValidator))]
@@ -108,14 +119,15 @@ public class ExampleSpectreFactory : IExampleSpectreFactory
     public Example Get(Example destination = null)
     {
         IOtherAutoSpectreFormClassSpectreFactory OtherAutoSpectreFormClassSpectreFactory = new OtherAutoSpectreFormClassSpectreFactory();
-        destination ??= new ConsoleApp1.Example();
+        destination ??= new Autospectre.Examples.Examples.GithubSample.Example();
+        var culture = new CultureInfo("da-DK");
         // Prompt for values for destination.IntItems
         {
             List<int> items = new List<int>();
             bool continuePrompting = true;
             do
             {
-                var item = AnsiConsole.Prompt(new TextPrompt<int>("Add item"));
+                var item = AnsiConsole.Prompt(new TextPrompt<int>("Add item").WithCulture(culture));
                 items.Add(item);
                 continuePrompting = AnsiConsole.Confirm("Add more items?");
             }
@@ -124,13 +136,15 @@ public class ExampleSpectreFactory : IExampleSpectreFactory
             destination.IntItems = result;
         }
 
-        destination.FirstName = AnsiConsole.Prompt(new TextPrompt<string?>("Enter first name").AllowEmpty().DefaultValue("John Doe").DefaultValueStyle("bold"));
+        destination.FirstName = AnsiConsole.Prompt(new TextPrompt<string?>("Enter first name").AllowEmpty().WithCulture(culture).DefaultValue(destination.FirstNameDefaultValue).DefaultValueStyle("bold"));
         destination.LeftHanded = AnsiConsole.Confirm("Enter [green]LeftHanded[/]");
         destination.Other = AnsiConsole.Prompt(new SelectionPrompt<SomeEnum>().Title("Choose your [red]value[/]").PageSize(10).AddChoices(Enum.GetValues<SomeEnum>()));
-        destination.Password = AnsiConsole.Prompt(new TextPrompt<string?>("Enter [green]Password[/]").AllowEmpty().Secret('*'));
+        destination.Password = AnsiConsole.Prompt(new TextPrompt<string?>("Enter [green]Password[/]").AllowEmpty().WithCulture(culture).Secret('*'));
+        destination.Name = AnsiConsole.Prompt(new TextPrompt<string>("Enter [green]Name[/]").WithCulture(culture).AddChoices(Example.NameChoices()).ChoicesStyle("red on yellow").InvalidChoiceMessage("Must be one of the names"));
         {
             AnsiConsole.MarkupLine("Enter [green]ChildForm[/]");
-            var item = OtherAutoSpectreFormClassSpectreFactory.Get();
+            var item = new Autospectre.Examples.Examples.GithubSample.OtherAutoSpectreFormClass();
+            OtherAutoSpectreFormClassSpectreFactory.Get(item);
             destination.ChildForm = item;
         }
 
@@ -142,25 +156,25 @@ public class ExampleSpectreFactory : IExampleSpectreFactory
             {
                 {
                     AnsiConsole.MarkupLine("Enter [green]Investors[/]");
-                    var newItem = OtherAutoSpectreFormClassSpectreFactory.Get();
+                    var newItem = new Autospectre.Examples.Examples.GithubSample.OtherAutoSpectreFormClass();
+                    OtherAutoSpectreFormClassSpectreFactory.Get(newItem);
                     items.Add(newItem);
                 }
 
                 continuePrompting = AnsiConsole.Confirm("Add more items?");
             }
             while (continuePrompting);
-            System.Collections.Generic.IReadOnlyList<ConsoleApp1.OtherAutoSpectreFormClass> result = items;
+            System.Collections.Generic.IReadOnlyList<Autospectre.Examples.Examples.GithubSample.OtherAutoSpectreFormClass> result = items;
             destination.Investors = result;
         }
 
-        AnsiConsole.MarkupLine("Calling method [green]DoSomething[/]");
         AnsiConsole.Status().SpinnerStyle("green on yellow").Spinner(Spinner.Known.Christmas).Start("This will take a while", ctx =>
         {
             destination.DoSomething(AnsiConsole.Console);
         });
         destination.Item = AnsiConsole.Prompt(new SelectionPrompt<string>().Title("Enter [green]Item[/]").PageSize(3).WrapAround(true).MoreChoicesText("Press down to see more choices").HighlightStyle("purple").AddChoices(destination.ItemSource.ToArray()));
         destination.SpecialProjection = AnsiConsole.Prompt(new MultiSelectionPrompt<int>().Title("Enter [green]SpecialProjection[/]").UseConverter(destination.SpecialProjectionConverter).PageSize(10).InstructionsText("Check the special items you want to select").AddChoices(destination.SpecialProjectionSource.ToArray()));
-        destination.EnterYear = AnsiConsole.Prompt(new TextPrompt<int>("Enter [green]EnterYear[/]").Validate(ctx =>
+        destination.EnterYear = AnsiConsole.Prompt(new TextPrompt<int>("Enter [green]EnterYear[/]").WithCulture(culture).Validate(ctx =>
         {
             var result = destination.EnterYearValidator(ctx);
             return result == null ? ValidationResult.Success() : ValidationResult.Error(result);
@@ -174,7 +188,7 @@ public class ExampleSpectreFactory : IExampleSpectreFactory
                 bool valid = false;
                 while (!valid)
                 {
-                    var item = AnsiConsole.Prompt(new TextPrompt<string>("Enter [green]Names[/]"));
+                    var item = AnsiConsole.Prompt(new TextPrompt<string>("Enter [green]Names[/]").WithCulture(culture));
                     var validationResult = destination.NamesValidator(items, item);
                     if (validationResult is { } error)
                     {
@@ -198,12 +212,12 @@ public class ExampleSpectreFactory : IExampleSpectreFactory
         destination.AddExistingName = AnsiConsole.Confirm("Enter [green]AddExistingName[/]");
         if (destination.AddExistingName == true)
         {
-            destination.ExistingName = AnsiConsole.Prompt(new TextPrompt<string?>("Enter [green]ExistingName[/]").AllowEmpty());
+            destination.ExistingName = AnsiConsole.Prompt(new TextPrompt<string?>("Enter [green]ExistingName[/]").AllowEmpty().WithCulture(culture));
         }
 
         if (destination.AddExistingName == false)
         {
-            destination.NewName = AnsiConsole.Prompt(new TextPrompt<string?>("Enter [green]NewName[/]").AllowEmpty());
+            destination.NewName = AnsiConsole.Prompt(new TextPrompt<string?>("Enter [green]NewName[/]").AllowEmpty().WithCulture(culture));
         }
 
         return destination;
@@ -273,6 +287,10 @@ These properties are applied to properties. The properties must be settable and 
 * Condition (points to a property or method that returns bool to determine if the given property should be prompted for)
 * NegateCondition negates the condition.
 
+### A short note on sources
+
+Some of the properties of the attributes are source properties. It can vary if they can point to fields, properties or methods. But a general rule is that the sources must be public and available on the `AutoSpectreForm` decorated class.
+
 ### TextPromptAttribute
 
 This will in the end present some kind of input prompt to the user, that tries to prompt the use for the value of a given type. Per default it will try to convert a string to the given value. However if the type is bool it will produce a ConfirmationPrompt (y/n). If the type is an enum it will generate a selection prompt (but unlike using the SelectPrompt, you do not have to provide a source).
@@ -281,16 +299,19 @@ If the type is another class that has been decorated with the AutoSpectreForm at
 
 #### Default value
 
-You can apply a defaultvalue like this:
+**Note** that the logic behind default value has changed. Earlier the default value was determined by the value set to a property like below:
+
 `public string FirstName { get; set; } = "John Doe";`
 
-The default value mechanism is not perfect in it's current state. But it can help you some of the way. If it's a value that we can't use as default value will be ignored. Also note that we will not look for default values set in the constructor.
+The new approach from version 0.7.0 is that it can be set by using the `DefaultValueSource`. The source can be a method, property or field. And can be instance or static and must be public
+
+The style can be controlled by setting the `DefaultValueStyle`
 
 Default value is only currently used for single items (not enumerables)
 
 #### IEnumerable types
 
-In the case of a TextPromptAttribute and an IEnumerable&lt;T&gt; value. The rules above will be applied to a single type, and after collecting input the user will be prompted if the want's to continue.
+In the case of a `TextPromptAttribute` and an `IEnumerable<T>` value. The rules above will be applied to a single type, and after collecting input the user will be prompted if the want's to continue.
 
 #### Other functionality
 
@@ -298,8 +319,8 @@ The textprompt allows you to
 
 * add [validation](#validation), see more below
 * add a password prompt by using the `Secret` and/or `Mask` property
-* control styles with the `DefaultValueStyle`for the DefaultValue and `PromptStyle` for the prompt itself. See [styles](#styles)
-
+* control styles with the `DefaultValueStyle`for the DefaultValue and `PromptStyle` for the prompt itself. See [styles](#styles).
+* support Choices (autocomplete) with the 
 
 ### SelectPromptAttribute
 
@@ -326,7 +347,7 @@ The filosophy for this method is that you can do 'custom' things.
 * You can choose display whatever you may want to the user (for instance figlet text)
 * You can do a lookup to a database or an api.
 * You can do some processing of the data you currently collected
-* If the current supplied property step attributes does not fit your needs you do some custom prompting to set a property values. *NOTE* If you use the Status bar, prompting is not allowed, so it would be important that UseStatus is set to false in that case.
+* If the current supplied property step attributes does not fit your needs you do some custom prompting to set a property values. **NOTE** If you use the Status bar, prompting is not allowed, so it would be important that UseStatus is set to false in that case.
 
 ### Requirements for the method
 
@@ -461,6 +482,8 @@ Based on the return type there are two types of parameters needed
 * Single property. It's expected that the method has one parameter that is the same as the property
 * Enumerable property. It's expected that the first parameter is an IEnumerable of the property type and the second parameter is the type
 
+The method pointed to must be public, but can be instance and static.
+
 ### Example
 
 ```csharp
@@ -527,6 +550,34 @@ ctx =>
     int[] result = items.ToArray();
     destination.Ages = result;
 }
+```
+
+## Choices
+
+You can define choices for a property by using the `ChoicesSource` property or by following the {PropertyName}Choices convention. The source can be a property, method (no parameters) or field that returns the singular type of the property.
+
+The choices are autocomplete and will be displayed in the prompt. The style of how they are displayed can be controlled through the `ChoicesStyle` prpoerty. When the user types something that is not in the choices, an invalid text will be displayed (this can be overloaded with `ChoicesInvalidText`).
+
+### Example
+
+```csharp
+[TextPrompt(
+    ChoicesSource = nameof(NameChoices), 
+    ChoicesStyle = "red on yellow",ChoicesInvalidText = "Must be one of the names")]
+public string Name { get; set; } = null!;
+
+public static readonly string[] NameChoices = new[] {"Kurt", "Krist", "David", "Pat"};
+```
+
+### Generated
+
+```csharp
+destination.Name = AnsiConsole.Prompt(
+    new TextPrompt<string>("Enter [green]Name[/]")
+    .WithCulture(culture)
+    .AddChoices(Example.NameChoices)
+    .ChoicesStyle("red on yellow")
+    .InvalidChoiceMessage("Must be one of the names"));
 ```
 
 ## Type initialization
