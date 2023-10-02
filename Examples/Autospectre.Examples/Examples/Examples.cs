@@ -1,5 +1,4 @@
 ﻿using AutoSpectre;
-using Autospectre.Examples.Examples.Database;
 
 namespace Autospectre.Examples.Examples;
 
@@ -12,7 +11,6 @@ public class Examples
     public IEnumerable<IExample> SelectExampleSource()
     {
         yield return new LoginExample();
-        yield return new DatabaseExample();
     }
 
     public string SelectExampleConverter(IExample example)

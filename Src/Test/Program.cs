@@ -19,10 +19,11 @@ namespace Test
     [AutoSpectreForm(Culture = "da-DK")]
 public class Example
 {
-    [TextPrompt]
+    [TextPrompt(ChoicesSource= nameof(NameChoices), ChoicesStyle = "red on yellow", ChoicesInvalidText = "Must be one of the names")]
     public string Name { get; set; } = null!;
 
-    public static string? NameValidator(string name) => name == "Jeppe" ? "Stupid Name" : null;
+    public static readonly string[] NameChoices = new[] { "Andreas", "Emilie", "Alberte" };
+
     //  public static string DefaultName  = "Jeppe";
     // public static IEnumerable<string> NameSource 
     // {
