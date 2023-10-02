@@ -16,7 +16,8 @@
     1. Source on SelectPrompt now supports fields and static
     2. Converter on SelectPrompt now supports static method
     3. Validator on TextPrompt now supports static method.
-    4. 
+    4. TypeInitializer on TextPrompt now supports static method.
+    5. Choices on TextPrompt now supports static and has added fields
 
 ## 0.6.0
 

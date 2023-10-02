@@ -66,7 +66,7 @@ internal class TextPromptBuildContext : PromptBuilderContextWithPropertyContext
     {
         if (Context.ConfirmedChoices is { } choices)
         {
-            builder.Append(".AddChoices(destination.");
+            builder.Append($".AddChoices({GetStaticOrInstancePrepend(choices.IsStatic)}.");
             if (choices.SourceType == ChoiceSourceType.Method)
                 builder.Append($"{choices.SourceName}()");
             else if (choices.SourceType == ChoiceSourceType.Property)

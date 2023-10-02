@@ -323,23 +323,18 @@ internal class StepContextBuilderOperation
         var nameCandidate = memberAttributeData.ChoicesSource ?? $"{propertyEvaluationContext.Property.Name}Choices";
         var isGuess = memberAttributeData.ChoicesSource == null;
 
-        var typeSpec = EnumerableOfTypeSpec(propertyEvaluationContext.Type);
-        
-        var methodSpecification = MethodWithNoParametersSpec
-            .WithTypeSpec(typeSpec);
-
-        var propertySpecification = PropertyOfTypeSpec(typeSpec);
+        TypeFieldMethodPropertySpecifiations spec = new(EnumerableOfTypeSpec(propertyEvaluationContext.Type));
 
         var candidates = TargetType
             .GetMembers()
             .Where(x => x.Name == nameCandidate)
             .ToList();
         
-        var publicMethodOrPropertyMatchSpec = (methodSpecification | propertySpecification) & IsPublicAndInstanceSpec;
+        var publicMethodOrPropertyOrFieldMatchSpec = (spec.Property | spec.Method | spec.Field) & IsPublic;
 
         if (candidates.Count > 0)
         {
-            if (candidates.FirstOrDefault(publicMethodOrPropertyMatchSpec) is { } match)
+            if (candidates.FirstOrDefault(publicMethodOrPropertyOrFieldMatchSpec) is { } match)
             {
                 string? choiceStyle = null;
                 string? choiceInvalidText = null;
@@ -351,9 +346,9 @@ internal class StepContextBuilderOperation
 
                 ChoiceSourceType choiceSourceType = default;
 
-                if (methodSpecification.IsSatisfiedBy(match))
+                if (spec.Method == match)
                     choiceSourceType = ChoiceSourceType.Method;
-                else if (propertySpecification.IsSatisfiedBy(match))
+                else if (spec.PropertyOrField == match)
                     choiceSourceType = ChoiceSourceType.Property;
                 else
                     throw new InvalidOperationException(
@@ -365,7 +360,7 @@ internal class StepContextBuilderOperation
                 }
 
                 propertyEvaluationContext.ConfirmedChoices = new ConfirmedChoices(nameCandidate, choiceSourceType,
-                    choiceStyle, choiceInvalidText);
+                    choiceStyle, choiceInvalidText, match.IsStatic);
             }
             else
             {
@@ -924,6 +919,8 @@ internal class StepContextBuilderOperation
         public FieldSpecification<ISymbol> Field { get;  }
 
         public Specification<ISymbol> Property { get;  }
+
+        public Specification<ISymbol> PropertyOrField => Property | Field;
 
         public MethodSpecification<ISymbol> Method { get; }
     }

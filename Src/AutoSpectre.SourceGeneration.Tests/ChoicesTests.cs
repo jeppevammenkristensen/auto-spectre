@@ -4,71 +4,22 @@ using Xunit.Abstractions;
 
 namespace AutoSpectre.SourceGeneration.Tests;
 
-public class ConverterTests : AutoSpectreGeneratorTestsBase
-{
-    public ConverterTests(ITestOutputHelper helper) : base(helper)
-    {
-    }
-
-    [Theory]
-    [InlineData("public static string PropertyConverter(DateTime input) => string.Empty;",".UseConverter(TestForm.PropertyConverter)")]
-    [InlineData("public string PropertyConverter(DateTime input) => string.Empty;",".UseConverter(destination.PropertyConverter)")]
-    public void ValidConverterSinglePromptGeneratesExpectedResult(string converter, string expected)
-    {
-        GetOutput($$"""
-                    using AutoSpectre;
-                    using System.Collections.Generic;
-                    using System;
-
-                    namespace Test;
-
-                    [AutoSpectreForm]
-                    public class TestForm
-                    {
-                         [SelectPrompt()]
-                         public DateTime Property {get;set;}
-                         
-                         public List<DateTime> PropertySource {get;set;}
-                         
-                         {{converter}}
-                    }
-                    """).OutputShouldContain(expected);
-    }
-    
-    [Theory]
-    [InlineData("public static string PropertyConverter(DateTime input) => string.Empty;",".UseConverter(TestForm.PropertyConverter)")]
-    [InlineData("public string PropertyConverter(DateTime input) => string.Empty;",".UseConverter(destination.PropertyConverter)")]
-    public void ValidConverterMultiSelectPromptGeneratesExpectedResult(string converter, string expected)
-    {
-        GetOutput($$"""
-                    using AutoSpectre;
-                    using System.Collections.Generic;
-                    using System;
-
-                    namespace Test;
-
-                    [AutoSpectreForm]
-                    public class TestForm
-                    {
-                         [SelectPrompt(Converter = nameof(PropertyConverter))]
-                         public List<DateTime> Properties {get;set;}
-                         
-                         public List<DateTime> PropertiesSource {get;set;}
-                         
-                         {{converter}}
-                    }
-                    """).OutputShouldContain(expected);
-    }
-}
-
 public class ChoicesTests : AutoSpectreGeneratorTestsBase
 {
     public ChoicesTests(ITestOutputHelper helper) : base(helper)
     {
     }
 
-    [Fact]
-    public void ChoicesAddedThroughConventionMethod()
+    [Theory]
+    [InlineData("public string[] TestChoices() => new string[0];", "destination.TestChoices()")]
+    [InlineData("public static string[] TestChoices() => new string[0];", "TestForm.TestChoices()")]
+    [InlineData("public IEnumerable<string> TestChoices => null;", "destination.TestChoices")]
+    [InlineData("public static IEnumerable<string> TestChoices => new string[0];", "TestForm.TestChoices")]
+    [InlineData("public const string[] TestChoices = new string[0];", "TestForm.TestChoices")]
+    [InlineData("public readonly string[] TestChoices = new string[0];", "destination.TestChoices")]
+    [InlineData("public static readonly string[] TestChoices = new string[0];", "TestForm.TestChoices")]
+    [InlineData("public string[] TestChoices = new string[0];", "destination.TestChoices")]
+    public void ChoicesAddedThroughConvention(string choiceMethod, string call)
     {
         GetOutput($$"""
                              using AutoSpectre;
@@ -82,9 +33,10 @@ public class ChoicesTests : AutoSpectreGeneratorTestsBase
                                    [TextPrompt]
                                    public string Test {get;set;}
                                    
+                                   {{ choiceMethod }}
                                    public string[] TestChoices() => new string[0];                            
                              }
-                             """).OutputShouldContain(".AddChoices(destination.TestChoices())");
+                             """).OutputShouldContain($".AddChoices({call})");
     }
     
     [Fact]
@@ -236,5 +188,5 @@ public class ChoicesTests : AutoSpectreGeneratorTestsBase
                     }
                     """).ShouldHaveSourceGeneratorDiagnosticOnlyOnce(DiagnosticIds.Id0024_ChoiceCandidate_NotFound);
     }
-    
 }
+

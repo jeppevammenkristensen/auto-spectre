@@ -7,7 +7,7 @@
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <IsRoslynComponent>true</IsRoslynComponent>
     <VersionPrefix>0.7.0</VersionPrefix>
-     <VersionSuffix>preview.0.6</VersionSuffix> 
+     <VersionSuffix>preview.0.7</VersionSuffix> 
   </PropertyGroup>
 
   <PropertyGroup>
