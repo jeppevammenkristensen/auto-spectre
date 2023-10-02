@@ -404,33 +404,34 @@ internal class StepContextBuilderOperation
                     $"The type {namedTypeAnalysis.NamedTypeSymbol.Name} decorated with AutoSpectreForm does not have an empty constructor. You need to provide a method that can initalize it",
                     "General", DiagnosticSeverity.Error, true),
                 propertyContext.Property.Locations.FirstOrDefault()));
+            return;
         }
-
-        propertyContext.ConfirmedNamedTypeSource = new ConfirmedNamedTypeSource(namedTypeAnalysis, initializer);
+        propertyContext.ConfirmedNamedTypeSource = new ConfirmedNamedTypeSource(namedTypeAnalysis, initializer?.Name, initializer?.IsStatic ?? false);
     }
     
-    private string? EvaluateAndReturnTypeInitializer(SinglePropertyEvaluationContext propertyContext, TranslatedMemberAttributeData memberAttributeData, NamedTypedAnalysis? namedTypedAnalysis)
+    private IMethodSymbol? EvaluateAndReturnTypeInitializer(SinglePropertyEvaluationContext propertyContext, TranslatedMemberAttributeData memberAttributeData, NamedTypedAnalysis? namedTypedAnalysis)
     {
         var typeInitializer = memberAttributeData.TypeInitializer ?? $"Init{propertyContext.Type.Name}";
         
+        
         if (namedTypedAnalysis is {})
         {
+            var methodSpec = 
+                MethodWithNoParametersSpec.WithReturnType(namedTypedAnalysis.NamedTypeSymbol) & IsPublic;
+            
             var methodMatch = TargetType.GetAllMembers()
-                .Where(x => x.Kind == SymbolKind.Method && x.Name == typeInitializer)
                 .OfType<IMethodSymbol>()
-                .FirstOrDefault(x =>
-                    x.ReturnType.Equals(namedTypedAnalysis.NamedTypeSymbol,
-                        SymbolEqualityComparer.Default) && x.Parameters.Length == 0);
-
+                .Where(x => x.Name == typeInitializer)
+                .FirstOrDefault(methodSpec);
+                
             if (methodMatch is { })
             {
-                return methodMatch.Name;
+                return methodMatch;
             }
         }
 
         return null;
     }
-
     private void EvaluateSelectionSource(TranslatedMemberAttributeData memberAttributeData,
         SinglePropertyEvaluationContext propertyContext)
     {

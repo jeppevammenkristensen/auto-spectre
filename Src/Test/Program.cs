@@ -19,21 +19,22 @@ namespace Test
     [AutoSpectreForm(Culture = "da-DK")]
 public class Example
 {
-    [SelectPrompt(Source = nameof(NameSource))]
+    [TextPrompt]
     public string Name { get; set; } = null!;
 
-    public static string DefaultName  = "Jeppe";
-   public static IEnumerable<int> NameSource 
-   {
-       get
-       {
-           yield return 32;
-           yield return 332;
-           yield return 433;
-           yield return 305;
-       }
-       
-   }
-   
+    public static string? NameValidator(string name) => name == "Jeppe" ? "Stupid Name" : null;
+    //  public static string DefaultName  = "Jeppe";
+    // public static IEnumerable<string> NameSource 
+    // {
+    //     get
+    //     {
+    //         yield return "32";
+    //         yield return "332";
+    //         yield return "433";
+    //         yield return "305";
+    //     }
+    //     
+    // }
+
 }
 }

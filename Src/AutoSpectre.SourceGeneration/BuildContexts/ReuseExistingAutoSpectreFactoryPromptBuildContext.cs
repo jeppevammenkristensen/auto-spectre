@@ -105,7 +105,7 @@ internal class ReuseExistingAutoSpectreFactoryPromptBuildContext : PromptBuilder
 
         if (NamedTypeSource.TypeConverter is { } initializer)
         {
-            return $"var {variableName} = destination.{initializer}();";
+            return $"var {variableName} = {GetStaticOrInstancePrepend(NamedTypeSource.IsStatic)}.{initializer}();";
         }
         else
         {
