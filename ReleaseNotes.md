@@ -1,5 +1,14 @@
 # Releases
 
+## 0.8.0
+
+### AutoSpectre
+
+### AutoSpectre.SourceGeneration
+
+* An extension method is now exposed so it's possible to call the Prompt method on an instance without having to 
+instantiate the factory class.
+
 ## 0.7.0
 
 ### AutoSpectre
