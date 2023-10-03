@@ -11,8 +11,7 @@ namespace Test
     {
         public static async Task Main()
         {
-            ExampleSpectreFactory factory = new();
-            factory.Get(new Example());
+            var spectrePrompt = await new Example().SpectrePromptAsync();
         }
     }
     
@@ -20,9 +19,15 @@ namespace Test
 public class Example
 {
     [TextPrompt(ChoicesSource= nameof(NameChoices), ChoicesStyle = "red on yellow", ChoicesInvalidText = "Must be one of the names")]
-    public string Name { get; set; } = null!;
+    public string Names { get; set; } = null!;
 
     public static readonly string[] NameChoices = new[] { "Andreas", "Emilie", "Alberte" };
+
+    [TaskStep(UseStatus = true, StatusText = "Loading....",SpinnerType = SpinnerKnownTypes.Balloon)]
+    public async Task SomeOperation()
+    {
+        await Task.Delay(10000);
+    }
 
     //  public static string DefaultName  = "Jeppe";
     // public static IEnumerable<string> NameSource 

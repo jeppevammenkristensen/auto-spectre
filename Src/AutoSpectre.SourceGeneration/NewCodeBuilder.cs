@@ -91,10 +91,31 @@ namespace {{ Type.ContainingNamespace}}
             {{ ( HasEmptyConstructor ? "return destination;" : string.Empty)  }}
         }
     }
+    
+    {{ GenerateExtensionMethodClass() }}
+    
 }
 """ ;
 
-        return SyntaxFactory.ParseCompilationUnit(result).NormalizeWhitespace().ToFullString();
+    string GenerateExtensionMethodClass()
+    {
+        var type = isAsync ? $"async Task<{Type.Name}>" : Type.Name;
+        var extensionmethodName = isAsync ? "SpectrePromptAsync" : "SpectrePrompt";
+        var call = isAsync ? "return await factory.GetAsync(source);" : "return factory.Get(source);";
+        
+        return $$"""
+                  public static class {{ spectreFactoryClassName }}Extensions 
+                 {
+                     public static {{type}} {{extensionmethodName}} (this {{Type.Name}} source)
+                     {
+                          {{spectreFactoryClassName}} factory = new();
+                          {{ call }}
+                     }
+                 }
+                 """;
+    }
+
+    return SyntaxFactory.ParseCompilationUnit(result).NormalizeWhitespace().ToFullString();
     }
 
     private string InitCulture()
