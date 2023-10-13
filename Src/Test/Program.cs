@@ -11,7 +11,14 @@ namespace Test
     {
         public static async Task Main()
         {
-            var spectrePrompt = await new Example().SpectrePromptAsync();
+            var table = new Table();
+            table.AddColumn(new TableColumn("Name"));
+            table.AddColumn(new TableColumn("Value"));
+            table.AddRow(new Markup("Enter [green]Names[/]"), new Markup("name"));
+            AnsiConsole.Write(table);
+            
+            var spectrePromptAsync = await new Example().SpectrePromptAsync();
+            spectrePromptAsync.Dump();
         }
     }
     
@@ -19,7 +26,7 @@ namespace Test
 public class Example
 {
     [TextPrompt(ChoicesSource= nameof(NameChoices), ChoicesStyle = "red on yellow", ChoicesInvalidText = "Must be one of the names")]
-    public string Names { get; set; } = null!;
+    public string? Names { get; set; } = null!;
 
     public static readonly string[] NameChoices = new[] { "Andreas", "Emilie", "Alberte" };
 

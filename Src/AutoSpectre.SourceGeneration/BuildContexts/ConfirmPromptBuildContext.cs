@@ -1,18 +1,14 @@
-﻿using Microsoft.CodeAnalysis;
-
-namespace AutoSpectre.SourceGeneration.BuildContexts;
+﻿namespace AutoSpectre.SourceGeneration.BuildContexts;
 
 public class ConfirmPromptBuildContext : PromptBuildContext
 {
     public string Title { get; }
-    public ITypeSymbol Type { get; }
     public bool IsNullable { get; }
 
-    public ConfirmPromptBuildContext(string title, ITypeSymbol type, bool isNullable,
+    public ConfirmPromptBuildContext(string title, bool isNullable,
         SinglePropertyEvaluationContext evaluationContext) : base(evaluationContext)
     {
         Title = title;
-        Type = type;
         IsNullable = isNullable;
     }
 

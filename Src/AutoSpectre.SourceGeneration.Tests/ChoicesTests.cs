@@ -120,7 +120,6 @@ public class ChoicesTests : AutoSpectreGeneratorTestsBase
     }
     
     [Theory]
-    [InlineData("public static string[] TheStrings => new string[0]")]
     [InlineData("private string[] TheStrings => new string[0];")]
     [InlineData("public int[] TheStrings => new [] {45};")]
     [InlineData("public string[] TheStrings(string input) => new string[0];")]
@@ -144,7 +143,6 @@ public class ChoicesTests : AutoSpectreGeneratorTestsBase
     }
     
     [Theory]
-    [InlineData("public static string[] TestChoices => new string[0];")]
     [InlineData("private List<string> TestChoices => new();")]
     [InlineData("public List<int> TestChoices => new() {45};")]
     [InlineData("public HashSet<string> TestChoices(int parameter) => new HasSet<string>();")]
