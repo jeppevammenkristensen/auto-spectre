@@ -716,7 +716,7 @@ internal class StepContextBuilderOperation
 
         if (type.SpecialType == SpecialType.System_Boolean)
         {
-            return new ConfirmPromptBuildContext(memberAttributeData.Title, type, evaluationContext.IsNullable,
+            return new ConfirmPromptBuildContext(memberAttributeData.Title, evaluationContext.IsNullable,
                 evaluationContext);
         }
         else if (type.TypeKind == TypeKind.Enum)

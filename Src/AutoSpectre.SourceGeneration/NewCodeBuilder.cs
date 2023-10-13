@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using AutoSpectre.SourceGeneration.Evaluation;
+using Spectre.Console;
+using Spectre.Console.Rendering;
 
 namespace AutoSpectre.SourceGeneration;
 
@@ -102,21 +104,29 @@ namespace {{ Type.ContainingNamespace}}
         var type = isAsync ? $"async Task<{Type.Name}>" : Type.Name;
         var extensionmethodName = isAsync ? "SpectrePromptAsync" : "SpectrePrompt";
         var call = isAsync ? "return await factory.GetAsync(source);" : "return factory.Get(source);";
-        
+
+        var generateDumpMethod = new DumpMethodBuilder(Type, StepContexts, SingleFormEvaluationContext).GenerateDumpMethod();
+
         return $$"""
-                  public static class {{ spectreFactoryClassName }}Extensions 
+                  public static class {{ spectreFactoryClassName }}Extensions
                  {
                      public static {{type}} {{extensionmethodName}} (this {{Type.Name}} source)
                      {
                           {{spectreFactoryClassName}} factory = new();
                           {{ call }}
                      }
+                     
+                     {{ generateDumpMethod }}
                  }
                  """;
     }
 
+
+
     return SyntaxFactory.ParseCompilationUnit(result).NormalizeWhitespace().ToFullString();
     }
+
+  
 
     private string InitCulture()
     {
