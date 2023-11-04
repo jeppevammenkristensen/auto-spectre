@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
-using System.Globalization;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoSpectre;
-using AutoSpectre.Extensions;
-using Spectre.Console;
+using Spectre.Console.Rendering;
+using Test.OneDirectory;
+
 
 namespace Test
 {
@@ -11,29 +12,35 @@ namespace Test
     {
         public static async Task Main()
         {
-            var table = new Table();
-            table.AddColumn(new TableColumn("Name"));
-            table.AddColumn(new TableColumn("Value"));
-            table.AddRow(new Markup("Enter [green]Names[/]"), new Markup("name"));
-            AnsiConsole.Write(table);
-            
+            IRenderable? renderable = null;
             var spectrePromptAsync = await new Example().SpectrePromptAsync();
             spectrePromptAsync.Dump();
+
         }
     }
-    
-    [AutoSpectreForm(Culture = "da-DK")]
+
+     [AutoSpectreForm]    
 public class Example
 {
-    [TextPrompt(ChoicesSource= nameof(NameChoices), ChoicesStyle = "red on yellow", ChoicesInvalidText = "Must be one of the names")]
-    public string? Names { get; set; } = null!;
+    [TextPrompt(Title = "Enter data from subclass")]
+    public List<Subclass2> Subclass { get; set; }
+
+    //public string DatesyConverter(DateTime date) => date.ToLongDateString(); 
+
+    public IEnumerable<DateTime> DatesySource()
+    {
+        yield return DateTime.Now;
+        yield return DateTime.Now.AddDays(1);
+        yield return DateTime.Now.AddDays(2);
+        yield return DateTime.Now.AddDays(4);
+    }
 
     public static readonly string[] NameChoices = new[] { "Andreas", "Emilie", "Alberte" };
 
     [TaskStep(UseStatus = true, StatusText = "Loading....",SpinnerType = SpinnerKnownTypes.Balloon)]
     public async Task SomeOperation()
     {
-        await Task.Delay(10000);
+        await Task.Delay(3000);
     }
 
     //  public static string DefaultName  = "Jeppe";

@@ -1,6 +1,7 @@
 ﻿using System;
 using AutoSpectre.SourceGeneration.Models;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace AutoSpectre.SourceGeneration;
 
@@ -29,8 +30,7 @@ public class LazyTypes
     public INamedTypeSymbol? TextPrompt => _textPrompt.Value;
     public INamedTypeSymbol? SelectPrompt => _selectPrompt.Value;
     public INamedTypeSymbol? TaskStepPrompt => _taskStepPrompt.Value;
-
-
+    
     public LazyTypes(Compilation compilation)
     {
         _compilation = compilation;
@@ -49,5 +49,16 @@ public class LazyTypes
         _selectPrompt = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName($"AutoSpectre.{nameof(SelectPromptAttribute)}"));
         _taskStepPrompt = new Lazy<INamedTypeSymbol?>(() =>
             compilation.GetTypeByMetadataName($"AutoSpectre.{nameof(TaskStepAttribute)}"));
+    }
+
+    /// <summary>
+    /// For testing purposes
+    /// </summary>
+    /// <returns></returns>
+    internal static LazyTypes Empty()
+    {
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+        return new LazyTypes(null);
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
     }
 }

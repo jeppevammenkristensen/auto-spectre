@@ -8,14 +8,9 @@ using AutoSpectre.SourceGeneration.Extensions;
 using AutoSpectre.SourceGeneration.Extensions.Specification;
 using AutoSpectre.SourceGeneration.Models;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static AutoSpectre.SourceGeneration.Extensions.Specification.SpecificationRecipes;
 
 namespace AutoSpectre.SourceGeneration;
-
-
-
 
 internal class StepContextBuilderOperation
 {

@@ -80,7 +80,7 @@ public class IncrementAutoSpectreGenerator : IIncrementalGenerator
                             candidates, targetNamedType, productionContext);
 
                         var builder = new NewCodeBuilder(targetNamedType, stepContexts, singleFormEvaluationContext);
-                        var code = builder.Code();
+                        var code = builder.BuildCode();
                         if (string.IsNullOrWhiteSpace(code))
                         {
                             productionContext.ReportDiagnostic(Diagnostic.Create(

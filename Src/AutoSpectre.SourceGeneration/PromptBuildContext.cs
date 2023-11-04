@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using AutoSpectre.SourceGeneration.Extensions;
 
 namespace AutoSpectre.SourceGeneration;
 
@@ -44,6 +45,7 @@ public abstract class PromptBuildContext
     
     protected string GetStaticOrInstancePrepend(bool isStatic)
     {
-        return isStatic ? Context.TargetType.Name : "destination";
+        return "destination".GetStaticOrInstance(Context.TargetType.Name, isStatic);
     }
+    
 }
