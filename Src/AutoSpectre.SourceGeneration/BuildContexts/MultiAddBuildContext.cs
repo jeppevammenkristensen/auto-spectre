@@ -15,7 +15,7 @@ public class MultiAddBuildContext : PromptBuildContext
     private readonly ITypeSymbol _type;
     private readonly ITypeSymbol _underlyingType;
     private readonly LazyTypes _lazyTypes;
-    private readonly PromptBuildContext _buildContext;
+    public PromptBuildContext BuildContext { get; }
 
     private readonly SinglePropertyEvaluationContext? _childEvaluationContext;
 
@@ -25,7 +25,7 @@ public class MultiAddBuildContext : PromptBuildContext
         _type = type;
         _underlyingType = underlyingType;
         _lazyTypes = lazyTypes;
-        _buildContext = buildContext;
+        BuildContext = buildContext;
         if (buildContext is PromptBuilderContextWithPropertyContext withContext)
         {
             _childEvaluationContext = withContext.Context;
@@ -77,7 +77,7 @@ public class MultiAddBuildContext : PromptBuildContext
 
     private string GenerateAssignment()
     {
-        if (_buildContext.DeclaresVariable)
+        if (BuildContext.DeclaresVariable)
         {
             if (_childEvaluationContext?.ConfirmedValidator is {SingleValidation: false} validator)
             {
@@ -86,7 +86,7 @@ public class MultiAddBuildContext : PromptBuildContext
 
                     while (!valid) {
 
-                        {{_buildContext.PromptPart("newItem")}};
+                        {{BuildContext.PromptPart("newItem")}};
                         var validationResult = {{ GetStaticOrInstancePrepend(validator.IsStatic)}}.{{validator.Name}}(items,newItem);
                         if (validationResult is {} error)
                         {
@@ -105,7 +105,7 @@ public class MultiAddBuildContext : PromptBuildContext
             {
                 return $$"""
             {
-                {{_buildContext.PromptPart("newItem")}}
+                {{BuildContext.PromptPart("newItem")}}
                 items.Add(newItem);
             }
             """;
@@ -121,7 +121,7 @@ public class MultiAddBuildContext : PromptBuildContext
 
                     while (!valid) {
 
-                        var item = {{_buildContext.PromptPart()}};
+                        var item = {{BuildContext.PromptPart()}};
                         var validationResult = {{GetStaticOrInstancePrepend(validator.IsStatic)}}.{{validator.Name}}(items,item);
                         if (validationResult is {} error)
                         {
@@ -139,7 +139,7 @@ public class MultiAddBuildContext : PromptBuildContext
             else
             {
                 return $"""
-                var item = {_buildContext.PromptPart()};
+                var item = {BuildContext.PromptPart()};
                 items.Add(item);
                 """;
             }
@@ -205,6 +205,11 @@ public class MultiAddBuildContext : PromptBuildContext
 
     public override IEnumerable<string> CodeInitializing()
     {
-        return this._buildContext.CodeInitializing();
+        return this.BuildContext.CodeInitializing();
+    }
+
+    public override IEnumerable<string> Namespaces()
+    {
+        return this.BuildContext.Namespaces();
     }
 }

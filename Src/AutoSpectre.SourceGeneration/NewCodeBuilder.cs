@@ -27,7 +27,8 @@ internal class NewCodeBuilder
         "System.Linq",
         "System.Collections.Immutable",
         "System.Globalization",
-        "AutoSpectre.Extensions"
+        "AutoSpectre.Extensions",
+        "Spectre.Console.Rendering"
     };
 
     public INamedTypeSymbol Type { get; }
@@ -52,7 +53,7 @@ internal class NewCodeBuilder
     /// Helps create and fill <see cref="NewCodeBuilder"/> with values
     /// </summary>
     /// <returns></returns>
-    public string Code()
+    public string BuildCode()
     {
         var name = $"{Type.ContainingNamespace}.{Type.Name}";
 
@@ -105,7 +106,7 @@ namespace {{ Type.ContainingNamespace}}
         var extensionmethodName = isAsync ? "SpectrePromptAsync" : "SpectrePrompt";
         var call = isAsync ? "return await factory.GetAsync(source);" : "return factory.Get(source);";
 
-        var generateDumpMethod = new DumpMethodBuilder(Type, StepContexts, SingleFormEvaluationContext).GenerateDumpMethod();
+        var generateDumpMethod = new DumpMethodBuilder(Type, StepContexts, SingleFormEvaluationContext).GenerateDumpMethods();
 
         return $$"""
                   public static class {{ spectreFactoryClassName }}Extensions

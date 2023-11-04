@@ -24,4 +24,9 @@ public static class AutoSpectreExtensions
 
         throw new InvalidOperationException("Expected to get a name with at least 1 character");
     }
+
+    public static string GetStaticOrInstance(this string variable, string targetType,bool isStatic)
+    {
+        return isStatic ? targetType : variable;
+    }
 }

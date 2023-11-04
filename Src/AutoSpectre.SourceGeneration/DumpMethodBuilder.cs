@@ -3,17 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using AutoSpectre.SourceGeneration.BuildContexts;
+using AutoSpectre.SourceGeneration.Extensions;
 using Microsoft.CodeAnalysis;
+using Spectre.Console;
 
 namespace AutoSpectre.SourceGeneration;
 
 internal class DumpMethodBuilder
 {
+    public const string SourceParameterName = "source";
     public INamedTypeSymbol Type { get; }
     public List<IStepContext> StepContexts { get; }
     public SingleFormEvaluationContext SingleFormEvaluationContext { get; }
 
-    
     public DumpMethodBuilder(INamedTypeSymbol type, List<IStepContext> stepContexts,
         SingleFormEvaluationContext singleFormEvaluationContext)
     {
@@ -25,10 +27,22 @@ internal class DumpMethodBuilder
         // change the return type to be void or Task
     }
 
-    public string GenerateDumpMethod()
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
+    public string GenerateDumpMethods()
     {
         var builder = new StringBuilder();
-        builder.AppendLine($"public static void Dump(this {Type.Name} source)");
+        builder.AppendLine("""
+                           /// <summary>
+                           /// Returns data as a IRenderable
+                           /// Experimental. Might break
+                           /// </summary>
+                           /// <returns></returns>
+                           """);
+
+        builder.AppendLine($"public static IRenderable GenerateTable(this {Type.Name} {SourceParameterName})");
         builder.AppendLine("{");
         builder.AppendLine($"   var table = new Table();");
         builder.AppendLine("""   table.AddColumn(new TableColumn("Name"));""");
@@ -42,7 +56,21 @@ internal class DumpMethodBuilder
         }
 
         builder.AppendLine();
-        builder.AppendLine("AnsiConsole.Write(table);");
+        builder.AppendLine("return table;");
+        builder.AppendLine("}");
+        builder.AppendLine();
+        builder.AppendLine("""
+                           /// <summary>
+                           /// Renders the table
+                           /// Experimental. Might break
+                           /// </summary>
+                           /// <returns></returns>
+                           """);
+
+        builder.AppendLine($"public static void Dump(this {Type.Name} {SourceParameterName})");
+        builder.AppendLine("{");
+        builder.AppendLine($"""AnsiConsole.Write({SourceParameterName}.GenerateTable());""");
+
         builder.AppendLine("}");
         return builder.ToString();
     }
@@ -53,37 +81,92 @@ internal class DumpMethodBuilder
         {
             var access = $"source.{stepContext.PropertyName}";
             var title = $"""new Markup("{stepContext.PropertyName}")""";
-            
 
-            switch (stepContext.BuildContext)
-            {
-                case ConfirmPromptBuildContext confirmPromptBuildContext:
-                    yield return (title, $"""new Markup({access}?.ToString())""");
-                    break;
-                case EnumPromptBuildContext enumPromptBuildContext:
-                    yield return (title, $"""new Markup({access}?.ToString())""");
-                    break;
-                case MultiAddBuildContext multiAddBuildContext:
-                    yield return (title, $"""new Markup("Currently unsupported", "Red")""");
-                    // Currently not handled
-                    break;
-                case MultiSelectionBuildContext multiSelectionBuildContext:
-                    break;
-                case ReuseExistingAutoSpectreFactoryPromptBuildContext reuseExistingAutoSpectreFactoryPromptBuildContext:
-                    break;
-                case SelectionPromptBuildContext selectionPromptBuildContext:
-                    //yield return (selectionPromptBuildContext.Title, )
-                    break;
-                case SelectionBaseBuildContext selectionBaseBuildContext:
-                    break;
-                case TextPromptBuildContext textPromptBuildContext:
-                    yield return (title, $"""new Markup({access}?.ToString())""");
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-
+            var markup = GenerateDisplayMarkup(stepContext.BuildContext, stepContext, access);
+            if (markup is { })
+                yield return (title, markup);
         }
+    }
+
+    private string? GenerateDisplayMarkup(PromptBuildContext promptBuildContext, PropertyContext propertyContext,
+        string? access = null)
+    {
+        access ??= $"{SourceParameterName}.{propertyContext.PropertyName}";
+
+        return promptBuildContext switch
+        {
+            ConfirmPromptBuildContext confirmPromptBuildContext => $"""new Markup({access}?.ToString())""",
+            EnumPromptBuildContext enumPromptBuildContext => $"""new Markup({access}?.ToString())""",
+            MultiAddBuildContext multiAddBuildContext => GenerateMultiAddContext(
+                multiAddBuildContext, propertyContext, access),
+            MultiSelectionBuildContext multiSelectionBuildContext => GenerateMultiSelection(multiSelectionBuildContext,
+                propertyContext, access),
+            ReuseExistingAutoSpectreFactoryPromptBuildContext reuse =>
+                GenerateReuse(reuse, propertyContext, access),
+            SelectionPromptBuildContext selectionPromptBuildContext => GenerateSelectionPrompt(
+                selectionPromptBuildContext, propertyContext, access),
+            TextPromptBuildContext textPromptBuildContext => 
+                $"""new Markup({access}?.ToString())""",
+            TaskStepBuildContext taskStepBuildContext => null,
+            _ => throw new ArgumentOutOfRangeException(nameof(promptBuildContext))
+        };
+    }
+
+    private string? GenerateReuse(ReuseExistingAutoSpectreFactoryPromptBuildContext reuse,
+        PropertyContext propertyContext, string access)
+    {
+        return $"""{access}?.GenerateTable() ?? new Text("")""";
+    }
+
+    private string? GenerateMultiSelection(MultiSelectionBuildContext multiSelectionBuildContext,
+        PropertyContext propertyContext, string access)
+    {
+        var stringifier = GetSelectAccessor(multiSelectionBuildContext, "y");
+        return GenerateRows(access, "x", stringifier, p => $"new Markup({p})");
+    }
+
+    private Func<string, string> GetSelectAccessor(SelectionBaseBuildContext context, string lambdaParameter = "x")
+    {
+        Func<string, string> stringifier = x => $"{x}?.ToString()";
+
+        if (context.Context.ConfirmedConverter is { } converter)
+        {
+            var converterAccess =
+                SourceParameterName.GetStaticOrInstance(Type.Name,
+                    converter.IsStatic);
+            stringifier = x => $"{x} == null ? String.Empty : {converterAccess}.{converter.Converter}({x})";
+        }
+
+        return stringifier;
+    }
+
+    private string GenerateSelectionPrompt(SelectionPromptBuildContext selectionPromptBuildContext,
+        PropertyContext propertyContext, string access)
+    {
+        var stringifier = GetSelectAccessor(selectionPromptBuildContext);
+        return $"""new Markup({stringifier(access)})""";
+    }
+
+    private string GenerateMultiAddContext(MultiAddBuildContext multiAddBuildContext, PropertyContext property,
+        string access)
+    {
+        return GenerateRows(access, "x", str => str,
+            str => GenerateDisplayMarkup(multiAddBuildContext.BuildContext, property, str));
+    }
+
+    private string GenerateRows(string access, string lamdbaParameter, Func<string, string?> textGenerator,
+        Func<string, string> markupGenerator)
+    {
+        var render = textGenerator(lamdbaParameter);
+        if (render == null)
+            return """new Text("");""";
+
+        var builder = new StringBuilder();
+        builder.AppendLine("new Rows(");
+        builder.AppendLine(
+            $"   {access}?.Select({lamdbaParameter} =>{render})?.Select(x => {markupGenerator("x")}).ToList() ?? new ()");
+        builder.AppendLine(")");
+
+        return builder.ToString();
     }
 }

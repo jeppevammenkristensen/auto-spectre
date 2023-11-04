@@ -21,7 +21,7 @@
     <PackageProjectUrl>https://github.com/jeppevammenkristensen/auto-spectre</PackageProjectUrl>
     <RepositoryUrl>https://github.com/jeppevammenkristensen/auto-spectre</RepositoryUrl>
     <PackageTags>C#;Source Generator</PackageTags>
-    <PackageReleaseNotes>Added support for setting Choices on the TextPromptAttribute. Rewrote logic for DefaultValue. Retired old default value solution. Added support for defining source that point to fields. Allowed sources to point to static. Add for Default</PackageReleaseNotes>
+    <PackageReleaseNotes>Added dump extension method</PackageReleaseNotes>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>

@@ -2,6 +2,7 @@
 using System.Reflection;
 using AutoSpectre.SourceGeneration;
 using AutoSpectre.SourceGeneration.BuildContexts;
+using AutoSpectre.SourceGeneration.Evaluation;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using FluentAssertions.Primitives;
@@ -10,6 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Xunit;
+using Xunit.Sdk;
 
 namespace AutoSpectre.SourceGeneration.Tests;
 
@@ -22,13 +24,15 @@ public class DumpMethodBuilderTest
         var symbol = RoslynTestUtil.CreateNamedTypeSymbol(@"public class Someclass {}");
         var methodBuilder = new DumpMethodBuilder(symbol, new List<IStepContext>(), new SingleFormEvaluationContext());
 
-        var method = methodBuilder.GenerateDumpMethod();
-        method.AsMethodShould().BePublic().And.HaveName("Dump")
+        var method = methodBuilder.GenerateDumpMethods();
+        method.AsMethodShould().BePublic().And.HaveName("GenerateTable")
             .And.HaveBodyThat
-            .ContainsExactly("var table = new Table();")
-            .And.ContainsExactly("""table.AddColumn(new TableColumn("Name"));""")
-            .And.ContainsExactly("""table.AddColumn(new TableColumn("Name"));""")
-            .And.ContainsExactly("AnsiConsole.Write(table)");
+            .ContainsLineWithExactly("var table = new Table();")
+            .And.ContainsLineWithExactly("""table.AddColumn(new TableColumn("Name"));""")
+            .And.ContainsLineWithExactly("""table.AddColumn(new TableColumn("Name"));""")
+            .And.ContainsLineWithExactly("return table");
+        
+        
     }
 
     [Fact]
@@ -39,9 +43,9 @@ public class DumpMethodBuilderTest
             new() { GenerateConfirmPropertyContext() }, new SingleFormEvaluationContext());
 
         var method = methodBuilder
-            .GenerateDumpMethod();
+            .GenerateDumpMethods();
         method.AsMethodShould()
-            .HaveBodyThat.ContainsExactly($"""table.AddRow(new Markup("First"), new Markup(source.First?.ToString()))""");
+            .HaveBodyThat.ContainsLineWithExactly($"""table.AddRow(new Markup("First"), new Markup(source.First?.ToString()))""");
     }
     
     [Fact]
@@ -52,10 +56,12 @@ public class DumpMethodBuilderTest
             new() { GenerateTextPromptBuildContext("TextPrompt", "Text prompt title", symbol) }, new SingleFormEvaluationContext());
 
         var method = methodBuilder
-            .GenerateDumpMethod();
+            .GenerateDumpMethods();
         method.AsMethodShould()
-            .HaveBodyThat.ContainsExactly($"""table.AddRow(new Markup("TextPrompt"), new Markup(source.TextPrompt?.ToString()))""");
+            .HaveBodyThat.ContainsLineWithExactly($"""table.AddRow(new Markup("TextPrompt"), new Markup(source.TextPrompt?.ToString()))""");
     }
+    
+    
     
     [Fact]
     public void GenerateDumpMethod_WithEnumAnnotatedProperty()
@@ -65,11 +71,67 @@ public class DumpMethodBuilderTest
             new() { GenerateEnumPropertyContext("EnumProperty", "SomeEnum", "EnumTitle") }, new SingleFormEvaluationContext());
 
         var method = methodBuilder
-            .GenerateDumpMethod();
+            .GenerateDumpMethods();
         method.AsMethodShould()
-            .HaveBodyThat.ContainsExactly($"""table.AddRow(new Markup("EnumProperty"), new Markup(source.EnumProperty?.ToString()))""");
+            .HaveBodyThat.ContainsLineWithExactly($"""table.AddRow(new Markup("EnumProperty"), new Markup(source.EnumProperty?.ToString()))""");
+    }
+    
+    [Fact]
+    public void GenerateDumpMethod_WithSelectPromptAnnotatedProperty()
+    {
+        var symbol = RoslynTestUtil.CreateNamedTypeSymbol(@"public class Someclass {}");
+        var methodBuilder = new DumpMethodBuilder(symbol,
+            new() { GenerateSelectPromptBuildContext("SelectPrompt", "Select prompt", symbol)}, new SingleFormEvaluationContext());
+
+        var method = methodBuilder
+            .GenerateDumpMethods();
+        method.AsMethodShould()
+            .HaveBodyThat.ContainsLineWithExactly($"""table.AddRow(new Markup("SelectPrompt"), new Markup(source.SelectPrompt?.ToString()))""");
+    }
+    
+    [Theory]
+    [InlineData("SomeConverter", false, "source.SomeConverter")]
+    [InlineData("SomeConverter", true, "Someclass.SomeConverter")]
+    public void GenerateDumpMethod_WithSelectPromptWithConverterAnnotatedProperty(string converter, bool isStatic, string expectedConverter)
+    {
+        var symbol = RoslynTestUtil.CreateNamedTypeSymbol(@"public class Someclass {}");
+        var methodBuilder = new DumpMethodBuilder(symbol,
+            new() { GenerateSelectPromptBuildContext("SelectPrompt", "Select prompt", symbol, isStatic, converter)}, new SingleFormEvaluationContext());
+
+        var method = methodBuilder
+            .GenerateDumpMethods();
+        method.AsMethodShould()
+            .HaveBodyThat.ContainsLineWithExactly($"""table.AddRow(new Markup("SelectPrompt"), new Markup(source.SelectPrompt == null ? String.Empty : {expectedConverter}(source.SelectPrompt)))""");
     }
 
+    [Fact]
+    public void GenerateDumpMethod_WithMultiSelectPromptAnnotatedProperty()
+    {
+        var symbol = RoslynTestUtil.CreateNamedTypeSymbol(@"public class Someclass {}");
+        var methodBuilder = new DumpMethodBuilder(symbol,
+            new() { GenerateMultiSelectPromptBuildContext("MultiSelectPrompt", "Multi Select prompt", symbol)}, new SingleFormEvaluationContext());
+
+        var method = methodBuilder
+            .GenerateDumpMethods();
+        method.AsMethodShould()
+            .HaveBodyThat.Contains($"""source.MultiSelectPrompt?.Select(x =>x?.ToString())?.Select(x => new Markup(x)).ToList() ?? new ()""");
+    }
+    
+    [Theory]
+    [InlineData(false, "Converter", "source")]
+    [InlineData(true, "Converter", "Someclass")]
+    public void GenerateDumpMethod_WithMultiSelectPromptAnnotatedWithConverterProperty(bool isStatic, string converter, string access)
+    {
+        var symbol = RoslynTestUtil.CreateNamedTypeSymbol(@"public class Someclass {}");
+        var methodBuilder = new DumpMethodBuilder(symbol,
+            new() { GenerateMultiSelectPromptBuildContext("MultiSelectPrompt", "Multi Select prompt", symbol, isStatic, converter)},new SingleFormEvaluationContext());
+
+        var method = methodBuilder
+            .GenerateDumpMethods();
+        method.AsMethodShould()
+            .HaveBodyThat.Contains($"""source.MultiSelectPrompt?.Select(x =>x == null ? String.Empty : {access}.Converter(x))?.Select(x => new Markup(x)).ToList() ?? new ()""");
+    }
+    
     private static PropertyContext GenerateConfirmPropertyContext()
     {
         return new PropertyContext("First",
@@ -94,6 +156,42 @@ public class DumpMethodBuilderTest
         return new PropertyContext(propertyName, propertySymbol,
             new TextPromptBuildContext(attributeData, propertySymbol.Type, false, singlePropertyEvaluationContext));
     } 
+    
+    private static PropertyContext GenerateSelectPromptBuildContext(string propertyName, string title, INamedTypeSymbol parent, bool isStatic = false, string? converter = null)
+    {
+        //var attributeData = TranslatedMemberAttributeData.SelectPrompt(title, "SelectionSource", null, null, false, null, null, null, null, null);
+        var propertySymbol = RoslynTestUtil.CreatePropertySymbol($$"""public string {{propertyName}} {get;set;}""");
+        var singlePropertyEvaluationContext =
+            SinglePropertyEvaluationContext.GenerateFromPropertySymbol(propertySymbol, parent);
+        singlePropertyEvaluationContext.ConfirmedSelectionSource =
+            new ConfirmedSelectionSource("SelectionSource", SelectionPromptSelectionType.Method, false);
+
+        if (converter is { })
+        {
+            singlePropertyEvaluationContext.ConfirmedConverter = new ConfirmedConverter(converter, isStatic);
+        }
+        
+
+        return new PropertyContext(propertyName, propertySymbol,
+            new SelectionPromptBuildContext(title,singlePropertyEvaluationContext));
+    } 
+    
+    private static PropertyContext GenerateMultiSelectPromptBuildContext(string propertyName, string title, INamedTypeSymbol parent, bool isStatic = false, string? converter = null)
+    {
+        var propertySymbol = RoslynTestUtil.CreatePropertySymbol($$"""public string[] {{propertyName}} {get;set;}""");
+        var singlePropertyEvaluationContext =
+            SinglePropertyEvaluationContext.GenerateFromPropertySymbol(propertySymbol, parent);
+        singlePropertyEvaluationContext.ConfirmedSelectionSource =
+            new ConfirmedSelectionSource("SelectionSource", SelectionPromptSelectionType.Method, false);
+
+        if (converter is { })
+        {
+            singlePropertyEvaluationContext.ConfirmedConverter = new ConfirmedConverter(converter, isStatic);
+        }
+
+        return new PropertyContext(propertyName, propertySymbol,
+            new MultiSelectionBuildContext(title,singlePropertyEvaluationContext, LazyTypes.Empty()));
+    } 
 }
 
 public static class FluentExtensions
@@ -113,6 +211,7 @@ public static class FluentExtensions
         }
     }
 
+    
     public static MethodAssertions AsMethodShould(this string code)
     {
         if (SyntaxFactory.ParseMemberDeclaration(code) is MethodDeclarationSyntax method)
@@ -124,6 +223,11 @@ public static class FluentExtensions
             Execute.Assertion.FailWith("Source code was not a class declaration. {0}", () => code);
             throw new InvalidOperationException("Should never get here");
         }
+    }
+
+    public static MethodAssertions Should(this MethodDeclarationSyntax method)
+    {
+        return new MethodAssertions(method, null);
     }
 }
 
@@ -188,7 +292,8 @@ public class MethodBodyAssertions : SyntaxNodeAssertions<BlockSyntax?, MethodBod
 
     protected override string Identifier => "method body";
 
-    public AndConstraint<MethodBodyAssertions> ContainsExactly(string line, string because = "",
+    
+    public AndConstraint<MethodBodyAssertions> ContainsLineWithExactly(string line, string because = "",
         params object[] becauseParameters)
     {
         var trimmedLine = line.TrimEnd(';');
@@ -201,6 +306,19 @@ public class MethodBodyAssertions : SyntaxNodeAssertions<BlockSyntax?, MethodBod
             .Given(() => Subject!.Statements.Select(x => x.ToString().TrimEnd(';')))
             .ForCondition(x => x.Any(y => y.Equals(trimmedLine)))
             .FailWith("Expected {Identifier} to contain a line matching {0}{reason}, Code:\r\n{1}", line,
+                _methodDeclarationSyntax.ToString());
+
+        return new AndConstraint<MethodBodyAssertions>(this);
+    }
+
+    public AndConstraint<MethodBodyAssertions> Contains(string text, string because = "",
+        params object[] becauseParameters)
+    {
+        Execute.Assertion
+            .BecauseOf(because, becauseParameters)
+            .Given(() => Subject?.ToString() ?? string.Empty)
+            .ForCondition(x => x.Contains(text))
+            .FailWith("Expected {Identifier} to contain {0}{reason}, Code:\r\n{1}", text,
                 _methodDeclarationSyntax.ToString());
 
         return new AndConstraint<MethodBodyAssertions>(this);
