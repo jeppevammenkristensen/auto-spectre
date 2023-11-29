@@ -79,7 +79,7 @@ internal class DumpMethodBuilder
     {
         foreach (var stepContext in StepContexts.OfType<PropertyContext>())
         {
-            var access = $"source.{stepContext.PropertyName}";
+            var access = $"source.{stepContext.PropertyName}{(stepContext.BuildContext.Context.IsNullable ? "?" : string.Empty)}";
             var title = $"""new Markup("{stepContext.PropertyName}")""";
 
             var markup = GenerateDisplayMarkup(stepContext.BuildContext, stepContext, access);
@@ -91,12 +91,12 @@ internal class DumpMethodBuilder
     private string? GenerateDisplayMarkup(PromptBuildContext promptBuildContext, PropertyContext propertyContext,
         string? access = null)
     {
-        access ??= $"{SourceParameterName}.{propertyContext.PropertyName}";
+        access ??= $"{SourceParameterName}.{propertyContext.PropertyName}{(propertyContext.BuildContext.Context.IsNullable ? "?" : string.Empty)}";
 
         return promptBuildContext switch
         {
-            ConfirmPromptBuildContext confirmPromptBuildContext => $"""new Markup({access}?.ToString())""",
-            EnumPromptBuildContext enumPromptBuildContext => $"""new Markup({access}?.ToString())""",
+            ConfirmPromptBuildContext confirmPromptBuildContext => $"""new Markup({access}.ToString())""",
+            EnumPromptBuildContext enumPromptBuildContext => $"""new Markup({access}.ToString())""",
             MultiAddBuildContext multiAddBuildContext => GenerateMultiAddContext(
                 multiAddBuildContext, propertyContext, access),
             MultiSelectionBuildContext multiSelectionBuildContext => GenerateMultiSelection(multiSelectionBuildContext,
@@ -106,7 +106,7 @@ internal class DumpMethodBuilder
             SelectionPromptBuildContext selectionPromptBuildContext => GenerateSelectionPrompt(
                 selectionPromptBuildContext, propertyContext, access),
             TextPromptBuildContext textPromptBuildContext => 
-                $"""new Markup({access}?.ToString())""",
+                $"""new Markup({access}.ToString())""",
             TaskStepBuildContext taskStepBuildContext => null,
             _ => throw new ArgumentOutOfRangeException(nameof(promptBuildContext))
         };
@@ -127,14 +127,14 @@ internal class DumpMethodBuilder
 
     private Func<string, string> GetSelectAccessor(SelectionBaseBuildContext context, string lambdaParameter = "x")
     {
-        Func<string, string> stringifier = x => $"{x}?.ToString()";
+        Func<string, string> stringifier = x => $"{x}.ToString()";
 
         if (context.Context.ConfirmedConverter is { } converter)
         {
             var converterAccess =
                 SourceParameterName.GetStaticOrInstance(Type.Name,
                     converter.IsStatic);
-            stringifier = x => $"{x} == null ? String.Empty : {converterAccess}.{converter.Converter}({x})";
+            stringifier = x => $"{x.TrimEnd('?')} == null ? String.Empty : {converterAccess}.{converter.Converter}({x.TrimEnd('?')})";
         }
 
         return stringifier;

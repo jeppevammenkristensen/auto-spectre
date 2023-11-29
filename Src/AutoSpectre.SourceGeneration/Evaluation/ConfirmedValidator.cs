@@ -14,12 +14,22 @@ public class ConfirmedValidator
     public bool IsStatic { get; }
 }
 
+public class ConfirmedDefaultStyle
+{
+    public ConfirmedDefaultStyle(string style)
+    {
+        Style = style;
+    }
+
+    public string Style { get; }
+}
+
 public class ConfirmedDefaultValue
 {
     public DefaultValueType Type { get; }
     
     public string Name { get; }
-    public string? Style { get; }
+    
 
     public bool Instance { get; set; }
 
@@ -27,7 +37,6 @@ public class ConfirmedDefaultValue
     {
         Type = type;
         Name = name;
-        Style = style;
         Instance = instance;
     }
 }

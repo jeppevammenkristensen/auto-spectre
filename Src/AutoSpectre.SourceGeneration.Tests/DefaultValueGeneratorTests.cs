@@ -28,6 +28,42 @@ public class DefaultValueGeneratorTests : AutoSpectreGeneratorTestsBase
                     """).OutputShouldContain(".DefaultValue(destination.Property)");
     }
     
+    [Fact]
+    public void DefaultStyleUsedOnConfirmation()
+    {
+        GetOutput($$"""
+                    using AutoSpectre;
+                    using System.Collections.Generic;
+
+                    namespace Test;
+
+                    [AutoSpectreForm]
+                    public class TestForm
+                    {
+                         [TextPrompt(DefaultValueStyle="yellow")]
+                         public bool Property {get;set;} 
+                    }
+                    """).OutputShouldContain(""".DefaultValueStyle("yellow")""");
+    }
+    
+    [Fact]
+    public void ChoicesStyleUsedOnConfirmation()
+    {
+        GetOutput($$"""
+                    using AutoSpectre;
+                    using System.Collections.Generic;
+
+                    namespace Test;
+
+                    [AutoSpectreForm]
+                    public class TestForm
+                    {
+                         [TextPrompt(ChoicesStyle="yellow")]
+                         public bool Property {get;set;}
+                    }
+                    """).OutputShouldContain(""".ChoicesStyle("yellow")""");
+    }
+    
     [Theory]
     [InlineData("public string DefaultValueSource {get;set}", ".DefaultValue(destination.DefaultValueSource)")]
     [InlineData("public static string DefaultValueSource {get;set}", ".DefaultValue(TestForm.DefaultValueSource)")]

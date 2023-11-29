@@ -315,6 +315,11 @@ internal class StepContextBuilderOperation
     private void EvaluateChoices(SinglePropertyEvaluationContext propertyEvaluationContext,
         TranslatedMemberAttributeData memberAttributeData)
     {
+        if (memberAttributeData.ChoicesStyle is {} style && style.EvaluateStyle())
+        {
+            propertyEvaluationContext.ConfirmedChoicesStyle = new(style);
+        }
+        
         var nameCandidate = memberAttributeData.ChoicesSource ?? $"{propertyEvaluationContext.Property.Name}Choices";
         var isGuess = memberAttributeData.ChoicesSource == null;
 
@@ -331,13 +336,10 @@ internal class StepContextBuilderOperation
         {
             if (candidates.FirstOrDefault(publicMethodOrPropertyOrFieldMatchSpec) is { } match)
             {
-                string? choiceStyle = null;
+                
                 string? choiceInvalidText = null;
 
-                if (memberAttributeData.ChoicesStyle is {} style && style.EvaluateStyle())
-                {
-                    choiceStyle = style;
-                }
+                
 
                 ChoiceSourceType choiceSourceType = default;
 
@@ -354,8 +356,8 @@ internal class StepContextBuilderOperation
                     choiceInvalidText = invalidText;
                 }
 
-                propertyEvaluationContext.ConfirmedChoices = new ConfirmedChoices(nameCandidate, choiceSourceType,
-                    choiceStyle, choiceInvalidText, match.IsStatic);
+                propertyEvaluationContext.ConfirmedChoices = new ConfirmedChoices(nameCandidate, choiceSourceType
+                    , choiceInvalidText, match.IsStatic);
             }
             else
             {
@@ -563,6 +565,8 @@ internal class StepContextBuilderOperation
     {
         var parsedStyle = EvaluateStyle(memberAttributeData.DefaultValueStyle, nameof(memberAttributeData.DefaultValueStyle),
             propertyContext);
+        if (parsedStyle is {})
+            propertyContext.ConfirmedDefaultStyle = new ConfirmedDefaultStyle(parsedStyle);
 
         var defaultValue = memberAttributeData.DefaultValue ?? $"{propertyContext.Property.Name}DefaultValue";
         var isGuess = memberAttributeData.DefaultValue == null;
@@ -611,7 +615,6 @@ internal class StepContextBuilderOperation
                     propertyContext.Property.Locations.FirstOrDefault()));
             }
         }
-        
     }
 
     /// <summary>

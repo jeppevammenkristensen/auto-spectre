@@ -76,16 +76,16 @@ internal class TextPromptBuildContext : PromptBuilderContextWithPropertyContext
                     $"The source type {choices.SourceType} is not handled. Needs code adjustment to fix");
             builder.AppendLine(")");
 
-            if (choices.Style is { } style)
-            {
-                builder.AppendLine($".ChoicesStyle(\"{style}\")");
-            }
-
             if (choices.InvalidErrorText is { } invalidText)
             {
                 builder.AppendLine($".InvalidChoiceMessage(\"{invalidText}\")");
             }
 
+        }
+
+        if (Context.ConfirmedChoicesStyle is { } choicesStyle)
+        {
+            builder.AppendLine($".ChoicesStyle(\"{choicesStyle.Style}\")");
         }
     }
 
@@ -116,11 +116,11 @@ internal class TextPromptBuildContext : PromptBuilderContextWithPropertyContext
             {
                 throw new InvalidOperationException($"It was unexpected. Value {confirmed.Type} was not supported");
             }
-
-            if (confirmed.Style is { } style)
-            {
-                builder.AppendLine($".DefaultValueStyle(\"{style}\")");
-            }
+        }
+        
+        if (Context.ConfirmedDefaultStyle is { } style)
+        {
+            builder.AppendLine($".DefaultValueStyle(\"{style.Style}\")");
         }
     }
 

@@ -102,7 +102,7 @@ public class SinglePropertyEvaluationContext : IConditionContext
     ISymbol IConditionContext.Symbol => Property;
     
     
-    public bool IsNullable { get; }
+    public bool IsNullable { get; internal set; }
     public ITypeSymbol Type { get; }
     public bool IsEnumerable { get; }
     public INamedTypeSymbol TargetType { get; }
@@ -117,6 +117,8 @@ public class SinglePropertyEvaluationContext : IConditionContext
     public ConfirmedValidator? ConfirmedValidator { get; set; }
     public ConfirmedCondition? ConfirmedCondition { get; set; }
     public ConfirmedDefaultValue? ConfirmedDefaultValue { get; set; }
+    
+    public ConfirmedDefaultStyle? ConfirmedDefaultStyle { get; set; }
     public ConfirmedChoices? ConfirmedChoices { get; set; }
     public PropertyDeclarationSyntax? PropertySyntax => _propertySyntaxLazy.Value;
     public string? PromptStyle { get; set; }
@@ -125,6 +127,7 @@ public class SinglePropertyEvaluationContext : IConditionContext
     public string? MoreChoicesText { get; set; }
     public string? InstructionsText { get; set; }
     public string? HighlightStyle { get; set; } //public NamedTypedAnalysis? NamedTypeAnalysis { get; set; }
+    public ConfirmedChoiceStyle ConfirmedChoicesStyle { get; set; }
 
 
     public static SinglePropertyEvaluationContext GenerateFromPropertySymbol(IPropertySymbol property,

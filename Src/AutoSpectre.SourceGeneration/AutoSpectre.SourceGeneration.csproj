@@ -7,7 +7,7 @@
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <IsRoslynComponent>true</IsRoslynComponent>
     <VersionPrefix>0.8.0</VersionPrefix>
-    <VersionSuffix>preview.0.1</VersionSuffix> 
+    <VersionSuffix>preview.0.2</VersionSuffix> 
   </PropertyGroup>
 
   <PropertyGroup>
@@ -21,7 +21,7 @@
     <PackageProjectUrl>https://github.com/jeppevammenkristensen/auto-spectre</PackageProjectUrl>
     <RepositoryUrl>https://github.com/jeppevammenkristensen/auto-spectre</RepositoryUrl>
     <PackageTags>C#;Source Generator</PackageTags>
-    <PackageReleaseNotes>Added dump extension method</PackageReleaseNotes>
+    <PackageReleaseNotes>Added dump extension method. Added support for new Confirmation styles</PackageReleaseNotes>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
@@ -41,9 +41,9 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.7.0" PrivateAsserts="all">
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.8.0" PrivateAsserts="all">
     </PackageReference>
-    <PackageReference Include="Spectre.Console" Version="0.47.0" />
+    <PackageReference Include="Spectre.Console" Version="0.48.0" />
   </ItemGroup>
 
   <ItemGroup>
