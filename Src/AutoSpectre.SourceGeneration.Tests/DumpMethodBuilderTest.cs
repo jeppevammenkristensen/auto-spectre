@@ -40,7 +40,20 @@ public class DumpMethodBuilderTest
     {
         var symbol = RoslynTestUtil.CreateNamedTypeSymbol(@"public class Someclass {}");
         var methodBuilder = new DumpMethodBuilder(symbol,
-            new() { GenerateConfirmPropertyContext() }, new SingleFormEvaluationContext());
+            new() { GenerateConfirmPropertyContext(false) }, new SingleFormEvaluationContext());
+
+        var method = methodBuilder
+            .GenerateDumpMethods();
+        method.AsMethodShould()
+            .HaveBodyThat.ContainsLineWithExactly($"""table.AddRow(new Markup("First"), new Markup(source.First.ToString()))""");
+    }
+    
+    [Fact]
+    public void GenerateDumpMethod_WithConfirmNullableAnnotatedProperty()
+    {
+        var symbol = RoslynTestUtil.CreateNamedTypeSymbol(@"public class Someclass {}");
+        var methodBuilder = new DumpMethodBuilder(symbol,
+            new() { GenerateConfirmPropertyContext(true) }, new SingleFormEvaluationContext());
 
         var method = methodBuilder
             .GenerateDumpMethods();
@@ -53,7 +66,20 @@ public class DumpMethodBuilderTest
     {
         var symbol = RoslynTestUtil.CreateNamedTypeSymbol(@"public class Someclass {}");
         var methodBuilder = new DumpMethodBuilder(symbol,
-            new() { GenerateTextPromptBuildContext("TextPrompt", "Text prompt title", symbol) }, new SingleFormEvaluationContext());
+            new() { GenerateTextPromptBuildContext("TextPrompt", "Text prompt title", symbol, false) }, new SingleFormEvaluationContext());
+
+        var method = methodBuilder
+            .GenerateDumpMethods();
+        method.AsMethodShould()
+            .HaveBodyThat.ContainsLineWithExactly($"""table.AddRow(new Markup("TextPrompt"), new Markup(source.TextPrompt.ToString()))""");
+    }
+
+    [Fact]
+    public void GenerateDumpMethod_WithTextPromptNullableAnnotatedProperty()
+    {
+        var symbol = RoslynTestUtil.CreateNamedTypeSymbol(@"public class Someclass {}");
+        var methodBuilder = new DumpMethodBuilder(symbol,
+            new() { GenerateTextPromptBuildContext("TextPrompt", "Text prompt title", symbol, true) }, new SingleFormEvaluationContext());
 
         var method = methodBuilder
             .GenerateDumpMethods();
@@ -68,7 +94,20 @@ public class DumpMethodBuilderTest
     {
         var symbol = RoslynTestUtil.CreateNamedTypeSymbol(@"public class Someclass {}");
         var methodBuilder = new DumpMethodBuilder(symbol,
-            new() { GenerateEnumPropertyContext("EnumProperty", "SomeEnum", "EnumTitle") }, new SingleFormEvaluationContext());
+            new() { GenerateEnumPropertyContext("EnumProperty", "SomeEnum", "EnumTitle", false) }, new SingleFormEvaluationContext());
+
+        var method = methodBuilder
+            .GenerateDumpMethods();
+        method.AsMethodShould()
+            .HaveBodyThat.ContainsLineWithExactly($"""table.AddRow(new Markup("EnumProperty"), new Markup(source.EnumProperty.ToString()))""");
+    }
+    
+    [Fact]
+    public void GenerateDumpMethod_WithEnumNullableAnnotatedProperty()
+    {
+        var symbol = RoslynTestUtil.CreateNamedTypeSymbol(@"public class Someclass {}");
+        var methodBuilder = new DumpMethodBuilder(symbol,
+            new() { GenerateEnumPropertyContext("EnumProperty", "SomeEnum?", "EnumTitle", true) }, new SingleFormEvaluationContext());
 
         var method = methodBuilder
             .GenerateDumpMethods();
@@ -81,7 +120,20 @@ public class DumpMethodBuilderTest
     {
         var symbol = RoslynTestUtil.CreateNamedTypeSymbol(@"public class Someclass {}");
         var methodBuilder = new DumpMethodBuilder(symbol,
-            new() { GenerateSelectPromptBuildContext("SelectPrompt", "Select prompt", symbol)}, new SingleFormEvaluationContext());
+            new() { GenerateSelectPromptBuildContext("SelectPrompt", "Select prompt", symbol, false)}, new SingleFormEvaluationContext());
+
+        var method = methodBuilder
+            .GenerateDumpMethods();
+        method.AsMethodShould()
+            .HaveBodyThat.ContainsLineWithExactly($"""table.AddRow(new Markup("SelectPrompt"), new Markup(source.SelectPrompt.ToString()))""");
+    }
+    
+    [Fact]
+    public void GenerateDumpMethod_WithSelectPromptNullableAnnotatedProperty()
+    {
+        var symbol = RoslynTestUtil.CreateNamedTypeSymbol(@"public class Someclass {}");
+        var methodBuilder = new DumpMethodBuilder(symbol,
+            new() { GenerateSelectPromptBuildContext("SelectPrompt", "Select prompt", symbol, true)}, new SingleFormEvaluationContext());
 
         var method = methodBuilder
             .GenerateDumpMethods();
@@ -96,7 +148,7 @@ public class DumpMethodBuilderTest
     {
         var symbol = RoslynTestUtil.CreateNamedTypeSymbol(@"public class Someclass {}");
         var methodBuilder = new DumpMethodBuilder(symbol,
-            new() { GenerateSelectPromptBuildContext("SelectPrompt", "Select prompt", symbol, isStatic, converter)}, new SingleFormEvaluationContext());
+            new() { GenerateSelectPromptBuildContext("SelectPrompt", "Select prompt", symbol, false, isStatic,converter)}, new SingleFormEvaluationContext());
 
         var method = methodBuilder
             .GenerateDumpMethods();
@@ -114,7 +166,7 @@ public class DumpMethodBuilderTest
         var method = methodBuilder
             .GenerateDumpMethods();
         method.AsMethodShould()
-            .HaveBodyThat.Contains($"""source.MultiSelectPrompt?.Select(x =>x?.ToString())?.Select(x => new Markup(x)).ToList() ?? new ()""");
+            .HaveBodyThat.Contains($"""source.MultiSelectPrompt?.Select(x =>x.ToString())?.Select(x => new Markup(x)).ToList() ?? new ()""");
     }
     
     [Theory]
@@ -132,24 +184,29 @@ public class DumpMethodBuilderTest
             .HaveBodyThat.Contains($"""source.MultiSelectPrompt?.Select(x =>x == null ? String.Empty : {access}.Converter(x))?.Select(x => new Markup(x)).ToList() ?? new ()""");
     }
     
-    private static PropertyContext GenerateConfirmPropertyContext()
+    private static PropertyContext GenerateConfirmPropertyContext(bool nullable)
     {
+        var singlePropertyEvaluationContext = SinglePropertyEvaluationContext.Empty;
+        singlePropertyEvaluationContext.IsNullable = nullable;
         return new PropertyContext("First",
-            RoslynTestUtil.CreatePropertySymbol("public string First {get;set;}"),
-            new ConfirmPromptBuildContext("ConfirmTitle", false, SinglePropertyEvaluationContext.Empty));
+            RoslynTestUtil.CreatePropertySymbol($"public bool{(nullable ? "?" : string.Empty)} First {{get;set;}}"),
+            new ConfirmPromptBuildContext("ConfirmTitle", false, singlePropertyEvaluationContext));
     }
     
-    private static PropertyContext GenerateEnumPropertyContext(string propertyName, string enumName, string title)
+    private static PropertyContext GenerateEnumPropertyContext(string propertyName, string enumName, string title,
+        bool nullable)
     {
+        var singlePropertyEvaluationContext = SinglePropertyEvaluationContext.Empty;
+        singlePropertyEvaluationContext.IsNullable = nullable;
         return new PropertyContext(propertyName,
             RoslynTestUtil.CreatePropertySymbol($"public {enumName} {propertyName} {{get;set;}}"),
-            new EnumPromptBuildContext(title, RoslynTestUtil.CreateEnumType(enumName),false, SinglePropertyEvaluationContext.Empty));
+            new EnumPromptBuildContext(title, RoslynTestUtil.CreateEnumType(enumName),false, singlePropertyEvaluationContext));
     }
 
-    private static PropertyContext GenerateTextPromptBuildContext(string propertyName, string title, INamedTypeSymbol parent)
+    private static PropertyContext GenerateTextPromptBuildContext(string propertyName, string title, INamedTypeSymbol parent, bool nullable)
     {
         var attributeData = TranslatedMemberAttributeData.TextPrompt(title, null,null, false,false, null,null,null,null,null,null,null,null);
-        var propertySymbol = RoslynTestUtil.CreatePropertySymbol($$"""public string {{propertyName}} {get;set;}""");
+        var propertySymbol = RoslynTestUtil.CreatePropertySymbol($$"""public string{{(nullable ? "?" : string.Empty)}} {{propertyName}} {get;set;}""");
         var singlePropertyEvaluationContext =
             SinglePropertyEvaluationContext.GenerateFromPropertySymbol(propertySymbol, parent);
 
@@ -157,10 +214,10 @@ public class DumpMethodBuilderTest
             new TextPromptBuildContext(attributeData, propertySymbol.Type, false, singlePropertyEvaluationContext));
     } 
     
-    private static PropertyContext GenerateSelectPromptBuildContext(string propertyName, string title, INamedTypeSymbol parent, bool isStatic = false, string? converter = null)
+    private static PropertyContext GenerateSelectPromptBuildContext(string propertyName, string title, INamedTypeSymbol parent, bool nullable, bool isStatic = false,string? converter = null)
     {
         //var attributeData = TranslatedMemberAttributeData.SelectPrompt(title, "SelectionSource", null, null, false, null, null, null, null, null);
-        var propertySymbol = RoslynTestUtil.CreatePropertySymbol($$"""public string {{propertyName}} {get;set;}""");
+        var propertySymbol = RoslynTestUtil.CreatePropertySymbol($$"""public string{{(nullable ? "?" : string.Empty)}} {{propertyName}} {get;set;}""");
         var singlePropertyEvaluationContext =
             SinglePropertyEvaluationContext.GenerateFromPropertySymbol(propertySymbol, parent);
         singlePropertyEvaluationContext.ConfirmedSelectionSource =

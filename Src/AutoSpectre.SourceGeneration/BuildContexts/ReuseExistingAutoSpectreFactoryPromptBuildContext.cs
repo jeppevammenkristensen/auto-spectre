@@ -52,9 +52,24 @@ internal class ReuseExistingAutoSpectreFactoryPromptBuildContext : PromptBuilder
     {
         var builder = new StringBuilder();
         builder.AppendLine("{");
+        if (IsNullable)
+        {
+            builder.AppendLine($"""var confirmAdd = AnsiConsole.Confirm("Add ?");""");
+            builder.AppendLine("""if (confirmAdd)""");
+            builder.AppendLine("{");
+            builder.AppendLine($"{destination} = null;");
+            builder.AppendLine("}");
+            builder.AppendLine("else");
+            builder.AppendLine("{");
+        }
         builder.AppendLine(PromptPart());
         builder.AppendLine($"{destination} = item;");
         builder.AppendLine("}");
+
+        if (IsNullable)
+        {
+            builder.AppendLine("}");
+        }
         return builder.ToString();
     }
 
@@ -101,8 +116,7 @@ internal class ReuseExistingAutoSpectreFactoryPromptBuildContext : PromptBuilder
     {
         // We are making (the probably dangerous assumption) that NamedTypeAnalysis is never null
         // when we are in this Context. Just in case we will throw an exception if it is null
-      
-
+        
         if (NamedTypeSource.TypeConverter is { } initializer)
         {
             return $"var {variableName} = {GetStaticOrInstancePrepend(NamedTypeSource.IsStatic)}.{initializer}();";

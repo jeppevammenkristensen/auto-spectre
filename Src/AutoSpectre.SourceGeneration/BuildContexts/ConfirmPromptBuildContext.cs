@@ -1,4 +1,8 @@
-﻿namespace AutoSpectre.SourceGeneration.BuildContexts;
+﻿using System;
+using System.Text;
+using AutoSpectre.SourceGeneration.Evaluation;
+
+namespace AutoSpectre.SourceGeneration.BuildContexts;
 
 public class ConfirmPromptBuildContext : PromptBuildContext
 {
@@ -19,6 +23,27 @@ public class ConfirmPromptBuildContext : PromptBuildContext
 
     public override string PromptPart(string? variableName = null)
     {
-        return $"""AnsiConsole.Confirm("{Title}")""";
+        var stringBuilder = new StringBuilder();
+        stringBuilder.AppendLine($"""AnsiConsole.Confirm("{Title}")""");
+        BuildDefaultStyle(stringBuilder);
+        BuildChoicesStyle(stringBuilder);
+        return stringBuilder.ToString();
     }
+    
+    private void BuildDefaultStyle(StringBuilder builder)
+    {
+        if (Context.ConfirmedDefaultStyle is { Style: {} style } _)
+        {
+            builder.AppendLine($".DefaultValueStyle(\"{style}\")");
+        }
+    }
+
+    private void BuildChoicesStyle(StringBuilder builder)
+    {
+        if (Context.ConfirmedChoicesStyle is { } style)
+        {
+            builder.AppendLine($".ChoicesStyle(\"{style.Style}\")");
+        }
+    }
+  
 }

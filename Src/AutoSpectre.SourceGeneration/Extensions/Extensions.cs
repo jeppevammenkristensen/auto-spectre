@@ -281,6 +281,10 @@ public static class Extensions
             {
                 return propertySymbol.Type.Equals(otherPropertySymbol.Type, SymbolEqualityComparer.Default);
             }
+            else if (source is IFieldSymbol fieldSymbol && other is IFieldSymbol otherFieldSymbol)
+            {
+                return fieldSymbol.Type.Equals(otherFieldSymbol.Type, SymbolEqualityComparer.Default);
+            }
         }
 
         // We currently only have interest in properties and symbols
