@@ -24,9 +24,10 @@ public class ConfirmPromptBuildContext : PromptBuildContext
     public override string PromptPart(string? variableName = null)
     {
         var stringBuilder = new StringBuilder();
-        stringBuilder.AppendLine($"""AnsiConsole.Confirm("{Title}")""");
+        stringBuilder.AppendLine($"""AnsiConsole.Prompt(new ConfirmationPrompt("{Title}")""");
         BuildDefaultStyle(stringBuilder);
         BuildChoicesStyle(stringBuilder);
+        stringBuilder.AppendLine(")");
         return stringBuilder.ToString();
     }
     

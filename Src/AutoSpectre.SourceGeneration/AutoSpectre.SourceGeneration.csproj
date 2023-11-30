@@ -2,17 +2,18 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <IsPackable>true</IsPackable>
     <LangVersion>11</LangVersion>
     <Nullable>enable</Nullable>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <IsRoslynComponent>true</IsRoslynComponent>
     <VersionPrefix>0.8.0</VersionPrefix>
-    <VersionSuffix>preview.0.2</VersionSuffix> 
+    <VersionSuffix>preview.0.5</VersionSuffix> 
   </PropertyGroup>
 
   <PropertyGroup>
-    <!--<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>-->
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild> <!-- Generates a package at build -->
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    
     <IncludeBuildOutput>false</IncludeBuildOutput> <!-- Do not include the generator as a lib dependency -->
     <Title>AutoSpectre Source Generation</Title>
     <PackageIcon>ghost.png</PackageIcon>

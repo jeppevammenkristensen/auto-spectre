@@ -5,10 +5,12 @@ namespace AutoSpectre.SourceGeneration;
 public class TranslatedFormAttributeData
 {
     public string? Culture { get; }
+    public bool DisableDump { get; }
 
-    public TranslatedFormAttributeData(string? culture)
+    public TranslatedFormAttributeData(string? culture, bool disableDump)
     {
         Culture = culture;
+        DisableDump = disableDump;
     }
 }
 

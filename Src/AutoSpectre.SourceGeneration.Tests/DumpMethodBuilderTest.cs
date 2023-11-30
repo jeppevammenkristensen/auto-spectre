@@ -54,7 +54,6 @@ public class DumpMethodBuilderTest
         var symbol = RoslynTestUtil.CreateNamedTypeSymbol(@"public class Someclass {}");
         var methodBuilder = new DumpMethodBuilder(symbol,
             new() { GenerateConfirmPropertyContext(true) }, new SingleFormEvaluationContext());
-
         var method = methodBuilder
             .GenerateDumpMethods();
         method.AsMethodShould()
