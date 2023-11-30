@@ -32,13 +32,15 @@ public class TargetFormEvaluator
         var translatedFormAttributeData = TranslateForm(AttributeData);
         var singleFormEvaluationContext = new SingleFormEvaluationContext();
         EvaluateCulture(translatedFormAttributeData, singleFormEvaluationContext);
+        singleFormEvaluationContext.DisableDumpMethod = translatedFormAttributeData.DisableDump;
         return singleFormEvaluationContext;
     }
     
-    private TranslatedFormAttributeData TranslateForm(AttributeData? attributeData)
+    private TranslatedFormAttributeData TranslateForm(AttributeData attributeData)
     {
         var culture = attributeData.GetAttributePropertyValue<string>(nameof(AutoSpectreForm.Culture));
-        return new TranslatedFormAttributeData(culture);
+        var disableDump = attributeData.GetAttributePropertyValue<bool>(nameof(AutoSpectreForm.DisableDump));
+        return new TranslatedFormAttributeData(culture, disableDump);
     }
 
     private void EvaluateCulture(TranslatedFormAttributeData translatedFormAttributeData, SingleFormEvaluationContext evaluationContext)

@@ -61,7 +61,7 @@ public class DefaultValueGeneratorTests : AutoSpectreGeneratorTestsBase
                          [TextPrompt(ChoicesStyle="yellow")]
                          public bool Property {get;set;}
                     }
-                    """).OutputShouldContain(""".ChoicesStyle("yellow")""");
+                    """).OutputShouldContain(""".ChoicesStyle("yellow")""").OutputShouldContain("new ConfirmationPrompt");
     }
     
     [Theory]

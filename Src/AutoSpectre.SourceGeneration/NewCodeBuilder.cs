@@ -106,7 +106,7 @@ namespace {{ Type.ContainingNamespace}}
         var extensionmethodName = isAsync ? "SpectrePromptAsync" : "SpectrePrompt";
         var call = isAsync ? "return await factory.GetAsync(source);" : "return factory.Get(source);";
 
-        var generateDumpMethod = new DumpMethodBuilder(Type, StepContexts, SingleFormEvaluationContext).GenerateDumpMethods();
+        var generateDumpMethod = SingleFormEvaluationContext.DisableDumpMethod ? string.Empty : new DumpMethodBuilder(Type, StepContexts, SingleFormEvaluationContext).GenerateDumpMethods();
 
         return $$"""
                   public static class {{ spectreFactoryClassName }}Extensions
