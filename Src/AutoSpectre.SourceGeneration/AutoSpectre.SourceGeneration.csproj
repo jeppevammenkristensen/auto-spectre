@@ -7,8 +7,7 @@
     <Nullable>enable</Nullable>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <IsRoslynComponent>true</IsRoslynComponent>
-    <VersionPrefix>0.8.0</VersionPrefix>
-    <VersionSuffix>preview.0.6</VersionSuffix> 
+    <VersionPrefix>0.8.0</VersionPrefix>    
   </PropertyGroup>
 
   <PropertyGroup>
