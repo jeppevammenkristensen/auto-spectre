@@ -48,7 +48,7 @@ internal class DumpMethodBuilder
         builder.AppendLine("""   table.AddColumn(new TableColumn("Name"));""");
         builder.AppendLine("""   table.AddColumn(new TableColumn("Value"));""");
 
-        var valueTuples = GenerateColumns(builder).ToList();
+        var valueTuples = GenerateColumns().ToList();
 
         foreach (var (column, value) in valueTuples)
         {
@@ -67,7 +67,7 @@ internal class DumpMethodBuilder
                            /// <returns></returns>
                            """);
 
-        builder.AppendLine($"public static void Dump(this {Type.Name} {SourceParameterName})");
+        builder.AppendLine($"public static void SpectreDump(this {Type.Name} {SourceParameterName})");
         builder.AppendLine("{");
         builder.AppendLine($"""AnsiConsole.Write({SourceParameterName}.GenerateTable());""");
 
@@ -75,7 +75,7 @@ internal class DumpMethodBuilder
         return builder.ToString();
     }
 
-    private IEnumerable<(string column, string value)> GenerateColumns(StringBuilder builder)
+    private IEnumerable<(string column, string value)> GenerateColumns()
     {
         foreach (var stepContext in StepContexts.OfType<PropertyContext>())
         {
@@ -95,8 +95,8 @@ internal class DumpMethodBuilder
 
         return promptBuildContext switch
         {
-            ConfirmPromptBuildContext confirmPromptBuildContext => $"""new Markup({access}.ToString())""",
-            EnumPromptBuildContext enumPromptBuildContext => $"""new Markup({access}.ToString())""",
+            ConfirmPromptBuildContext => $"""new Markup({access}.ToString())""",
+            EnumPromptBuildContext => $"""new Markup({access}.ToString())""",
             MultiAddBuildContext multiAddBuildContext => GenerateMultiAddContext(
                 multiAddBuildContext, propertyContext, access),
             MultiSelectionBuildContext multiSelectionBuildContext => GenerateMultiSelection(multiSelectionBuildContext,
@@ -105,9 +105,9 @@ internal class DumpMethodBuilder
                 GenerateReuse(reuse, propertyContext, access),
             SelectionPromptBuildContext selectionPromptBuildContext => GenerateSelectionPrompt(
                 selectionPromptBuildContext, propertyContext, access),
-            TextPromptBuildContext textPromptBuildContext => 
+            TextPromptBuildContext => 
                 $"""new Markup({access}.ToString())""",
-            TaskStepBuildContext taskStepBuildContext => null,
+            TaskStepBuildContext => null,
             _ => throw new ArgumentOutOfRangeException(nameof(promptBuildContext))
         };
     }

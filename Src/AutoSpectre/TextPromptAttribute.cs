@@ -38,8 +38,7 @@ public class TextPromptAttribute : AutoSpectreStepAttribute
 
     /// <summary>
     /// The style to apply to the display of the default value
-    /// Note. To enable a DefaultValue use this style to declare the property like this
-    /// public string SomeProperty { get;set;} = "Default value";
+    /// This will be applied in both a TextPrompt but also on a ConfirmationPrompt
     /// </summary>
     public string? DefaultValueStyle { get; set; }
 
@@ -54,7 +53,9 @@ public class TextPromptAttribute : AutoSpectreStepAttribute
     public string? DefaultValueSource { get; set; }
 
     /// <summary>
-    /// The style to use for the prompting where the user inputs data
+    /// The style to use for the prompting where the user inputs data. PromptStyle will not be applied
+    /// if the decorated property returns bool (in which case a ConfirmationPrompt is generated, which does
+    /// not support PromptStyle)
     /// </summary>
     public string? PromptStyle { get; set; }
 
@@ -74,7 +75,8 @@ public class TextPromptAttribute : AutoSpectreStepAttribute
     public string? ChoicesSource { get; set; }
 
     /// <summary>
-    /// The style used to display the choices in the prompt
+    /// The style used to display the choices in the prompt. This will be applied
+    /// to both TextPrompt and ConfirmationPrompts being generated
     /// </summary>
     public string? ChoicesStyle { get; set; }
 

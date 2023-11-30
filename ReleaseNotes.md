@@ -6,8 +6,11 @@
 
 ### AutoSpectre.SourceGeneration
 
-* An extension method is now exposed so it's possible to call the Prompt method on an instance without having to 
+* An extension method is now exposed so it's possible to call the Prompt method on an instance without having to
 instantiate the factory class.
+* An extension method will be generated per decorated class to allow to Dump the values to the console.
+* The dump method can be deactiveated
+* Added support for defining DefaultValueStyle and ChoiceStyle on bool values decorated with the [TextPrompt] attribute. (this will generate a ConfirmationPrompt in Spectre)
 
 ## 0.7.0
 

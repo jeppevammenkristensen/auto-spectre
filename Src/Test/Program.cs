@@ -11,17 +11,15 @@ namespace Test
     {
         public static async Task Main()
         {
-            S s = new S().SpectrePrompt();
-            s.Dump();
-            // var spectrePrompt = new Subclass3().SpectrePrompt();
-            // spectrePrompt.Dump();
+            SClass sClass = new SClass().SpectrePrompt();
+            sClass.SpectreDump();
         }
     }
 
     [AutoSpectreForm(DisableDump = false)]
-    public class S
+    public class SClass
     {
-        [TextPrompt(DefaultValueStyle = "yellow", ChoicesStyle = "green on black")]
+        [TextPrompt(DefaultValueStyle = "yellow", ChoicesStyle = "green on purple")]
         public bool Yay { get; set; }
 
         [TextPrompt(DefaultValueSource = nameof(FirstNameDefault))] public string FirstName { get; set; } = null!;
