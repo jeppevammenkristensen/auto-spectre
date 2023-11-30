@@ -236,6 +236,14 @@ var form = formFactory.Get();
 // We pass a pre initialized form object to the get method
 var preinitializedForm = new Example();
 preinitializedForm = formFactory.Get(preinitializedForm); 
+
+// An alternative can be to use the generated extension method
+// this will initalize the factory and call the get Method
+var form = new Example().SpectrePrompt();
+
+// If you want to dump the values to the console you can use the Dump extension method
+form.SpectreDump();
+
 ```
 
 ## The form attribute
@@ -245,6 +253,10 @@ The class that you wan't populated, should be decorated with the `AutoSpectreFor
 ### Culture
 
 You can control the overall culture used by setting the culture property. This will be used for TextPrompts. If it's isn't set the CurrentUICulture will be used.
+
+### DisableDump
+
+If you do want to generate the SpectreDump method, you can disable it using the DisableDump property.
 
 ### Inheritance
 
