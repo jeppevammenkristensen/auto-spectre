@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 
 namespace AutoSpectre.SourceGeneration.Extensions;
@@ -28,5 +29,21 @@ public static class AutoSpectreExtensions
     public static string GetStaticOrInstance(this string variable, string targetType,bool isStatic)
     {
         return isStatic ? targetType : variable;
+    }
+
+    public static IMethodSymbol? FindConstructor(this INamedTypeSymbol source, LazyTypes types)
+    {
+        return source.Constructors
+            .Where(x => x.DeclaredAccessibility is Accessibility.Public)
+            .OrderBy(x => 
+        {
+            if (x.GetAttributes().Any(y => y.AttributeClass?.Equals(types.UsedConstructorAttribute, SymbolEqualityComparer.Default) == true))
+            {
+                return -1;
+            }
+
+            return x.Parameters.Length;
+        }).FirstOrDefault();
+
     }
 }

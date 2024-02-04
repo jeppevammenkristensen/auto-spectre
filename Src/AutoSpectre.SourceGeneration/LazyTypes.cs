@@ -20,6 +20,7 @@ public class LazyTypes
     private readonly Lazy<INamedTypeSymbol?> _textPrompt;
     private readonly Lazy<INamedTypeSymbol?> _selectPrompt;
     private readonly Lazy<INamedTypeSymbol?> _taskStepPrompt;
+    private readonly Lazy<INamedTypeSymbol?> _usedconstructorAttribute;
 
     public INamedTypeSymbol? ListGeneric => _listGeneric.Value;
     public INamedTypeSymbol? HashSet => _hashSet.Value;
@@ -30,7 +31,8 @@ public class LazyTypes
     public INamedTypeSymbol? TextPrompt => _textPrompt.Value;
     public INamedTypeSymbol? SelectPrompt => _selectPrompt.Value;
     public INamedTypeSymbol? TaskStepPrompt => _taskStepPrompt.Value;
-    
+    public INamedTypeSymbol? UsedConstructorAttribute => _usedconstructorAttribute.Value;
+
     public LazyTypes(Compilation compilation)
     {
         _compilation = compilation;
@@ -49,6 +51,8 @@ public class LazyTypes
         _selectPrompt = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName($"AutoSpectre.{nameof(SelectPromptAttribute)}"));
         _taskStepPrompt = new Lazy<INamedTypeSymbol?>(() =>
             compilation.GetTypeByMetadataName($"AutoSpectre.{nameof(TaskStepAttribute)}"));
+        _usedconstructorAttribute = new Lazy<INamedTypeSymbol?>(() =>
+            compilation.GetTypeByMetadataName($"AutoSpectre.{nameof(AutoSpectre.UsedConstructorAttribute)}"));
     }
 
     /// <summary>

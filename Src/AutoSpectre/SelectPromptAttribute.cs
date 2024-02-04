@@ -2,6 +2,12 @@
 
 namespace AutoSpectre;
 
+[AttributeUsage(AttributeTargets.Constructor)]
+public class UsedConstructorAttribute : Attribute
+{
+    
+}
+
 [AttributeUsage(AttributeTargets.Property)]
 public class SelectPromptAttribute : AutoSpectreStepAttribute
 {

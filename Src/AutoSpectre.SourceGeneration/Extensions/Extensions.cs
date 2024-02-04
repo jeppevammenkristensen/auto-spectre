@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace AutoSpectre.SourceGeneration.Extensions;
 
@@ -347,6 +348,11 @@ public static class Extensions
         //attributeData.ConstructorArguments.FirstOrDefault(x => x.())
 
         return false;
+    }
+
+    public static IEnumerable<IPropertySymbol> GetAllProperties(this INamedTypeSymbol typeSymbol)
+    {
+        return typeSymbol.GetAllMembers().OfType<IPropertySymbol>();
     }
 
     public static IEnumerable<(IPropertySymbol? property,IMethodSymbol? method)> GetPropertiesWithSetterAndMethods(this INamedTypeSymbol typeSymbol)
