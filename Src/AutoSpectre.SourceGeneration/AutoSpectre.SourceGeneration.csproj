@@ -7,7 +7,8 @@
     <Nullable>enable</Nullable>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <IsRoslynComponent>true</IsRoslynComponent>
-    <VersionPrefix>0.8.0</VersionPrefix>    
+    <VersionPrefix>0.8.1</VersionPrefix>
+    <VersionSuffix>preview-01</VersionSuffix>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -21,7 +22,7 @@
     <PackageProjectUrl>https://github.com/jeppevammenkristensen/auto-spectre</PackageProjectUrl>
     <RepositoryUrl>https://github.com/jeppevammenkristensen/auto-spectre</RepositoryUrl>
     <PackageTags>C#;Source Generator</PackageTags>
-    <PackageReleaseNotes>Added dump extension method. Added support for new Confirmation styles</PackageReleaseNotes>
+    <PackageReleaseNotes>Focus on issues preventing build. Added handling of UsedConstructor</PackageReleaseNotes>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>

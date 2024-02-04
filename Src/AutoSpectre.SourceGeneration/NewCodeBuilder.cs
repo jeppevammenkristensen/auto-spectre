@@ -146,13 +146,7 @@ namespace {{ Type.ContainingNamespace}}
     
     private string GeneratePromptExtensionMethod(string generateDumpMethod)
     {
-        var type = (IsAsync, HasEmptyConstructor: CanBeInitializedWithoutParameters) switch
-        {
-            {IsAsync: true, HasEmptyConstructor: true} => $"Task<{Type.Name}",
-            {IsAsync: true, HasEmptyConstructor: false} => "Task",
-            {HasEmptyConstructor: false} => "void",
-            {HasEmptyConstructor: true} => Type.Name
-        };
+        var type = IsAsync ? $"Task<{Type.Name}>" : Type.Name;
         
         var extensionmethodName = IsAsync ? "SpectrePromptAsync" : "SpectrePrompt";
 
@@ -162,11 +156,18 @@ namespace {{ Type.ContainingNamespace}}
         {
             call = $"return {call}";
         }
+        else
+        {
+            call = $"""
+                    {call}
+                    return source;
+                    """;
+        }
         
         return $$"""
                   public static class {{ SpectreFactoryClassName }}Extensions
                  {
-                     public static {{type}} {{extensionmethodName}} (this {{Type.Name}} source)
+                     public static {{GetReturnedType(type,IsAsync)}} {{extensionmethodName}} (this {{Type.Name}} source)
                      {
                           {{SpectreFactoryClassName}} factory = new();
                           {{ call }}
@@ -177,6 +178,10 @@ namespace {{ Type.ContainingNamespace}}
                  """;
     }
 
+    private string GetReturnedType(string type, bool isAsync)
+    {
+        return $"{(isAsync ? "async" : "")} {type}";
+    }
 
     private string InitCulture()
     {
