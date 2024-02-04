@@ -35,7 +35,7 @@ internal class NewCodeBuilder
     public List<IStepContext> StepContexts { get; }
     public SingleFormEvaluationContext SingleFormEvaluationContext { get; }
 
-    public bool HasEmptyConstructor { get; }
+    public bool CanBeInitializedWithoutParameters { get; }
 
     public NewCodeBuilder(INamedTypeSymbol type, List<IStepContext> stepContexts,
         SingleFormEvaluationContext singleFormEvaluationContext)
@@ -43,7 +43,10 @@ internal class NewCodeBuilder
         Type = type;
         StepContexts = stepContexts;
         SingleFormEvaluationContext = singleFormEvaluationContext;
-        HasEmptyConstructor = EvaluateConstructors();
+        if (SingleFormEvaluationContext.UsedConstructor == null)
+            throw new InvalidOperationException("UsedConstructor was null. This should not have been called");
+        
+        CanBeInitializedWithoutParameters = EvaluateIfCanBeInitalizedWithoutParameters();
         // A note about hasEmptyConstructor. If there are no empty constructors we will
         // instantiate the type so it's required to pass it in. So we remove the default value and
         // change the return type to be void or Task
@@ -52,18 +55,15 @@ internal class NewCodeBuilder
     /// <summary>
     /// Helps create and fill <see cref="NewCodeBuilder"/> with values
     /// </summary>
-    /// <returns></returns>
+    /// <returns>A string representation of the generated code</returns>
     public string BuildCode()
     {
         var name = $"{Type.ContainingNamespace}.{Type.Name}";
-
         var members = BuildStepContexts();
-        var isAsync = StepContexts.Any(x => x.IsAsync);
-
-        var spectreFactoryInterfaceName = Type.GetSpectreFactoryInterfaceName();
-        var spectreFactoryClassName = Type.GetSpectreFactoryClassName();
+        var isAsync = IsAsync;
+        
         var returnTypeName = isAsync ? $"Task<{Type.Name}>" : Type.Name;
-        if (!HasEmptyConstructor)
+        if (!CanBeInitializedWithoutParameters)
             returnTypeName = isAsync ? "Task" : "void";
         
         var result = $$"""
@@ -74,46 +74,101 @@ namespace {{ Type.ContainingNamespace}}
     /// <summary>
     /// Helps create and fill <see cref="{{ Type.Name }}"/> with values
     /// </summary>
-    public interface {{spectreFactoryInterfaceName}}
+    public interface {{SpectreFactoryInterfaceName}}
     {
-        {{ returnTypeName}}   Get{{ (isAsync ? "Async " : string.Empty) }}({{ Type.Name}}   destination {{ (HasEmptyConstructor ? "= null" : "")}});
+        {{ returnTypeName}}   Get{{ (isAsync ? "Async " : string.Empty) }}({{ Type.Name}}   destination {{ (CanBeInitializedWithoutParameters ? "= null" : "")}});
     }
 
     /// <summary>
     /// Helps create and fill <see cref="{{ Type.Name }}"/> with values
     /// </summary>
-    public class {{ spectreFactoryClassName}} : {{ spectreFactoryInterfaceName }}
+    public class {{ SpectreFactoryClassName}} : {{ SpectreFactoryInterfaceName }}
     {
-        public {{ (isAsync ? "async " : string.Empty) }}{{ returnTypeName}}   Get{{ (isAsync ? "Async " : string.Empty) }}({{ Type.Name}}   destination {{ (HasEmptyConstructor ? "= null" : "")}})
+        public {{ (isAsync ? "async " : string.Empty) }}{{ returnTypeName}}   Get{{ (isAsync ? "Async " : string.Empty) }}({{ Type.Name}}   destination {{ (CanBeInitializedWithoutParameters ? "= null" : "")}})
         {
             {{PreInitalization()}}
 
-            {{( HasEmptyConstructor ? $"destination ??= new { name }   ();" : string.Empty )}}
+            {{( CanBeInitializedWithoutParameters ? $"destination ??= new { name }   ();" : string.Empty )}}
             {{ InitCulture() }}
 {{ members}} 
-            {{ ( HasEmptyConstructor ? "return destination;" : string.Empty)  }}
+            {{ ( CanBeInitializedWithoutParameters ? "return destination;" : string.Empty)  }}
         }
     }
     
-    {{ GenerateExtensionMethodClass() }}
+    {{ GenerateExtensionMethodsClass() }}
     
 }
 """ ;
-
-    string GenerateExtensionMethodClass()
+        
+        
+    string GenerateExtensionMethodsClass()
     {
-        var type = isAsync ? $"async Task<{Type.Name}>" : Type.Name;
-        var extensionmethodName = isAsync ? "SpectrePromptAsync" : "SpectrePrompt";
-        var call = isAsync ? "return await factory.GetAsync(source);" : "return factory.Get(source);";
+        var generateDumpMethod = SingleFormEvaluationContext.DisableDumpMethod
+            ? string.Empty
+            : new DumpMethodBuilder(Type,
+                StepContexts,
+                SingleFormEvaluationContext).GenerateDumpMethods();
+        
+         return GeneratePromptExtensionMethod(generateDumpMethod);
+    }
 
-        var generateDumpMethod = SingleFormEvaluationContext.DisableDumpMethod ? string.Empty : new DumpMethodBuilder(Type, StepContexts, SingleFormEvaluationContext).GenerateDumpMethods();
 
+
+    return SyntaxFactory.ParseCompilationUnit(result).NormalizeWhitespace().ToFullString();
+    }
+
+    private bool IsAsync
+    {
+        get
+        {
+            var isAsync = StepContexts.Any(x => x.IsAsync);
+            return isAsync;
+        }
+    }
+
+    private string SpectreFactoryClassName
+    {
+        get
+        {
+            var spectreFactoryClassName = Type.GetSpectreFactoryClassName();
+            return spectreFactoryClassName;
+        }
+    }
+
+    private string SpectreFactoryInterfaceName
+    {
+        get
+        {
+            var spectreFactoryInterfaceName = Type.GetSpectreFactoryInterfaceName();
+            return spectreFactoryInterfaceName;
+        }
+    }
+    
+    private string GeneratePromptExtensionMethod(string generateDumpMethod)
+    {
+        var type = (IsAsync, HasEmptyConstructor: CanBeInitializedWithoutParameters) switch
+        {
+            {IsAsync: true, HasEmptyConstructor: true} => $"Task<{Type.Name}",
+            {IsAsync: true, HasEmptyConstructor: false} => "Task",
+            {HasEmptyConstructor: false} => "void",
+            {HasEmptyConstructor: true} => Type.Name
+        };
+        
+        var extensionmethodName = IsAsync ? "SpectrePromptAsync" : "SpectrePrompt";
+
+        var call = IsAsync ? "await factory.GetAsync(source);" : "factory.Get(source);";
+
+        if (CanBeInitializedWithoutParameters)
+        {
+            call = $"return {call}";
+        }
+        
         return $$"""
-                  public static class {{ spectreFactoryClassName }}Extensions
+                  public static class {{ SpectreFactoryClassName }}Extensions
                  {
                      public static {{type}} {{extensionmethodName}} (this {{Type.Name}} source)
                      {
-                          {{spectreFactoryClassName}} factory = new();
+                          {{SpectreFactoryClassName}} factory = new();
                           {{ call }}
                      }
                      
@@ -122,12 +177,6 @@ namespace {{ Type.ContainingNamespace}}
                  """;
     }
 
-
-
-    return SyntaxFactory.ParseCompilationUnit(result).NormalizeWhitespace().ToFullString();
-    }
-
-  
 
     private string InitCulture()
     {
@@ -140,9 +189,9 @@ namespace {{ Type.ContainingNamespace}}
         return $"var {CodeBuildConstants.CultureVariableName} = {cultureInitializer};";
     }
 
-    private bool EvaluateConstructors()
+    private bool EvaluateIfCanBeInitalizedWithoutParameters()
     {
-        return Type.InstanceConstructors.Any(x => x.Parameters.Length == 0);
+        return SingleFormEvaluationContext.UsedConstructor!.Parameters.Length == 0  && !Type.GetAllProperties().Any(x => x.IsRequired);
     }
 
     private string PreInitalization()

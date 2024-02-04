@@ -15,7 +15,8 @@ public class TargetFormEvaluator
     public INamedTypeSymbol TargetNamedType { get; }
     public SourceProductionContext ProductionContext { get; }
     public GeneratorAttributeSyntaxContext SyntaxContext { get; }
-    public INamedTypeSymbol NamedTypeSymbol { get; }
+
+    private readonly LazyTypes _lazyTypes;
 
   
 
@@ -25,6 +26,7 @@ public class TargetFormEvaluator
         TargetNamedType = targetNamedType;
         ProductionContext = productionContext;
         SyntaxContext = syntaxContext;
+        _lazyTypes = new LazyTypes(SyntaxContext.SemanticModel.Compilation);
     }
 
     public SingleFormEvaluationContext GetFormContext()
@@ -33,6 +35,7 @@ public class TargetFormEvaluator
         var singleFormEvaluationContext = new SingleFormEvaluationContext();
         EvaluateCulture(translatedFormAttributeData, singleFormEvaluationContext);
         singleFormEvaluationContext.DisableDumpMethod = translatedFormAttributeData.DisableDump;
+        singleFormEvaluationContext.UsedConstructor = TargetNamedType.FindConstructor(_lazyTypes);
         return singleFormEvaluationContext;
     }
     

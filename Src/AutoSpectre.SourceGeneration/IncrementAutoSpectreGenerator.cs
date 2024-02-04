@@ -78,6 +78,14 @@ public class IncrementAutoSpectreGenerator : IIncrementalGenerator
                         
                         var stepContexts = StepContextBuilderOperation.GetStepContexts(syntaxContext,
                             candidates, targetNamedType, productionContext);
+                        
+                        // We only check for a constructor if there are valid Steps defined.
+                        if (stepContexts.Count > 0 && singleFormEvaluationContext.UsedConstructor == null)
+                        {
+                            productionContext.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(
+                                DiagnosticIds.Id0027_NoConstructor, "No usable constructor", "No public constructors available", "General", DiagnosticSeverity.Error, true),  syntaxContext.TargetSymbol.Locations.FirstOrDefault()));
+                            return;
+                        }
 
                         var builder = new NewCodeBuilder(targetNamedType, stepContexts, singleFormEvaluationContext);
                         var code = builder.BuildCode();

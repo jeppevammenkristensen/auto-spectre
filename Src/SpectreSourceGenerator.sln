@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoSpectre", "AutoSpectre\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoSpectre.SourceGeneration.Tests", "AutoSpectre.SourceGeneration.Tests\AutoSpectre.SourceGeneration.Tests.csproj", "{0B4BEE92-D937-4120-9CB9-5A4BE654240D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoSpectre.SourceGeneration.Samples", "AutoSpectre.SourceGeneration.Samples\AutoSpectre.SourceGeneration.Samples.csproj", "{2B8EAE84-922E-44A3-B01A-31DF5AF9685F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +71,18 @@ Global
 		{0B4BEE92-D937-4120-9CB9-5A4BE654240D}.Release|x64.Build.0 = Release|Any CPU
 		{0B4BEE92-D937-4120-9CB9-5A4BE654240D}.Release|x86.ActiveCfg = Release|Any CPU
 		{0B4BEE92-D937-4120-9CB9-5A4BE654240D}.Release|x86.Build.0 = Release|Any CPU
+		{2B8EAE84-922E-44A3-B01A-31DF5AF9685F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B8EAE84-922E-44A3-B01A-31DF5AF9685F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B8EAE84-922E-44A3-B01A-31DF5AF9685F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2B8EAE84-922E-44A3-B01A-31DF5AF9685F}.Debug|x64.Build.0 = Debug|Any CPU
+		{2B8EAE84-922E-44A3-B01A-31DF5AF9685F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2B8EAE84-922E-44A3-B01A-31DF5AF9685F}.Debug|x86.Build.0 = Debug|Any CPU
+		{2B8EAE84-922E-44A3-B01A-31DF5AF9685F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2B8EAE84-922E-44A3-B01A-31DF5AF9685F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2B8EAE84-922E-44A3-B01A-31DF5AF9685F}.Release|x64.ActiveCfg = Release|Any CPU
+		{2B8EAE84-922E-44A3-B01A-31DF5AF9685F}.Release|x64.Build.0 = Release|Any CPU
+		{2B8EAE84-922E-44A3-B01A-31DF5AF9685F}.Release|x86.ActiveCfg = Release|Any CPU
+		{2B8EAE84-922E-44A3-B01A-31DF5AF9685F}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
