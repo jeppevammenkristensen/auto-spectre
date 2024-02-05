@@ -38,9 +38,9 @@ public class IncrementAutoSpectreGenerator : IIncrementalGenerator
                         .Select(x =>
                         {
                             var (property, method) = x;
-                            ISymbol symbol = (ISymbol)property ?? method;
+                            ISymbol symbol = property is not null ? property : method!;
                             
-                            var attribute = symbol!.GetAttributes().FirstOrDefault(a =>
+                            var attribute = symbol.GetAttributes().FirstOrDefault(a =>
                                 a.AttributeClass is
                                 {
                                     ContainingNamespace:
