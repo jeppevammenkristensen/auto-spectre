@@ -24,7 +24,6 @@ public class Example
 
     public readonly string? FirstNameDefaultValue = "John Doe";
 
-
     [TextPrompt(PromptStyle = "green bold")]
     public bool LeftHanded { get; set; }
 
@@ -280,6 +279,8 @@ public class DerivedClass : BaseClass
 ### Constructor
 
 Since version 0.5.0 the class is allowed to not have an empty constructor. But in that case the Get/GetAsync method will change to be for a passed in instance. Requirering you to new up the class before calling the Get method.
+
+If you have multiple constructors, you can decorate the constructor intended for initalization by using the `UsedConstructor`attribute
 
 ```csharp
 public void Get(Example destination)
