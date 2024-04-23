@@ -7,7 +7,8 @@
     <Nullable>enable</Nullable>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <IsRoslynComponent>true</IsRoslynComponent>
-    <VersionPrefix>0.8.2</VersionPrefix>    
+    <VersionPrefix>0.9.0</VersionPrefix>
+    <VersionSuffix>preview-0.2</VersionSuffix>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -43,7 +44,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.8.0" PrivateAsserts="all">
     </PackageReference>
-    <PackageReference Include="Spectre.Console" Version="0.48.0" />
+    <PackageReference Include="Spectre.Console" Version="0.49.0" />
   </ItemGroup>
 
   <ItemGroup>

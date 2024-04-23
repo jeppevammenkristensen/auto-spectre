@@ -293,6 +293,8 @@ internal class StepContextBuilderOperation
             {
                 if (!propertyContext.IsEnumerable)
                 {
+                    EvaluateEnableSearch(propertyContext, memberAttributeData);
+                    
                     stepContexts.Add(new PropertyContext(property.Name, property,
                         new SelectionPromptBuildContext(memberAttributeData.Title, propertyContext)));
                 }
@@ -757,6 +759,15 @@ internal class StepContextBuilderOperation
         }
     }
 
+    private void EvaluateEnableSearch(SinglePropertyEvaluationContext propertyContext,
+        TranslatedMemberAttributeData memberAttributeData)
+    {
+        if (memberAttributeData.SearchEnabled == true)
+        {
+            propertyContext.ConfirmedSearchEnabled = new ConfirmedSearchEnabled(true);
+        }
+    }
+    
     private void EvaluateCondition(IConditionContext propertyContext,
         TranslatedMemberAttributeData memberAttributeData)
     {

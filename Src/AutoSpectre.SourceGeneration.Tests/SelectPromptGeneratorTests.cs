@@ -70,6 +70,26 @@ public class SelectPromptGeneratorTests : AutoSpectreGeneratorTestsBase
                              }
                              """).Should().Contain(".WrapAround(true)");
     }
+    
+    [Fact]
+    public void SelectPromptWithSearchEnabledGeneratesCorrectValue()
+    {
+        GetGeneratedOutput($$"""
+                             using AutoSpectre;
+                             using System.Collections.Generic;
+
+                             namespace Test;
+
+                             [AutoSpectreForm]
+                             public class TestForm
+                             {
+                                [SelectPrompt(SearchEnabled = true)]
+                                public int SelectNumber {get;set;}
+                                
+                                public List<int> SelectNumberSource {get;set;}
+                             }
+                             """).Should().Contain(".EnableSearch()");
+    }
 
     [Fact]
     public void MissingSource_GeneratesCorrectDiagnostic()

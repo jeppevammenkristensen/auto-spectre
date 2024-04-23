@@ -85,7 +85,8 @@ public class StepWithAttributeData
                     converter: converter,
                     validator: validator,
                     condition: condition, 
-                    conditionNegated);
+                    conditionNegated: conditionNegated, 
+                    searchEnabled: null);
         }
         else if (attributeData.AttributeClass.Name == nameof(TextPromptAttribute))
         {
@@ -125,8 +126,19 @@ public class StepWithAttributeData
             var moreChoicesText = attributeData.GetAttributePropertyValue<string?>(nameof(SelectPromptAttribute.MoreChoicesText)) ?? null;
             var instructionsText = attributeData.GetAttributePropertyValue<string?>(nameof(SelectPromptAttribute.InstructionsText)) ?? null;
             var highlightStyle = attributeData.GetAttributePropertyValue<string?>(nameof(SelectPromptAttribute.HighlightStyle)) ?? null;
+            var searchEnabled = attributeData.GetAttributePropertyValue<bool?>(nameof(SelectPromptAttribute.SearchEnabled)) ?? null;
 
-            TranslatedMemberAttribute = TranslatedMemberAttributeData.SelectPrompt(title, selectionSource, converter, condition, conditionNegated, pageSize, wrapAround, moreChoicesText, instructionsText, highlightStyle);
+            TranslatedMemberAttribute = TranslatedMemberAttributeData.SelectPrompt(title,
+                selectionSource,
+                converter,
+                condition,
+                conditionNegated,
+                pageSize,
+                wrapAround,
+                moreChoicesText,
+                instructionsText,
+                highlightStyle, 
+                searchEnabled);
         }
         
         else
