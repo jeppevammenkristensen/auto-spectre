@@ -130,6 +130,8 @@ public class SinglePropertyEvaluationContext : IConditionContext
     public string? InstructionsText { get; set; }
     public string? HighlightStyle { get; set; } //public NamedTypedAnalysis? NamedTypeAnalysis { get; set; }
     public ConfirmedChoiceStyle ConfirmedChoicesStyle { get; set; }
+    
+    public ConfirmedSearchEnabled? ConfirmedSearchEnabled { get; set; }
 
 
     public static SinglePropertyEvaluationContext GenerateFromPropertySymbol(IPropertySymbol property,

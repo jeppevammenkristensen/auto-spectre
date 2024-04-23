@@ -22,7 +22,8 @@ public class TranslatedMemberAttributeData
         string? converter,
         string? validator,
         string? condition,
-        bool conditionNegated)
+        bool conditionNegated, 
+        bool? searchEnabled)
     {
         AskType = askType;
         SelectionSource = selectionSource;
@@ -31,6 +32,7 @@ public class TranslatedMemberAttributeData
         Validator = validator;
         Condition = condition;
         ConditionNegated = conditionNegated;
+        SearchEnabled = searchEnabled;
     }
 
     public string Title { get;  }
@@ -41,6 +43,7 @@ public class TranslatedMemberAttributeData
     
     public string? Condition { get; set; }
     public bool ConditionNegated { get; }
+    public bool? SearchEnabled { get; }
 
     public string? TypeInitializer { get; private set; }
     
@@ -51,7 +54,7 @@ public class TranslatedMemberAttributeData
         string? promptStyle, string? typeInitalizer, string? choiceSource, string? choicesStyle,
         string? choicesInvalidText, string? defaultValue)
     {
-        return new(askType: AskTypeCopy.Normal, selectionSource: null, title: title, converter: null, validator: validator, condition: condition, conditionNegated: conditionNegated)
+        return new(askType: AskTypeCopy.Normal, selectionSource: null, title: title, converter: null, validator: validator, condition: condition, conditionNegated: conditionNegated, searchEnabled: null)
         {
             Secret = secret,
             Mask = mask,
@@ -81,7 +84,7 @@ public class TranslatedMemberAttributeData
 
     public static TranslatedMemberAttributeData SelectPrompt(string title, string? selectionSource, string? converter,
         string? condition, bool conditionNegated, int? pageSize, bool? wrapAround, string? moreChoicesText,
-        string? instructionsText, string? highlightStyle)
+        string? instructionsText, string? highlightStyle, bool? searchEnabled)
     {
         return new(askType: AskTypeCopy.Selection,
             selectionSource: selectionSource,
@@ -89,7 +92,8 @@ public class TranslatedMemberAttributeData
             converter: converter,
             validator: null,
             condition: condition,
-            conditionNegated: conditionNegated
+            conditionNegated: conditionNegated,
+            searchEnabled
             )
         {
             PageSize = pageSize,
@@ -102,7 +106,7 @@ public class TranslatedMemberAttributeData
 
     public static TranslatedMemberAttributeData TaskPrompt(string title, string? condition, bool conditionNegated, bool useStatus, string? statusText, string? spinnerStyle,SpinnerKnownTypesCopy? spinnerType)
     {
-        return new TranslatedMemberAttributeData(AskTypeCopy.Task, null, title, null, null, condition, conditionNegated)
+        return new TranslatedMemberAttributeData(AskTypeCopy.Task, null, title, null, null, condition, conditionNegated, null)
         {
             UseStatus = useStatus,
             StatusText = statusText,

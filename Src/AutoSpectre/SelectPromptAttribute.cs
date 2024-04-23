@@ -54,4 +54,9 @@ public class SelectPromptAttribute : AutoSpectreStepAttribute
     /// The style to for highlighting the currently selected item
     /// </summary>
     public string? HighlightStyle { get; set; }
+    
+    /// <summary>
+    /// Enable search in the prompt
+    /// </summary>
+    public bool SearchEnabled { get; set; }
 }
