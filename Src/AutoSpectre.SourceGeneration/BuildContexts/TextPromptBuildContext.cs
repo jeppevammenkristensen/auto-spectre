@@ -5,6 +5,7 @@ using System.Net.Mime;
 using System.Text;
 using AutoSpectre.SourceGeneration.Evaluation;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Spectre.Console;
 
 namespace AutoSpectre.SourceGeneration.BuildContexts;
@@ -34,7 +35,7 @@ internal class TextPromptBuildContext : PromptBuilderContextWithPropertyContext
         var syntax = TypeSymbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax().ToString() ?? TypeSymbol.ToDisplayString();
         StringBuilder builder = new();
         builder.AppendLine("AnsiConsole.Prompt(");
-        builder.AppendLine($"""new TextPrompt<{syntax}>("{Title}")""");
+        builder.AppendLine($"""new TextPrompt<{syntax}>({SymbolDisplay.FormatLiteral(Title,true)})""");
         if (Nullable)
         {
             builder.AppendLine(".AllowEmpty()");
