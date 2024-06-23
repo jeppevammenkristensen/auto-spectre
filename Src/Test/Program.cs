@@ -19,7 +19,9 @@ namespace Test
     [AutoSpectreForm(DisableDump = false)]
     public class SClass
     {
-        [TextPrompt(DefaultValueStyle = "yellow", ChoicesStyle = "green on purple")]
+        [TextPrompt(Title = "Add \"item")] public int[] IntItems { get; set; } = Array.Empty<int>();
+        
+        [TextPrompt(DefaultValueStyle = "\"yellow", ChoicesStyle = "green on purple")]
         public bool Yay { get; set; }
 
         [TextPrompt(DefaultValueSource = nameof(FirstNameDefault))] public string FirstName { get; set; } = null!;

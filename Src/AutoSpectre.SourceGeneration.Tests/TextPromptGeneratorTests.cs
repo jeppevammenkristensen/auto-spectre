@@ -30,6 +30,29 @@ public class TextPromptGeneratorTests : AutoSpectreGeneratorTestsBase
     }
 
     [Fact]
+    public void TextPromptWithSpecialCharacter()
+    {
+        GetOutput("""
+                  using AutoSpectre;
+                  using System.Collections.Generic;
+
+                  namespace Test;
+
+                  [AutoSpectreForm]
+                  public class TestForm
+                  {
+                      [TextPrompt(Title="\"test")]
+                      public string Secret {get;set;}
+                      
+                     
+                  }
+
+                  
+
+                  """).Output.Should().Contain("\"test");
+    }
+
+    [Fact]
     public void TextPromptWithReferenceToOtherThatHasNoEmptyPublicConstructorButItHasInitializer()
     {
         GetOutput("""
