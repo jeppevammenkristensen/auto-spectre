@@ -1,10 +1,11 @@
 ﻿using System;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace AutoSpectre.SourceGeneration.BuildContexts;
 
 internal abstract class PromptBuilderContextWithPropertyContext : PromptBuildContext
 {
-    protected PromptBuilderContextWithPropertyContext(SinglePropertyEvaluationContext context) : base(context)
+    protected PromptBuilderContextWithPropertyContext(SinglePropertyEvaluationContext context, string title) : base(context, title)
     {
     }
 
@@ -18,5 +19,9 @@ internal abstract class PromptBuilderContextWithPropertyContext : PromptBuildCon
         return string.Empty;
     }
 
-   
+
+    
+
+
+
 }

@@ -13,12 +13,12 @@ namespace AutoSpectre.SourceGeneration.BuildContexts;
 internal class TextPromptBuildContext : PromptBuilderContextWithPropertyContext
 {
     private readonly TranslatedMemberAttributeData _memberAttributeData;
-    public string Title => _memberAttributeData.Title;
+    
     public ITypeSymbol TypeSymbol { get; }
     public bool Nullable { get; }
 
     public TextPromptBuildContext(TranslatedMemberAttributeData memberAttributeData, ITypeSymbol typeSymbol, bool nullable,
-        SinglePropertyEvaluationContext context) : base(context)
+        SinglePropertyEvaluationContext context) : base(context,memberAttributeData.Title)
     {
         _memberAttributeData = memberAttributeData;
         TypeSymbol = typeSymbol;
@@ -35,7 +35,7 @@ internal class TextPromptBuildContext : PromptBuilderContextWithPropertyContext
         var syntax = TypeSymbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax().ToString() ?? TypeSymbol.ToDisplayString();
         StringBuilder builder = new();
         builder.AppendLine("AnsiConsole.Prompt(");
-        builder.AppendLine($"""new TextPrompt<{syntax}>({SymbolDisplay.FormatLiteral(Title,true)})""");
+        builder.AppendLine($"""new TextPrompt<{syntax}>({GenerateTitleString()})""");
         if (Nullable)
         {
             builder.AppendLine(".AllowEmpty()");

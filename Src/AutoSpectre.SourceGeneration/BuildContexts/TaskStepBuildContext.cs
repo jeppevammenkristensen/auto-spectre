@@ -6,12 +6,12 @@ namespace AutoSpectre.SourceGeneration.BuildContexts;
 
 public class TaskStepBuildContext : PromptBuildContext
 {
-    public string? Title { get; }
-
+    private bool _generateTitle;
+    
     public TaskStepBuildContext(string? title, SingleMethodEvaluationContext methodEvaluationContext) : base(
-        SinglePropertyEvaluationContext.Empty)
+        SinglePropertyEvaluationContext.Empty, title ?? string.Empty)
     {
-        Title = title;
+        _generateTitle = title is { };
         EvaluationContext = methodEvaluationContext;
     }
 
@@ -20,9 +20,9 @@ public class TaskStepBuildContext : PromptBuildContext
     public override string GenerateOutput(string destination)
     {
         var builder = new StringBuilder();
-        if (Title is { })
+        if (_generateTitle)
         {
-            builder.AppendLine($"AnsiConsole.MarkupLine(\"{Title}\");");    
+            builder.AppendLine($"AnsiConsole.MarkupLine({GenerateTitleString()});");    
         }
         
         StartStatus(builder);
@@ -88,7 +88,7 @@ public class TaskStepBuildContext : PromptBuildContext
 
     private void EndStatus(StringBuilder builder)
     {
-        if (EvaluationContext.ConfirmedStatus is not {} status)
+        if (EvaluationContext.ConfirmedStatus is not {})
         {
             return;
         }

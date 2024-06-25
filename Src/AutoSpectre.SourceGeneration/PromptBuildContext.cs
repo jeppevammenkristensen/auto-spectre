@@ -1,15 +1,18 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Composition.Hosting.Core;
 using System.Linq;
 using AutoSpectre.SourceGeneration.Extensions;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace AutoSpectre.SourceGeneration;
 
 public abstract class PromptBuildContext
 {
-    public PromptBuildContext(SinglePropertyEvaluationContext context)
+    public PromptBuildContext(SinglePropertyEvaluationContext context, string title)
     {
         Context = context;
+        Title = title;
     }
 
     public virtual bool DeclaresVariable
@@ -20,6 +23,17 @@ public abstract class PromptBuildContext
     public SinglePropertyEvaluationContext Context { get; }
 
     public abstract string GenerateOutput(string destination);
+    
+    public string Title { get; }
+    
+    /// <summary>
+    /// Generates a title for the given string with quotes. It will ensure that
+    /// special characters are correctly handled for instance. That "Some \"name\"" will be
+    /// outputted as just that and not "Some "name""
+    /// </summary>
+    /// <param name="title">The string to generate a title for.</param>
+    /// <returns>The generated title.</returns>
+    protected string GenerateTitleString() => SymbolDisplay.FormatLiteral(Title, true);
 
     /// <summary>
     /// The parts that does the prompting. If the prompt result is stored in a variable

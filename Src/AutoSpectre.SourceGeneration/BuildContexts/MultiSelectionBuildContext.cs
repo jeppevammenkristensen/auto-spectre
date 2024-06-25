@@ -47,7 +47,7 @@ internal class MultiSelectionBuildContext : SelectionBaseBuildContext
         var prompt = $"""
 AnsiConsole.Prompt(
 new MultiSelectionPrompt<{type}>()
-.Title("{Title}"){GenerateConverter()}
+.Title({GenerateTitleString()}){GenerateConverter()}
 {GenerateRequired()}
 {GeneratePageSize()}
 {GenerateHighlightStyle()}

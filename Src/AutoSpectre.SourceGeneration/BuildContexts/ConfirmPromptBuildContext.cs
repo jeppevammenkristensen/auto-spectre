@@ -6,13 +6,11 @@ namespace AutoSpectre.SourceGeneration.BuildContexts;
 
 public class ConfirmPromptBuildContext : PromptBuildContext
 {
-    public string Title { get; }
     public bool IsNullable { get; }
 
     public ConfirmPromptBuildContext(string title, bool isNullable,
-        SinglePropertyEvaluationContext evaluationContext) : base(evaluationContext)
+        SinglePropertyEvaluationContext evaluationContext) : base(evaluationContext, title)
     {
-        Title = title;
         IsNullable = isNullable;
     }
 
@@ -24,7 +22,7 @@ public class ConfirmPromptBuildContext : PromptBuildContext
     public override string PromptPart(string? variableName = null)
     {
         var stringBuilder = new StringBuilder();
-        stringBuilder.AppendLine($"""AnsiConsole.Prompt(new ConfirmationPrompt("{Title}")""");
+        stringBuilder.AppendLine($"""AnsiConsole.Prompt(new ConfirmationPrompt({GenerateTitleString()})""");
         BuildDefaultStyle(stringBuilder);
         BuildChoicesStyle(stringBuilder);
         stringBuilder.AppendLine(")");

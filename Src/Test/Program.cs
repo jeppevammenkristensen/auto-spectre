@@ -19,10 +19,13 @@ namespace Test
     [AutoSpectreForm(DisableDump = false)]
     public class SClass
     {
-        [TextPrompt(Title = "Add \"item")] public int[] IntItems { get; set; } = Array.Empty<int>();
+        [SelectPrompt(Title = "Select \"name\"")]
+        public string Name { get; set; } = string.Empty;
         
-        [TextPrompt(DefaultValueStyle = "\"yellow", ChoicesStyle = "green on purple")]
-        public bool Yay { get; set; }
+        public IEnumerable<string> NameSource()  {
+            yield return "First";
+            yield return "Second";
+        }
 
         [TextPrompt(DefaultValueSource = nameof(FirstNameDefault))] public string FirstName { get; set; } = null!;
         public const string FirstNameDefault = "Jeppe";
