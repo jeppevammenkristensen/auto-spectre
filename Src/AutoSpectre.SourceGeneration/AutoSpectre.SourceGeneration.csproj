@@ -7,8 +7,7 @@
     <Nullable>enable</Nullable>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <IsRoslynComponent>true</IsRoslynComponent>
-    <VersionPrefix>0.8.2</VersionPrefix>
-    <VersionSuffix>preview-02</VersionSuffix>
+    <VersionPrefix>0.8.2</VersionPrefix>    
   </PropertyGroup>
 
   <PropertyGroup>
@@ -22,7 +21,7 @@
     <PackageProjectUrl>https://github.com/jeppevammenkristensen/auto-spectre</PackageProjectUrl>
     <RepositoryUrl>https://github.com/jeppevammenkristensen/auto-spectre</RepositoryUrl>
     <PackageTags>C#;Source Generator</PackageTags>
-    <PackageReleaseNotes>Focus on issues preventing build. Added handling of UsedConstructor</PackageReleaseNotes>
+    <PackageReleaseNotes>Fixes issue with how Title is rendered</PackageReleaseNotes>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
