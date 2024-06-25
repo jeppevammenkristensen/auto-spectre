@@ -5,14 +5,13 @@ namespace AutoSpectre.SourceGeneration.BuildContexts;
 
 public class EnumPromptBuildContext : PromptBuildContext
 {
-    public string Title { get; }
+   
     public ITypeSymbol Type { get; }
     public bool IsNullable { get; }
 
     public EnumPromptBuildContext(string title, ITypeSymbol type, bool isNullable,
-        SinglePropertyEvaluationContext context) : base(context)
+        SinglePropertyEvaluationContext context) : base(context, title)
     {
-        Title = title;
         Type = type;
         IsNullable = isNullable;
     }
@@ -28,7 +27,7 @@ public class EnumPromptBuildContext : PromptBuildContext
         return $"""
         AnsiConsole.Prompt(
         new SelectionPrompt<{type}>()
-            .Title("{Title}")
+            .Title({GenerateTitleString()})
             .PageSize(10) 
             .AddChoices(Enum.GetValues<{type}>()))
         """;

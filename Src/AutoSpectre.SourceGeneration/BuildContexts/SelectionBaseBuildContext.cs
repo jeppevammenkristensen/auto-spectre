@@ -7,12 +7,10 @@ namespace AutoSpectre.SourceGeneration.BuildContexts;
 /// </summary>
 internal abstract class SelectionBaseBuildContext : PromptBuilderContextWithPropertyContext
 {
-    public string Title { get; }
 
-
-    protected SelectionBaseBuildContext(string title,SinglePropertyEvaluationContext context) : base(context)
+    protected SelectionBaseBuildContext(string title,SinglePropertyEvaluationContext context) : base(context, title)
     {
-        Title = title;
+        
     }
 
     protected string GenerateMoreChoicesText()

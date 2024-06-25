@@ -8,8 +8,7 @@ namespace AutoSpectre.SourceGeneration.BuildContexts;
 internal class SelectionPromptBuildContext : SelectionBaseBuildContext
 {
     public ITypeSymbol TypeSymbol { get; }
-    public bool Nullable { get; }
-    
+    public bool Nullable { get; }    
 
     public SelectionPromptBuildContext(string title, SinglePropertyEvaluationContext context) : base(title,context)
     {
@@ -22,7 +21,6 @@ internal class SelectionPromptBuildContext : SelectionBaseBuildContext
     public override string GenerateOutput(string destination)
     {
         return $"{destination} = {PromptPart()};";
-
     }
 
     public override string PromptPart(string? variableName = null)
@@ -32,7 +30,7 @@ internal class SelectionPromptBuildContext : SelectionBaseBuildContext
         return $"""
         AnsiConsole.Prompt(
         new SelectionPrompt<{type}>()
-            .Title("{Title}"){GenerateConverter()}
+            .Title({GenerateTitleString()} ){GenerateConverter()}
             {GeneratePageSize()}
             {GenerateWrapAround()}
             {GenerateMoreChoicesText()}

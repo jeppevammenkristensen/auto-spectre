@@ -13,8 +13,7 @@ internal class ReuseExistingAutoSpectreFactoryPromptBuildContext : PromptBuilder
     public override bool DeclaresVariable => true;
 
     private ConfirmedNamedTypeSource NamedTypeSource => Context.ConfirmedNamedTypeSource ?? throw new InvalidOperationException("Source was unexpectedly null");
-
-    public string Title { get; }
+   
     public INamedTypeSymbol NamedTypeSymbol { get; }
     public bool IsNullable { get; }
 
@@ -30,13 +29,11 @@ internal class ReuseExistingAutoSpectreFactoryPromptBuildContext : PromptBuilder
 
 
     public ReuseExistingAutoSpectreFactoryPromptBuildContext(string title, INamedTypeSymbol namedTypeSymbol,
-        bool isNullable, SinglePropertyEvaluationContext context) : base(context)
+        bool isNullable, SinglePropertyEvaluationContext context) : base(context, title)
     {
         if (context.ConfirmedNamedTypeSource is null)
             throw new InvalidOperationException("Expected that context.ConfirmedNamedTypeSource is not null");
 
-
-        Title = title;
         NamedTypeSymbol = namedTypeSymbol;
         IsNullable = isNullable;
 
@@ -80,7 +77,7 @@ internal class ReuseExistingAutoSpectreFactoryPromptBuildContext : PromptBuilder
             var usedVariableName = variableName ?? "item";
 
             return $"""
-            AnsiConsole.MarkupLine("{Title}");
+            AnsiConsole.MarkupLine({GenerateTitleString()});
             { InitializeVariable(usedVariableName) }
              { GetValueFromFactory(usedVariableName)}
             """;
@@ -94,7 +91,7 @@ internal class ReuseExistingAutoSpectreFactoryPromptBuildContext : PromptBuilder
 
             while (!isValid)
             { 
-                AnsiConsole.MarkupLine("{{Title}}");
+                AnsiConsole.MarkupLine({{GenerateTitleString()}});
                 {{ InitializeVariable(usedVariable) }}
                 {{ GetValueFromFactory(usedVariable)}}
 
