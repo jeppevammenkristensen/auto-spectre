@@ -11,8 +11,8 @@ namespace Test
     {
         public static async Task Main()
         {
-            SClass sClass = new SClass().SpectrePrompt();
-            sClass.SpectreDump();
+            SClass.InnerTest test = new SClass.InnerTest();
+            test.SpectrePrompt();
         }
     }
 
@@ -27,6 +27,13 @@ namespace Test
             yield return "Second";
         }
 
+        [AutoSpectreForm]
+        public class InnerTest
+        {
+            [TextPrompt]
+            public string Name { get; set; }
+        }
+        
         [TextPrompt(DefaultValueSource = nameof(FirstNameDefault))] public string FirstName { get; set; } = null!;
         public const string FirstNameDefault = "Jeppe";
     }

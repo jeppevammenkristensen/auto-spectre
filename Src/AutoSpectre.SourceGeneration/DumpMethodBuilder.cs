@@ -33,6 +33,8 @@ internal class DumpMethodBuilder
     /// <returns></returns>
     public string GenerateDumpMethods()
     {
+        var typeName = Type.FullName();
+        
         var builder = new StringBuilder();
         builder.AppendLine("""
                            /// <summary>
@@ -42,7 +44,7 @@ internal class DumpMethodBuilder
                            /// <returns></returns>
                            """);
 
-        builder.AppendLine($"public static IRenderable GenerateTable(this {Type.Name} {SourceParameterName})");
+        builder.AppendLine($"public static IRenderable GenerateTable(this {typeName} {SourceParameterName})");
         builder.AppendLine("{");
         builder.AppendLine($"   var table = new Table();");
         builder.AppendLine("""   table.AddColumn(new TableColumn("Name"));""");
@@ -67,7 +69,7 @@ internal class DumpMethodBuilder
                            /// <returns></returns>
                            """);
 
-        builder.AppendLine($"public static void SpectreDump(this {Type.Name} {SourceParameterName})");
+        builder.AppendLine($"public static void SpectreDump(this {typeName} {SourceParameterName})");
         builder.AppendLine("{");
         builder.AppendLine($"""AnsiConsole.Write({SourceParameterName}.GenerateTable());""");
 
@@ -132,7 +134,7 @@ internal class DumpMethodBuilder
         if (context.Context.ConfirmedConverter is { } converter)
         {
             var converterAccess =
-                SourceParameterName.GetStaticOrInstance(Type.Name,
+                SourceParameterName.GetStaticOrInstance(Type.FullName(),
                     converter.IsStatic);
             stringifier = x => $"{x.TrimEnd('?')} == null ? String.Empty : {converterAccess}.{converter.Converter}({x.TrimEnd('?')})";
         }
