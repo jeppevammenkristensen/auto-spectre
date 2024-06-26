@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Mime;
 using System.Text;
 using AutoSpectre.SourceGeneration.Evaluation;
+using AutoSpectre.SourceGeneration.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Spectre.Console;
@@ -102,7 +103,7 @@ internal class TextPromptBuildContext : PromptBuilderContextWithPropertyContext
     {
         if (Context.ConfirmedDefaultValue is { } confirmed)
         {
-            var name = confirmed.Instance ? $"destination.{confirmed.Name}" : $"{Context.TargetType.Name}.{confirmed.Name}";
+            var name = confirmed.Instance ? $"destination.{confirmed.Name}" : $"{Context.TargetType.FullName()}.{confirmed.Name}";
             
             if (confirmed.Type == DefaultValueType.Property)
             {

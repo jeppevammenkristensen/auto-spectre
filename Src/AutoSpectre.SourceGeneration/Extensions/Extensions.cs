@@ -233,7 +233,20 @@ public static class Extensions
         return !source.IsStatic;
     }
 
-
+    /// <summary>
+    /// this will return the type name including any parents if it's nested
+    /// </summary>
+    /// <param name="source"></param>
+    /// <returns></returns>
+    internal static string FullName(this INamedTypeSymbol source)
+    {
+        var format = new SymbolDisplayFormat(
+            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
+            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters);
+        return source.ToDisplayString(format);
+    }
+    
+    
     /// <summary>
     /// Gets all members and members of base types that are not interfaces
     /// It will return all types of members. But will have a special focus on Properties

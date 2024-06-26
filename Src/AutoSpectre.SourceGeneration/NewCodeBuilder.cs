@@ -58,11 +58,14 @@ internal class NewCodeBuilder
     /// <returns>A string representation of the generated code</returns>
     public string BuildCode()
     {
-        var name = $"{Type.ContainingNamespace}.{Type.Name}";
+        // Gets the type name
+        var typeName = Type.FullName();
+        var name = $"{Type.ContainingNamespace}.{Type.FullName()}";
+        
         var members = BuildStepContexts();
         var isAsync = IsAsync;
         
-        var returnTypeName = isAsync ? $"Task<{Type.Name}>" : Type.Name;
+        var returnTypeName = isAsync ? $"Task<{Type.FullName()}>" : Type.FullName();
         if (!CanBeInitializedWithoutParameters)
             returnTypeName = isAsync ? "Task" : "void";
         
@@ -72,19 +75,19 @@ internal class NewCodeBuilder
 namespace {{ Type.ContainingNamespace}}    
 {
     /// <summary>
-    /// Helps create and fill <see cref="{{ Type.Name }}"/> with values
+    /// Helps create and fill <see cref="{{ typeName }}"/> with values
     /// </summary>
     public interface {{SpectreFactoryInterfaceName}}
     {
-        {{ returnTypeName}}   Get{{ (isAsync ? "Async " : string.Empty) }}({{ Type.Name}}   destination {{ (CanBeInitializedWithoutParameters ? "= null" : "")}});
+        {{ returnTypeName}}   Get{{ (isAsync ? "Async " : string.Empty) }}({{ typeName}}   destination {{ (CanBeInitializedWithoutParameters ? "= null" : "")}});
     }
 
     /// <summary>
-    /// Helps create and fill <see cref="{{ Type.Name }}"/> with values
+    /// Helps create and fill <see cref="{{ typeName }}"/> with values
     /// </summary>
     public class {{ SpectreFactoryClassName}} : {{ SpectreFactoryInterfaceName }}
     {
-        public {{ (isAsync ? "async " : string.Empty) }}{{ returnTypeName}}   Get{{ (isAsync ? "Async " : string.Empty) }}({{ Type.Name}}   destination {{ (CanBeInitializedWithoutParameters ? "= null" : "")}})
+        public {{ (isAsync ? "async " : string.Empty) }}{{ returnTypeName}}   Get{{ (isAsync ? "Async " : string.Empty) }}({{ typeName}}   destination {{ (CanBeInitializedWithoutParameters ? "= null" : "")}})
         {
             {{PreInitalization()}}
 
@@ -146,7 +149,8 @@ namespace {{ Type.ContainingNamespace}}
     
     private string GeneratePromptExtensionMethod(string generateDumpMethod)
     {
-        var type = IsAsync ? $"Task<{Type.Name}>" : Type.Name;
+        var typeName = Type.FullName();
+        var type = IsAsync ? $"Task<{typeName}>" : typeName;
         
         var extensionmethodName = IsAsync ? "SpectrePromptAsync" : "SpectrePrompt";
 
@@ -167,7 +171,7 @@ namespace {{ Type.ContainingNamespace}}
         return $$"""
                   public static class {{ SpectreFactoryClassName }}Extensions
                  {
-                     public static {{GetReturnedType(type,IsAsync)}} {{extensionmethodName}} (this {{Type.Name}} source)
+                     public static {{GetReturnedType(type,IsAsync)}} {{extensionmethodName}} (this {{typeName}} source)
                      {
                           {{SpectreFactoryClassName}} factory = new();
                           {{ call }}

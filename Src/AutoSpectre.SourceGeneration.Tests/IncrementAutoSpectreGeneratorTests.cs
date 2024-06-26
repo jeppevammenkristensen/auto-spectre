@@ -10,6 +10,30 @@ namespace AutoSpectre.SourceGeneration.Tests
         {
         }
 
+        [Fact]
+        public void ValidForm_WithNestedClass_GenerateExpected()
+        {
+            GetGeneratedOutput("""
+                               using AutoSpectre;
+                               using System.Collections.Generic;
+                               
+                               
+                               namespace Test  
+                               {
+                                   public class TestForm
+                                   {
+                                       [AutoSpectreForm]
+                                       public class InnerClass
+                                       {
+                                            [TextPrompt]
+                                            public string TestValue {get;set;}
+                                       }
+                                   }                   
+                               }
+                               """).Should().Contain("TestForm.InnerCls");
+        }
+        
+        
         [Fact(Skip = "To volatile to changes")]
         public void ValidForm_WithArrayNormal_GeneratesExpected()
         {

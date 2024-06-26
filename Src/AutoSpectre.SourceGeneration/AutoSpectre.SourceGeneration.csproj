@@ -8,7 +8,7 @@
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <IsRoslynComponent>true</IsRoslynComponent>
     <VersionPrefix>0.9.0</VersionPrefix>
-    <VersionSuffix>preview-0.2</VersionSuffix>
+    <VersionSuffix>preview-0.3</VersionSuffix>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -22,7 +22,7 @@
     <PackageProjectUrl>https://github.com/jeppevammenkristensen/auto-spectre</PackageProjectUrl>
     <RepositoryUrl>https://github.com/jeppevammenkristensen/auto-spectre</RepositoryUrl>
     <PackageTags>C#;Source Generator</PackageTags>
-    <PackageReleaseNotes>Fixes issue with how Title is rendered</PackageReleaseNotes>
+    <PackageReleaseNotes>-</PackageReleaseNotes>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
