@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoSpectre;
-
+using Dumpify;
 
 
 namespace Test
@@ -13,6 +13,7 @@ namespace Test
         {
             SClass.InnerTest test = new SClass.InnerTest();
             test.SpectrePrompt();
+           
         }
     }
 
@@ -30,11 +31,50 @@ namespace Test
         [AutoSpectreForm]
         public class InnerTest
         {
+            [SelectPrompt(Source = nameof(OthersSource))]
+            public List<OtherClass> Others { get; set; } = new();
+            
+            public IEnumerable<OtherClass> OthersSource()
+            {
+                yield return new OtherClass()
+                {
+                    Name = "Jeppe"
+                };
+            }
+            
             [TextPrompt]
             public string Name { get; set; }
+            
+            [TextPrompt(Title = "Select the dump method")]
+            public Dumpy DumpMethod { get; set; }
+
+            public class OtherClass
+            {
+                public string Name { get; set; }
+
+                public override string ToString()
+                {
+                    return $"Name";
+                }
+            }
+            
+            
+            public enum Dumpy
+            {
+                SpectreDump,
+                Dumpify
+            }
         }
+
+        
+
+        
         
         [TextPrompt(DefaultValueSource = nameof(FirstNameDefault))] public string FirstName { get; set; } = null!;
         public const string FirstNameDefault = "Jeppe";
     }
+    
+    
+    
+    
 }

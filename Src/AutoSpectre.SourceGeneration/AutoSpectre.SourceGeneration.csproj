@@ -8,7 +8,7 @@
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <IsRoslynComponent>true</IsRoslynComponent>
     <VersionPrefix>0.9.0</VersionPrefix>
-    <VersionSuffix>preview-0.3</VersionSuffix>
+    <VersionSuffix>preview-0.4</VersionSuffix>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -22,7 +22,7 @@
     <PackageProjectUrl>https://github.com/jeppevammenkristensen/auto-spectre</PackageProjectUrl>
     <RepositoryUrl>https://github.com/jeppevammenkristensen/auto-spectre</RepositoryUrl>
     <PackageTags>C#;Source Generator</PackageTags>
-    <PackageReleaseNotes>-</PackageReleaseNotes>
+    <PackageReleaseNotes>Added EnsureSearch functionality. Begin deprecations of Dump related extension methods. Better nested class support </PackageReleaseNotes>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
@@ -44,7 +44,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.8.0" PrivateAsserts="all">
     </PackageReference>
-    <PackageReference Include="Spectre.Console" Version="0.49.0" />
+    <PackageReference Include="Spectre.Console" Version="0.49.1" />
   </ItemGroup>
 
   <ItemGroup>

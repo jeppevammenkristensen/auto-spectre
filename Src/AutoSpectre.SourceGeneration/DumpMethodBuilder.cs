@@ -69,6 +69,7 @@ internal class DumpMethodBuilder
                            /// <returns></returns>
                            """);
 
+        builder.AppendLine("""[Obsolete("This will be removed in a future version. There are better libraries for this. For instance the Dumpify library")]""");
         builder.AppendLine($"public static void SpectreDump(this {typeName} {SourceParameterName})");
         builder.AppendLine("{");
         builder.AppendLine($"""AnsiConsole.Write({SourceParameterName}.GenerateTable());""");

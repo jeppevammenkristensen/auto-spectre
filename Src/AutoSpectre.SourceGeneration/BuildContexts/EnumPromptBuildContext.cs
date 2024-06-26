@@ -14,7 +14,10 @@ public class EnumPromptBuildContext : PromptBuildContext
     {
         Type = type;
         IsNullable = isNullable;
+        TypeName = type is INamedTypeSymbol namedTypeSymbol ? namedTypeSymbol.FullName() : type.Name;
     }
+
+    public string TypeName { get; set; }
 
     public override string GenerateOutput(string destination)
     {
@@ -26,10 +29,10 @@ public class EnumPromptBuildContext : PromptBuildContext
         var type = Type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
         return $"""
         AnsiConsole.Prompt(
-        new SelectionPrompt<{type}>()
+        new SelectionPrompt<{TypeName}>()
             .Title({GenerateTitleString()})
             .PageSize(10) 
-            .AddChoices(Enum.GetValues<{type}>()))
+            .AddChoices(Enum.GetValues<{TypeName}>()))
         """;
     }
 }
