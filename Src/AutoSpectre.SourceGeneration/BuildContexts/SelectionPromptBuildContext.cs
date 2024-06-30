@@ -33,20 +33,10 @@ internal class SelectionPromptBuildContext : SelectionBaseBuildContext
             .Title({GenerateTitleString()} ){GenerateConverter()}
             {GeneratePageSize()}
             {GenerateWrapAround()}
-            {GenerateSearch()}
+            {Context.ConfirmedSearchEnabled.GetSearchString()}
             {GenerateMoreChoicesText()}
             {GenerateHighlightStyle()}
             .AddChoices({GetChoicePrepend()}.{GetSelector()}.ToArray()))
         """;
-    }
-
-    private string GenerateSearch()
-    {
-        if (Context.ConfirmedSearchEnabled is {SearchEnabled: true})
-        {
-            return $""".EnableSearch()""";
-        }
-
-        return string.Empty;
     }
 }

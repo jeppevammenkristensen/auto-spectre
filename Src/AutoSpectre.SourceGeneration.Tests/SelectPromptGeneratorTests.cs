@@ -4,10 +4,57 @@ using Xunit.Abstractions;
 
 namespace AutoSpectre.SourceGeneration.Tests;
 
+public class EnumPromptGeneratorTests : AutoSpectreGeneratorTestsBase
+{
+    public EnumPromptGeneratorTests(ITestOutputHelper helper) : base(helper)
+    {
+    }
+
+    [Fact]
+    public void EnumWithSearchGeneratesCorrect()
+    {
+        GetGeneratedOutput($$"""
+                             using AutoSpectre;
+                             using System.Collections.Generic;
+
+                             namespace Test;
+
+                             [AutoSpectreForm]
+                             public class TestForm
+                             {
+                                [TextPrompt(SearchEnabled=true, SearchPlaceholderText="\"name\"")]
+                                public TestEnum EnumProperty {get;set;}
+                             }
+                             
+                             public enum TestEnum 
+                             {
+                                First,
+                                Second
+                             }
+                             
+                             """).Should().Contain(".EnableSearch()").And.Contain(".SearchPlaceholderText(");
+    }
+}
+
 public class SelectPromptGeneratorTests : AutoSpectreGeneratorTestsBase
 {
     public SelectPromptGeneratorTests(ITestOutputHelper helper) : base(helper)
     {
+        GetGeneratedOutput($$"""
+                             using AutoSpectre;
+                             using System.Collections.Generic;
+
+                             namespace Test;
+
+                             [AutoSpectreForm]
+                             public class TestForm
+                             {
+                                [SelectPrompt(MoreChoicesText = "more")]
+                                public string SelectSomething {get;set;}
+                                
+                                public List<string> SelectSomethingSource => new List<string>();
+                             }
+                             """).Should().Contain(".MoreChoicesText(\"more\")");
     }
 
     [Fact]
@@ -83,12 +130,12 @@ public class SelectPromptGeneratorTests : AutoSpectreGeneratorTestsBase
                              [AutoSpectreForm]
                              public class TestForm
                              {
-                                [SelectPrompt(SearchEnabled = true)]
+                                [SelectPrompt(SearchEnabled = true, SearchPlaceholderText="\"name\"")]
                                 public int SelectNumber {get;set;}
                                 
                                 public List<int> SelectNumberSource {get;set;}
                              }
-                             """).Should().Contain(".EnableSearch()");
+                             """).Should().Contain(".EnableSearch()").And.Contain("SearchPlaceholderText(");
     }
 
     [Fact]

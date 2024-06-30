@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace AutoSpectre.SourceGeneration.Extensions;
 
@@ -29,6 +30,19 @@ public static class AutoSpectreExtensions
     public static string GetStaticOrInstance(this string variable, string targetType,bool isStatic)
     {
         return isStatic ? targetType : variable;
+    }
+
+    /// <summary>
+    /// Gets the safe text with quotes.
+    /// </summary>
+    /// <param name="text">The input text.</param>
+    /// <returns>The input text with quotes.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when the input text is null.</exception>
+    public static string GetSafeTextWithQuotes(this string text)
+    {
+        if (text == null) throw new ArgumentNullException(nameof(text));
+
+        return SymbolDisplay.FormatLiteral(text, true);
     }
 
     public static IMethodSymbol? FindConstructor(this INamedTypeSymbol source, LazyTypes types)

@@ -5,7 +5,6 @@ using AutoSpectre.SourceGeneration.Extensions;
 using AutoSpectre.SourceGeneration.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Spectre.Console.Rendering;
 
 namespace AutoSpectre.SourceGeneration;
 
@@ -27,6 +26,7 @@ public class IncrementAutoSpectreGenerator : IIncrementalGenerator
         {
             try
             {
+                // The matched type must be a named type symbol and be public or internal
                 if (syntaxContext.TargetSymbol is INamedTypeSymbol targetNamedType && (targetNamedType.IsPublic() || targetNamedType.IsInternal()) )
                 {
                     var attribute = syntaxContext.Attributes.FirstOrDefault();
@@ -40,7 +40,7 @@ public class IncrementAutoSpectreGenerator : IIncrementalGenerator
                             var (property, method) = x;
                             ISymbol symbol = property is not null ? property : method!;
                             
-                            var attribute = symbol.GetAttributes().FirstOrDefault(a =>
+                            var matchedAttribute = symbol.GetAttributes().FirstOrDefault(a =>
                                 a.AttributeClass is
                                 {
                                     ContainingNamespace:
@@ -54,7 +54,7 @@ public class IncrementAutoSpectreGenerator : IIncrementalGenerator
                             {
                                 Property = property,
                                 Method = method,
-                                Attribute = attribute
+                                Attribute = matchedAttribute
                             };
                         })
                         .Where(x => x.Attribute != null)
@@ -111,10 +111,11 @@ public class IncrementAutoSpectreGenerator : IIncrementalGenerator
             }
             catch (Exception ex)
             {
-                productionContext.ReportDiagnostic(Diagnostic.Create(
-                    new("AutoSpectre_JJK0002", "Error on processing", ex.ToString(), "General",
-                        DiagnosticSeverity.Error, true, ex.ToString()),
-                    syntaxContext.TargetSymbol.Locations.FirstOrDefault()));
+                throw;
+                // productionContext.ReportDiagnostic(Diagnostic.Create(
+                //     new(id: "AutoSpectre_JJK0002", title: "Error on processing", messageFormat: $"{ex.ToString()} {ex.StackTrace}", category: "General",
+                //         defaultSeverity: DiagnosticSeverity.Error, isEnabledByDefault: true, description: $"{ex.ToString()} {ex.StackTrace}"),
+                //     syntaxContext.TargetSymbol.Locations.FirstOrDefault()));
             }
         });
     }

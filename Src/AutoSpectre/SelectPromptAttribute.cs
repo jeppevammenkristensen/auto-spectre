@@ -56,7 +56,13 @@ public class SelectPromptAttribute : AutoSpectreStepAttribute
     public string? HighlightStyle { get; set; }
     
     /// <summary>
-    /// Enable search in the prompt
+    /// Enable search in the prompt. So it's possible to limit
+    /// the selection choices
     /// </summary>
     public bool SearchEnabled { get; set; }
+    
+    /// <summary>
+    /// Set this to override the default placeholder text displayed for search
+    /// </summary>
+    public string? SearchPlaceholderText { get; set; }
 }
