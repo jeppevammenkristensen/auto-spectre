@@ -25,7 +25,7 @@ public abstract class PromptBuildContext
     public abstract string GenerateOutput(string destination);
     
     public string Title { get; }
-    
+
     /// <summary>
     /// Generates a title for the given string with quotes. It will ensure that
     /// special characters are correctly handled for instance. That "Some \"name\"" will be
@@ -33,7 +33,7 @@ public abstract class PromptBuildContext
     /// </summary>
     /// <param name="title">The string to generate a title for.</param>
     /// <returns>The generated title.</returns>
-    protected string GenerateTitleString() => SymbolDisplay.FormatLiteral(Title, true);
+    protected string GenerateTitleString() => Title.GetSafeTextWithQuotes(); 
 
     /// <summary>
     /// The parts that does the prompting. If the prompt result is stored in a variable

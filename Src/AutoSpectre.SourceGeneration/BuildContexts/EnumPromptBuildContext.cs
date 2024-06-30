@@ -26,12 +26,12 @@ public class EnumPromptBuildContext : PromptBuildContext
 
     public override string PromptPart(string? variableName = null)
     {
-        var type = Type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
         return $"""
         AnsiConsole.Prompt(
         new SelectionPrompt<{TypeName}>()
             .Title({GenerateTitleString()})
             .PageSize(10) 
+            {Context.ConfirmedSearchEnabled.GetSearchString()}
             .AddChoices(Enum.GetValues<{TypeName}>()))
         """;
     }

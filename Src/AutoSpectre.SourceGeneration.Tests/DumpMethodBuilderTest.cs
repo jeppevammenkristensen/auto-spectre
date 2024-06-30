@@ -204,7 +204,7 @@ public class DumpMethodBuilderTest
 
     private static PropertyContext GenerateTextPromptBuildContext(string propertyName, string title, INamedTypeSymbol parent, bool nullable)
     {
-        var attributeData = TranslatedMemberAttributeData.TextPrompt(title, null,null, false,false, null,null,null,null,null,null,null,null);
+        var attributeData = TranslatedMemberAttributeData.TextPrompt(title, null,null, false,false, null,null,null,null,null,null,null,null, null, null);
         var propertySymbol = RoslynTestUtil.CreatePropertySymbol($$"""public string{{(nullable ? "?" : string.Empty)}} {{propertyName}} {get;set;}""");
         var singlePropertyEvaluationContext =
             SinglePropertyEvaluationContext.GenerateFromPropertySymbol(propertySymbol, parent);

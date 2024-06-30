@@ -12,8 +12,7 @@ namespace Test
         public static async Task Main()
         {
             SClass.InnerTest test = new SClass.InnerTest();
-            test.SpectrePrompt();
-           
+            
         }
     }
 

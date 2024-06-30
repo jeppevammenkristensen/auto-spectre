@@ -22,8 +22,9 @@ public class TranslatedMemberAttributeData
         string? converter,
         string? validator,
         string? condition,
-        bool conditionNegated, 
-        bool? searchEnabled)
+        bool conditionNegated,
+        bool? searchEnabled, 
+        string? searchPlaceholderText)
     {
         AskType = askType;
         SelectionSource = selectionSource;
@@ -33,6 +34,7 @@ public class TranslatedMemberAttributeData
         Condition = condition;
         ConditionNegated = conditionNegated;
         SearchEnabled = searchEnabled;
+        SearchPlaceholderText = searchPlaceholderText;
     }
 
     public string Title { get;  }
@@ -44,6 +46,8 @@ public class TranslatedMemberAttributeData
     public string? Condition { get; set; }
     public bool ConditionNegated { get; }
     public bool? SearchEnabled { get; }
+    
+    public string? SearchPlaceholderText { get; }
 
     public string? TypeInitializer { get; private set; }
     
@@ -52,9 +56,17 @@ public class TranslatedMemberAttributeData
     public static TranslatedMemberAttributeData TextPrompt(string title, string? validator,
         string? condition, bool conditionNegated, bool secret, char? mask, string? defaultValueStyle,
         string? promptStyle, string? typeInitalizer, string? choiceSource, string? choicesStyle,
-        string? choicesInvalidText, string? defaultValue)
+        string? choicesInvalidText, string? defaultValue, bool? searchEnabled, string? searchPlaceholderText)
     {
-        return new(askType: AskTypeCopy.Normal, selectionSource: null, title: title, converter: null, validator: validator, condition: condition, conditionNegated: conditionNegated, searchEnabled: null)
+        return new(askType: AskTypeCopy.Normal,
+            selectionSource: null,
+            title: title,
+            converter: null,
+            validator: validator,
+            condition: condition,
+            conditionNegated: conditionNegated,
+            searchEnabled: searchEnabled,
+            searchPlaceholderText: searchPlaceholderText)
         {
             Secret = secret,
             Mask = mask,
@@ -84,7 +96,7 @@ public class TranslatedMemberAttributeData
 
     public static TranslatedMemberAttributeData SelectPrompt(string title, string? selectionSource, string? converter,
         string? condition, bool conditionNegated, int? pageSize, bool? wrapAround, string? moreChoicesText,
-        string? instructionsText, string? highlightStyle, bool? searchEnabled)
+        string? instructionsText, string? highlightStyle, bool? searchEnabled, string? searchPlaceholderText)
     {
         return new(askType: AskTypeCopy.Selection,
             selectionSource: selectionSource,
@@ -93,8 +105,8 @@ public class TranslatedMemberAttributeData
             validator: null,
             condition: condition,
             conditionNegated: conditionNegated,
-            searchEnabled
-            )
+            searchEnabled: searchEnabled, 
+            searchPlaceholderText: searchPlaceholderText)
         {
             PageSize = pageSize,
             WrapAround = wrapAround,
@@ -106,7 +118,7 @@ public class TranslatedMemberAttributeData
 
     public static TranslatedMemberAttributeData TaskPrompt(string title, string? condition, bool conditionNegated, bool useStatus, string? statusText, string? spinnerStyle,SpinnerKnownTypesCopy? spinnerType)
     {
-        return new TranslatedMemberAttributeData(AskTypeCopy.Task, null, title, null, null, condition, conditionNegated, null)
+        return new TranslatedMemberAttributeData(AskTypeCopy.Task, null, title, null, null, condition, conditionNegated, null, null)
         {
             UseStatus = useStatus,
             StatusText = statusText,

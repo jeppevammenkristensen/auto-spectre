@@ -21,7 +21,7 @@ public class TextPromptAttribute : AutoSpectreStepAttribute
     /// Then the method should be
     /// <code>public string? Validation(List&lt;int&gt; items, int item) { ... }</code>
     ///
-    /// If the property type is not an enumerable the method must of a single parameter matching the property type
+    /// If the property type is not an enumerable the method must be of a single parameter matching the property type
     ///
     /// By convention if you have a method fulfilling the requirements above you can omit the Validator property
     /// if the name is {PropertyName}Validator
@@ -84,4 +84,17 @@ public class TextPromptAttribute : AutoSpectreStepAttribute
     /// This is the text that will be displayed to the user if an invalid text is used
     /// </summary>
     public string? ChoicesInvalidText { get; set; }
+    
+    /// <summary>
+    /// Enable search in the prompt. So it's possible to limit
+    /// the selection choices. This is only relevant if the type of the property is an
+    /// enum.
+    /// </summary>
+    public bool SearchEnabled { get; set; }
+    
+    /// <summary>
+    /// Set this to override the default placeholder text displayed for search
+    /// This is only relevant if the type of the proeprty is an enum
+    /// </summary>
+    public string? SearchPlaceholderText { get; set; }
 }

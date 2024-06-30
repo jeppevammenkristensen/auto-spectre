@@ -30,7 +30,7 @@ public class AutoSpectreGeneratorTestsBase
             }
         }
         
-        references.Add(MetadataReference.CreateFromFile(typeof(AskAttribute).Assembly.Location));
+        references.Add(MetadataReference.CreateFromFile(typeof(TextPromptAttribute).Assembly.Location));
         references.Add(MetadataReference.CreateFromFile(typeof(IAnsiConsole).Assembly.Location));
 
         var compilation = CSharpCompilation.Create("foo", new SyntaxTree[] { syntaxTree }, references, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
@@ -74,7 +74,7 @@ public class AutoSpectreGeneratorTestsBase
             }
         }
         
-        references.Add(MetadataReference.CreateFromFile(typeof(AskAttribute).Assembly.Location));
+        references.Add(MetadataReference.CreateFromFile(typeof(TextPromptAttribute).Assembly.Location));
         references.Add(MetadataReference.CreateFromFile(typeof(IAnsiConsole).Assembly.Location));
 
         var compilation = CSharpCompilation.Create("foo", new SyntaxTree[] { syntaxTree }, references, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));

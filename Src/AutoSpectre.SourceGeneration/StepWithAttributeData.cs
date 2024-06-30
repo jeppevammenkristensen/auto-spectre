@@ -34,9 +34,9 @@ public class StepWithAttributeData
         var title = attributeData.GetAttributePropertyValue<string?>("Title");
 
         #pragma warning disable CS0618 // Type or member is obsolete
-        var condition = attributeData.GetAttributePropertyValue<string>(nameof(AskAttribute.Condition));
+        var condition = attributeData.GetAttributePropertyValue<string>(nameof(TextPromptAttribute.Condition));
 
-        var conditionNegated = attributeData.GetAttributePropertyValue<bool>(nameof(AskAttribute.NegateCondition));
+        var conditionNegated = attributeData.GetAttributePropertyValue<bool>(nameof(TextPromptAttribute.NegateCondition));
 
         var useStatus = attributeData.GetAttributePropertyValue<bool>(nameof(TaskStepAttribute.UseStatus));
         var statusText = attributeData.GetAttributePropertyValue<string?>(nameof(TaskStepAttribute.StatusText));
@@ -65,30 +65,11 @@ public class StepWithAttributeData
                     $"Enter [green]{property.Name}[/]";
 
 #pragma warning disable CS0618 // Type or member is obsolete
-        var condition = attributeData.GetAttributePropertyValue<string>(nameof(AskAttribute.Condition));
+        var condition = attributeData.GetAttributePropertyValue<string>(nameof(TextPromptAttribute.Condition));
 
-        var conditionNegated = attributeData.GetAttributePropertyValue<bool>(nameof(AskAttribute.NegateCondition));
-
-
-        if (attributeData.AttributeClass.Name == nameof(AskAttribute))
-        {
-            var askType = attributeData.GetAttributePropertyValue<AskTypeCopy>("AskType");
-            var selectionSource = attributeData.GetAttributePropertyValue<string?>("SelectionSource") ?? null;
-            var converter = attributeData.GetAttributePropertyValue<string?>("Converter") ?? null;
-            var validator = attributeData.GetAttributePropertyValue<string>(nameof(AskAttribute.Validator));
-#pragma warning restore CS0618 // Type or member is obsolete            
-            TranslatedMemberAttribute =
-                new TranslatedMemberAttributeData(
-                    askType: askType,
-                    selectionSource: selectionSource,
-                    title: title,
-                    converter: converter,
-                    validator: validator,
-                    condition: condition, 
-                    conditionNegated: conditionNegated, 
-                    searchEnabled: null);
-        }
-        else if (attributeData.AttributeClass.Name == nameof(TextPromptAttribute))
+        var conditionNegated = attributeData.GetAttributePropertyValue<bool>(nameof(TextPromptAttribute.NegateCondition));
+        
+        if (attributeData.AttributeClass.Name == nameof(TextPromptAttribute))
         {
             var validator = attributeData.GetAttributePropertyValue<string>(nameof(TextPromptAttribute.Validator));
             var secret = attributeData.GetAttributePropertyValue<bool>(nameof(TextPromptAttribute.Secret));
@@ -101,6 +82,10 @@ public class StepWithAttributeData
             var choicesInvalidText = attributeData.GetAttributePropertyValue<string>(nameof(TextPromptAttribute.ChoicesInvalidText));
             var defaultValueSource =
                 attributeData.GetAttributePropertyValue<string>(nameof(TextPromptAttribute.DefaultValueSource));
+            var searchEnabled = attributeData.GetAttributePropertyValue<bool?>(nameof(SelectPromptAttribute.SearchEnabled)) ?? null;
+            var searchPlaceholderText =
+                attributeData.GetAttributePropertyValue<string?>(nameof(SelectPromptAttribute.SearchPlaceholderText)) ??
+                null;
 
             TranslatedMemberAttribute = TranslatedMemberAttributeData.TextPrompt(title,
                 validator,
@@ -114,7 +99,9 @@ public class StepWithAttributeData
                 choicesSource,
                 choicesStyle,
                 choicesInvalidText,
-                defaultValueSource);
+                defaultValueSource, 
+                searchEnabled, 
+                searchPlaceholderText);
         }
         
         else if (attributeData.AttributeClass.Name == nameof(SelectPromptAttribute))
@@ -127,6 +114,9 @@ public class StepWithAttributeData
             var instructionsText = attributeData.GetAttributePropertyValue<string?>(nameof(SelectPromptAttribute.InstructionsText)) ?? null;
             var highlightStyle = attributeData.GetAttributePropertyValue<string?>(nameof(SelectPromptAttribute.HighlightStyle)) ?? null;
             var searchEnabled = attributeData.GetAttributePropertyValue<bool?>(nameof(SelectPromptAttribute.SearchEnabled)) ?? null;
+            var searchPlaceholderText =
+                attributeData.GetAttributePropertyValue<string?>(nameof(SelectPromptAttribute.SearchPlaceholderText)) ??
+                null;
 
             TranslatedMemberAttribute = TranslatedMemberAttributeData.SelectPrompt(title,
                 selectionSource,
@@ -138,7 +128,8 @@ public class StepWithAttributeData
                 moreChoicesText,
                 instructionsText,
                 highlightStyle, 
-                searchEnabled);
+                searchEnabled,
+                searchPlaceholderText);
         }
         
         else

@@ -253,6 +253,7 @@ internal class StepContextBuilderOperation
             EvaluatePromptStyle(propertyContext, memberAttributeData);
             EvaluateValidation(propertyContext, memberAttributeData);
             EvaluateChoices(propertyContext,memberAttributeData);
+            EvaluateEnableSearch(propertyContext,memberAttributeData);
             
             if (!propertyContext.IsEnumerable)
             {
@@ -764,7 +765,7 @@ internal class StepContextBuilderOperation
     {
         if (memberAttributeData.SearchEnabled == true)
         {
-            propertyContext.ConfirmedSearchEnabled = new ConfirmedSearchEnabled(true);
+            propertyContext.ConfirmedSearchEnabled = new ConfirmedSearchEnabled(true, memberAttributeData.SearchPlaceholderText);
         }
     }
     
