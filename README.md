@@ -8,7 +8,7 @@ Source generator project to generate classes that can be used in a console to pr
 
 Decorate a class with the AutoSpectreForm attribute and then decorate the properties (must be settable) with a TextPrompt or SelectPrompt attribute.
 
-**NOTE** The `AskAttribute` has been marked as obsolete and split into `TextPromptAttribute` and `SelectPromptAttribute` to avoid having a lot of properties only relevant for one or another type of prompt.
+**NOTE** The `AskAttribute` that was marked as obsolete and split into `TextPromptAttribute` and `SelectPromptAttribute` to avoid having a lot of properties only relevant for one or another type of prompt, has been removed.
 
 ### Example input
 
@@ -94,6 +94,11 @@ public class Example
 
     [TextPrompt(Condition = nameof(AddExistingName), NegateCondition = true)]
     public string? NewName { get; set; }
+
+    [SelectPrompt(Source = nameof(SearchStringSource), SearchEnabled = true, SearchPlaceholderText = "Placeholder \"text\"")]
+    public string SearchString { get; set; }
+
+    public string[] SearchStringSource() => new[] {"First", "Second"};
 }
 ```
 
@@ -219,6 +224,8 @@ public class ExampleSpectreFactory : IExampleSpectreFactory
             destination.NewName = AnsiConsole.Prompt(new TextPrompt<string?>("Enter [green]NewName[/]").AllowEmpty().WithCulture(culture));
         }
 
+        destination.SearchString = AnsiConsole.Prompt(new SelectionPrompt<string>().Title("Enter [green]SearchString[/]").PageSize(10).EnableSearch().SearchPlaceholderText("Placeholder \"text\"").AddChoices(destination.SearchStringSource().ToArray()));
+
         return destination;
     }
 }
@@ -240,9 +247,6 @@ preinitializedForm = formFactory.Get(preinitializedForm);
 // this will initalize the factory and call the get Method
 var form = new Example().SpectrePrompt();
 
-// If you want to dump the values to the console you can use the Dump extension method
-form.SpectreDump();
-
 ```
 
 ## The form attribute
@@ -256,6 +260,7 @@ You can control the overall culture used by setting the culture property. This w
 ### DisableDump
 
 If you do want to generate the SpectreDump method, you can disable it using the DisableDump property.
+Note that the SpectreDump will be removed in a future version
 
 ### Inheritance
 
@@ -326,6 +331,10 @@ Default value is only currently used for single items (not enumerables)
 
 In the case of a `TextPromptAttribute` and an `IEnumerable<T>` value. The rules above will be applied to a single type, and after collecting input the user will be prompted if the want's to continue.
 
+#### Enums
+
+If the property types is an enum, a SelectPrompt will be generates (much like when using the SelectPromptAttribute). The source will be generated based on the enum values. You can use EnableSearch and SearchPlaceholderText properties to control search text functionality.
+
 #### Other functionality
 
 The textprompt allows you to
@@ -333,7 +342,7 @@ The textprompt allows you to
 * add [validation](#validation), see more below
 * add a password prompt by using the `Secret` and/or `Mask` property
 * control styles with the `DefaultValueStyle`for the DefaultValue and `PromptStyle` for the prompt itself. See [styles](#styles).
-* support Choices (autocomplete) with the 
+* support Choices (autocomplete) 
 
 ### SelectPromptAttribute
 
@@ -350,6 +359,7 @@ Other interesting attribute properties are:
 * MoreChoicesText. If set this will be displayed when you reach the end of the page size
 * InstructionsText (only for multiselect). This is custom text to guide them to select mulitiple items
 * HighlightStyle
+* EnableSearch ( and SearchPlaceholderText). This will enable search to limit displayed drop down values. The SearchPlaceholderText can control the search help text being displayed-
 
 ## The method attribute
 
