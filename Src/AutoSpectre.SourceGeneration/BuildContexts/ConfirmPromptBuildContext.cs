@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using AutoSpectre.SourceGeneration.Evaluation;
+using AutoSpectre.SourceGeneration.Extensions;
 
 namespace AutoSpectre.SourceGeneration.BuildContexts;
 
@@ -33,7 +34,7 @@ public class ConfirmPromptBuildContext : PromptBuildContext
     {
         if (Context.ConfirmedDefaultStyle is { Style: {} style } _)
         {
-            builder.AppendLine($".DefaultValueStyle(\"{style}\")");
+            builder.AppendLine($".DefaultValueStyle({style.GetSafeTextWithQuotes()})");
         }
     }
 
@@ -41,7 +42,7 @@ public class ConfirmPromptBuildContext : PromptBuildContext
     {
         if (Context.ConfirmedChoicesStyle is { } style)
         {
-            builder.AppendLine($".ChoicesStyle(\"{style.Style}\")");
+            builder.AppendLine($".ChoicesStyle({style.Style.GetSafeTextWithQuotes()})");
         }
     }
   

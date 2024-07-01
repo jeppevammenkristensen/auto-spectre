@@ -1,4 +1,5 @@
 ﻿using System;
+using AutoSpectre.SourceGeneration.Extensions;
 
 namespace AutoSpectre.SourceGeneration.BuildContexts;
 
@@ -17,7 +18,7 @@ internal abstract class SelectionBaseBuildContext : PromptBuilderContextWithProp
     {
         if (Context.MoreChoicesText is { })
         {
-            return $""".MoreChoicesText("{Context.MoreChoicesText}")""";
+            return $""".MoreChoicesText({Context.MoreChoicesText.GetSafeTextWithQuotes()})""";
         }
 
         return string.Empty;
@@ -42,7 +43,7 @@ internal abstract class SelectionBaseBuildContext : PromptBuilderContextWithProp
     {
         if (Context.HighlightStyle is { })
         {
-            return $""".HighlightStyle("{Context.HighlightStyle}")""";
+            return $""".HighlightStyle({Context.HighlightStyle.GetSafeTextWithQuotes()})""";
         }
 
         return string.Empty;

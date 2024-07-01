@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using AutoSpectre.SourceGeneration.Extensions;
 
 namespace AutoSpectre.SourceGeneration.BuildContexts;
 
@@ -54,11 +55,11 @@ public class TaskStepBuildContext : PromptBuildContext
         var text = EvaluationContext.ReturnTypeIsTask switch
         {
             true => $$"""
-                      await {{BuildStatus()}}.StartAsync("{{status.StatusText}}",async ctx =>
+                      await {{BuildStatus()}}.StartAsync({{status.StatusText.GetSafeTextWithQuotes()}},async ctx =>
                       {
                       """,
             false => $$"""
-                       {{BuildStatus()}}.Start("{{status.StatusText}}",ctx =>
+                       {{BuildStatus()}}.Start({{status.StatusText.GetSafeTextWithQuotes()}},ctx =>
                        {
                        """
         };
@@ -74,7 +75,7 @@ public class TaskStepBuildContext : PromptBuildContext
         if (EvaluationContext.SpinnerStyle is not null)
         {
             builder.AppendLine();
-            builder.Append($""".SpinnerStyle("{EvaluationContext.SpinnerStyle}")""");
+            builder.Append($""".SpinnerStyle({EvaluationContext.SpinnerStyle.GetSafeTextWithQuotes()})""");
         }
 
         if (EvaluationContext.SpinnerKnownType is { } knownType)
@@ -103,7 +104,7 @@ public class TaskStepBuildContext : PromptBuildContext
 
     public override string PromptPart(string? variableName = null)
     {
-        // Nothing to see here.  No violations of SOLID.
+        // Nothing to see here. No violations of SOLID.
         return string.Empty;
     }
 
