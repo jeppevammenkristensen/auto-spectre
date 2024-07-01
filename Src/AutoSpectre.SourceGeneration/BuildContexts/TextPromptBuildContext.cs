@@ -80,14 +80,14 @@ internal class TextPromptBuildContext : PromptBuilderContextWithPropertyContext
 
             if (choices.InvalidErrorText is { } invalidText)
             {
-                builder.AppendLine($".InvalidChoiceMessage(\"{invalidText}\")");
+                builder.AppendLine($".InvalidChoiceMessage({invalidText.GetSafeTextWithQuotes()})");
             }
 
         }
 
         if (Context.ConfirmedChoicesStyle is { } choicesStyle)
         {
-            builder.AppendLine($".ChoicesStyle(\"{choicesStyle.Style}\")");
+            builder.AppendLine($".ChoicesStyle({choicesStyle.Style.GetSafeTextWithQuotes()})");
         }
     }
 
@@ -95,7 +95,7 @@ internal class TextPromptBuildContext : PromptBuilderContextWithPropertyContext
     {
         if (Context.PromptStyle is { })
         {
-            builder.AppendLine($".PromptStyle(\"{Context.PromptStyle}\")");
+            builder.AppendLine($".PromptStyle({Context.PromptStyle.GetSafeTextWithQuotes()})");
         }
     }
 
@@ -122,7 +122,7 @@ internal class TextPromptBuildContext : PromptBuilderContextWithPropertyContext
         
         if (Context.ConfirmedDefaultStyle is { } style)
         {
-            builder.AppendLine($".DefaultValueStyle(\"{style.Style}\")");
+            builder.AppendLine($".DefaultValueStyle({style.Style.GetSafeTextWithQuotes()})");
         }
     }
 

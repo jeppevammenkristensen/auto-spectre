@@ -22,7 +22,7 @@ public class SelectPromptAttribute : AutoSpectreStepAttribute
     /// <summary>
     /// The source of enumerable items to be used for the select prompt
     /// The source can be either a property or parameter less method
-    /// It can omitted if you have a matching property or method that matches
+    /// It can be omitted if you have a matching property or method that matches
     /// {PropertyName}Source
     /// </summary>
     public string? Source { get; set; }

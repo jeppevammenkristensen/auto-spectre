@@ -7,7 +7,11 @@ public class ConfirmedChoices
     public string? InvalidErrorText { get; }
     public bool IsStatic { get; }
 
-    public ConfirmedChoices(string sourceName, ChoiceSourceType sourceType,string? invalidErrorText, bool isStatic)
+    public ConfirmedChoices(
+        string sourceName, 
+        ChoiceSourceType sourceType,
+        string? invalidErrorText, 
+        bool isStatic)
     {
         SourceName = sourceName;
         SourceType = sourceType;

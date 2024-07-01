@@ -42,7 +42,7 @@ public class ConditionTests : AutoSpectreGeneratorTestsBase
                            [AutoSpectreForm]
                            public class ConditionClass
                            {
-                               [Ask]
+                               [TextPrompt]
                                public string Name { get; set;}
                                
                                public bool NameCondition() => true
@@ -62,7 +62,7 @@ public class ConditionTests : AutoSpectreGeneratorTestsBase
                            [AutoSpectreForm]
                            public class ConditionClass
                            {
-                               [Ask(Condition = "CustomCondition")]
+                               [TextPrompt(Condition = "CustomCondition")]
                                public string Name { get; set;}
                                
                                public bool CustomCondition() => true
@@ -82,7 +82,7 @@ public class ConditionTests : AutoSpectreGeneratorTestsBase
                            [AutoSpectreForm]
                            public class ConditionClass
                            {
-                               [Ask(Condition = "CustomCondition", NegateCondition=true)]
+                               [TextPrompt(Condition = "CustomCondition", NegateCondition=true)]
                                public string Name { get; set;}
                                
                                public bool CustomCondition() => true;

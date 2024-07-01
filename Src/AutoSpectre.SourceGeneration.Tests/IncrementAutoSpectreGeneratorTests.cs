@@ -30,7 +30,7 @@ namespace AutoSpectre.SourceGeneration.Tests
                                        }
                                    }                   
                                }
-                               """).Should().Contain("TestForm.InnerCls");
+                               """).Should().Contain("TestForm.InnerClass");
         }
         
         
@@ -142,7 +142,7 @@ namespace Test
                     [AutoSpectreForm]
                     public class TestForm 
                     {
-                        [Ask(AskType = AskType.Selection, Converter=nameof(OtherStringConverter), SelectionSource = nameof(ListOfOther))]
+                        [SelectPrompt(Converter=nameof(OtherStringConverter), Source = nameof(ListOfOther))]
                         public OtherTest.OtherClass Other {get;set;}
 
                         public string OtherStringConverter(OtherTest.OtherClass other)
@@ -244,7 +244,7 @@ namespace Test;
                     [AutoSpectreForm]
                     public class TestForm 
                     {
-                        [Ask(AskType = AskType.Selection, Converter=nameof(OtherStringConverter), SelectionSource = nameof(ListOfOther))]
+                        [SelectPrompt(Converter=nameof(OtherStringConverter), Source = nameof(ListOfOther))]
                         public List<OtherTest.OtherClass> Other {get;set;}
 
                         public string OtherStringConverter(OtherTest.OtherClass other)
@@ -281,7 +281,7 @@ namespace Test;
                     [AutoSpectreForm]
                     public class TestForm 
                     {
-                        [Ask(AskType = AskType.Selection)]
+                        [SelectPrompt()]
                         public List<OtherTest.OtherClass> Other {get;set;}
 
                         public string OtherConverter(OtherTest.OtherClass other)

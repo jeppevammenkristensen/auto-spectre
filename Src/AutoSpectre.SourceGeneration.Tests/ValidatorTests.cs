@@ -24,7 +24,7 @@ namespace Test;
 [AutoSpectreForm]
 public class ValidateClass
 {
-    [Ask(Validator=nameof(ValidateName))]
+    [TextPrompt(Validator=nameof(ValidateName))]
     public string Name { get; set;}
 
     {{ validValidator}}
@@ -49,7 +49,7 @@ namespace Test;
 [AutoSpectreForm]
 public class Example
 {
-    [Ask(Validator = nameof(ValidateAges))]
+    [TextPrompt(Validator = nameof(ValidateAges))]
     public int[] Ages { get; set; } = Array.Empty<int>();
 
     public string? ValidateAges(List<int> items, int item)
@@ -125,13 +125,13 @@ namespace Test;
 [AutoSpectreForm]
 public class Inner 
 {
-    [Ask]
+    [TextPrompt]
     public string Title {get;set;}
 }
 [AutoSpectreForm]
 public class Example
 {
-    [Ask()]
+    [TextPrompt()]
     public Inner InnerItem { get; set; }
 
     public string? InnerItemValidator(Inner item)
@@ -156,13 +156,13 @@ namespace Test;
 [AutoSpectreForm]
 public class Inner 
 {
-    [Ask]
+    [TextPrompt]
     public string Title {get;set;}
 }
 [AutoSpectreForm]
 public class Example
 {
-    [Ask()]
+    [TextPrompt()]
     public Inner[] InnerItem { get; set; }
 
     {{ validator }}
@@ -186,7 +186,7 @@ namespace Test;
 [AutoSpectreForm]
 public class Example
 {
-    [Ask()]
+    [TextPrompt()]
     public int[] Ages { get; set; } = Array.Empty<int>();
 
     public {{ (isStatic ? "static" : "") }} string? AgesValidator(List<int> items, int item)

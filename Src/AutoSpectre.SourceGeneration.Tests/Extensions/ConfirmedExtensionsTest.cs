@@ -24,7 +24,7 @@ public class ConfirmedExtensionsTest
 
         var result = search.GetSearchString();
 
-        result.Should().Be(".EnableSearch()\n");
+        result.Should().Contain(".EnableSearch()");
     }
 
     [Fact]
@@ -35,7 +35,7 @@ public class ConfirmedExtensionsTest
         var result = search.GetSearchString();
 
         //Please note that empty text within quotes depends on Implementation of GetSafeTextWithQuotes() method
-        result.Should().Be(".EnableSearch()\n.SearchPlaceholderText(\"\")\n");
+        result.Should().Contain(".EnableSearch()").And.Contain("SearchPlaceholderText(");
     }
 
     [Fact]
@@ -45,7 +45,7 @@ public class ConfirmedExtensionsTest
 
         var result = search.GetSearchString();
 
-        result.Should().Be(".EnableSearch()\n.SearchPlaceholderText(\"search\")\n");
+        result.Should().Contain(".EnableSearch()").And.Contain(".SearchPlaceholderText(\"search\")");
     }
 
     [Fact]

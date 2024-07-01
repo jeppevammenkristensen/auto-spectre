@@ -75,7 +75,7 @@ new MultiSelectionPrompt<{type}>()
     {
         if (Context.InstructionsText is { })
         {
-            return $""".InstructionsText("{Context.InstructionsText}")""";
+            return $""".InstructionsText({Context.InstructionsText.GetSafeTextWithQuotes()})""";
         }
 
         return string.Empty;
