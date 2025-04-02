@@ -66,8 +66,8 @@ public class DefaultValueGeneratorTests : AutoSpectreGeneratorTestsBase
     
     [Theory]
     [InlineData("public string DefaultValueSource {get;set}", ".DefaultValue(destination.DefaultValueSource)")]
-    [InlineData("public static string DefaultValueSource {get;set}", ".DefaultValue(TestForm.DefaultValueSource)")]
-    [InlineData("public static string DefaultValueSource() => string.Empty;", ".DefaultValue(TestForm.DefaultValueSource())")]
+    [InlineData("public static string DefaultValueSource {get;set}", ".DefaultValue(Test.TestForm.DefaultValueSource)")]
+    [InlineData("public static string DefaultValueSource() => string.Empty;", ".DefaultValue(Test.TestForm.DefaultValueSource())")]
     [InlineData("public string DefaultValueSource() => string.Empty;", ".DefaultValue(destination.DefaultValueSource())")]
     [InlineData("public const string DefaultValueSource = string.Empty;", "TestForm.DefaultValueSource")]
     [InlineData("public static readonly string DefaultValueSource = string.Empty;", "TestForm.DefaultValueSource")]
@@ -120,8 +120,8 @@ public class DefaultValueGeneratorTests : AutoSpectreGeneratorTestsBase
     
     [Theory]
     [InlineData("public string DefaultValueSource {get;set}", ".DefaultValue(destination.DefaultValueSource)")]
-    [InlineData("public static string DefaultValueSource {get;set}", ".DefaultValue(TestForm.DefaultValueSource)")]
-    [InlineData("public static string DefaultValueSource() => string.Empty;", ".DefaultValue(TestForm.DefaultValueSource())")]
+    [InlineData("public static string DefaultValueSource {get;set}", ".DefaultValue(Test.TestForm.DefaultValueSource)")]
+    [InlineData("public static string DefaultValueSource() => string.Empty;", ".DefaultValue(Test.TestForm.DefaultValueSource())")]
     [InlineData("public string DefaultValueSource() => string.Empty;", ".DefaultValue(destination.DefaultValueSource())")]
     public void DefaultValueValidSourceTypeEnumerable(string source, string expected)
     {

@@ -12,12 +12,12 @@ public class ChoicesTests : AutoSpectreGeneratorTestsBase
 
     [Theory]
     [InlineData("public string[] TestChoices() => new string[0];", "destination.TestChoices()")]
-    [InlineData("public static string[] TestChoices() => new string[0];", "TestForm.TestChoices()")]
+    [InlineData("public static string[] TestChoices() => new string[0];", "Test.TestForm.TestChoices()")]
     [InlineData("public IEnumerable<string> TestChoices => null;", "destination.TestChoices")]
-    [InlineData("public static IEnumerable<string> TestChoices => new string[0];", "TestForm.TestChoices")]
-    [InlineData("public const string[] TestChoices = new string[0];", "TestForm.TestChoices")]
+    [InlineData("public static IEnumerable<string> TestChoices => new string[0];", "Test.TestForm.TestChoices")]
+    [InlineData("public const string[] TestChoices = new string[0];", "Test.TestForm.TestChoices")]
     [InlineData("public readonly string[] TestChoices = new string[0];", "destination.TestChoices")]
-    [InlineData("public static readonly string[] TestChoices = new string[0];", "TestForm.TestChoices")]
+    [InlineData("public static readonly string[] TestChoices = new string[0];", "Test.TestForm.TestChoices")]
     [InlineData("public string[] TestChoices = new string[0];", "destination.TestChoices")]
     public void ChoicesAddedThroughConvention(string choiceMethod, string call)
     {

@@ -142,7 +142,7 @@ public class DumpMethodBuilderTest
     
     [Theory]
     [InlineData("SomeConverter", false, "source.SomeConverter")]
-    [InlineData("SomeConverter", true, "Someclass.SomeConverter")]
+    [InlineData("SomeConverter", true, "Test.Someclass.SomeConverter")]
     public void GenerateDumpMethod_WithSelectPromptWithConverterAnnotatedProperty(string converter, bool isStatic, string expectedConverter)
     {
         var symbol = RoslynTestUtil.CreateNamedTypeSymbol(@"public class Someclass {}");
@@ -170,7 +170,7 @@ public class DumpMethodBuilderTest
     
     [Theory]
     [InlineData(false, "Converter", "source")]
-    [InlineData(true, "Converter", "Someclass")]
+    [InlineData(true, "Converter", "Test.Someclass")]
     public void GenerateDumpMethod_WithMultiSelectPromptAnnotatedWithConverterProperty(bool isStatic, string converter, string access)
     {
         var symbol = RoslynTestUtil.CreateNamedTypeSymbol(@"public class Someclass {}");

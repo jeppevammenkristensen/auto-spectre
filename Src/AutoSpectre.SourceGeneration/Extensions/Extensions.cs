@@ -238,12 +238,12 @@ public static class Extensions
     /// </summary>
     /// <param name="source"></param>
     /// <returns></returns>
-    internal static string FullName(this INamedTypeSymbol source)
+    internal static string FullName(this ITypeSymbol source)
     {
-        var format = new SymbolDisplayFormat(
-            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
-            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters);
-        return source.ToDisplayString(format);
+        // var format = new SymbolDisplayFormat(
+        //     typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
+        //     genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters);
+        return source.ToDisplayString();
     }
     
     

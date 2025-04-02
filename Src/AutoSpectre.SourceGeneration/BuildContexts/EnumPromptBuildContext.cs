@@ -14,7 +14,8 @@ public class EnumPromptBuildContext : PromptBuildContext
     {
         Type = type;
         IsNullable = isNullable;
-        TypeName = type is INamedTypeSymbol namedTypeSymbol ? namedTypeSymbol.FullName() : type.Name;
+        TypeName = type.FullName();
+        //TypeName = type is INamedTypeSymbol namedTypeSymbol ? namedTypeSymbol.FullName() : type.Name;
     }
 
     public string TypeName { get; set; }

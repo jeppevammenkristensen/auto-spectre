@@ -8,8 +8,41 @@ public class EnumPromptGeneratorTests : AutoSpectreGeneratorTestsBase
 {
     public EnumPromptGeneratorTests(ITestOutputHelper helper) : base(helper)
     {
+
+    }
+    [Fact]
+    public void EnumInDifferentNamespaceGeneratesCorrect()
+    {
+        GetGeneratedOutput($$"""
+                             using AutoSpectre;
+                             using System.Collections.Generic;
+                             using Different;
+
+                             namespace Test
+                             {
+
+                                 [AutoSpectreForm]
+                                 public class TestForm
+                                 {
+                                    [TextPrompt(SearchEnabled=true, SearchPlaceholderText="\"name\"")]
+                                    public TestEnum EnumProperty {get;set;}
+                                 }
+
+                             }
+                             
+                             namespace Different {
+                                public enum TestEnum 
+                             {
+                                First,
+                                Second
+                             }
+                             }
+
+                             """).Should().Contain("Different.TestEnum");
     }
 
+    
+    
     [Fact]
     public void EnumWithSearchGeneratesCorrect()
     {

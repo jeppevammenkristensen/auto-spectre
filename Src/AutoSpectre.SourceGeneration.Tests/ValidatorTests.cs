@@ -12,7 +12,7 @@ public class ValidatorTests : AutoSpectreGeneratorTestsBase
     
     [Theory]
     [InlineData("""public string? ValidateName(string name) { return name == "Jumping jack flash"; }""", "destination")]
-    [InlineData("""public static string? ValidateName(string name) { return name == "Jumping jack flash"; }""", "ValidateClass")]
+    [InlineData("""public static string? ValidateName(string name) { return name == "Jumping jack flash"; }""", "Test.ValidateClass")]
     public void PropertyWithValidatorDefinedThatIsValidReturnsExpected(string validValidator, string access)
     {
         GetGeneratedOutput($$"""
@@ -174,7 +174,7 @@ public class Example
     
     [Theory]
     [InlineData(false, "destination")]
-    [InlineData(true, "Example")]
+    [InlineData(true, "Test.Example")]
     public void PropertyWithEnumerableResultValidatorByConventionReturnsExpected(bool isStatic, string access)
     {
         GetGeneratedOutput($$"""

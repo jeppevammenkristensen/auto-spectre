@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoSpectre;
 using Dumpify;
+using Test.Enums;
 
 
 namespace Test
@@ -21,6 +22,9 @@ namespace Test
     {
         [SelectPrompt(Title = "Select \"name\"")]
         public string Name { get; set; } = string.Empty;
+        
+        [TextPrompt]
+        public SomeEnum SomeEnum { get; set; } = SomeEnum.First;
         
         public IEnumerable<string> NameSource()  {
             yield return "First";
