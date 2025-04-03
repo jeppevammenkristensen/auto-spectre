@@ -8,8 +8,6 @@
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <IsRoslynComponent>true</IsRoslynComponent>
     <VersionPrefix>0.9.1</VersionPrefix>
-    <VersionSuffix>preview-01</VersionSuffix>
-    
   </PropertyGroup>
 
   <PropertyGroup>
@@ -17,7 +15,7 @@
     
     <IncludeBuildOutput>false</IncludeBuildOutput> <!-- Do not include the generator as a lib dependency -->
     <Title>AutoSpectre Source Generation</Title>
-    <PackageIcon>ghost.png</PackageIcon>
+    <PackageIcon>ghost.png</PackageIcon>  
     <Authors>Jeppe Roi Kristensen</Authors>
     <Description>A tool to generate a form using Spectre.Console through a source generator that generate a new class to collect data</Description>
     <PackageProjectUrl>https://github.com/jeppevammenkristensen/auto-spectre</PackageProjectUrl>
@@ -39,11 +37,11 @@
   </ItemGroup>
 
   <ItemGroup>    
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4">
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.8.0" PrivateAsserts="all">
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.9.2" PrivateAsserts="all">
     </PackageReference>
     <PackageReference Include="Spectre.Console" Version="0.49.1" />
   </ItemGroup>
