@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoSpectre;
+using AutoSpectre.Extensions;
 using Dumpify;
 using Test.Enums;
 
@@ -11,8 +12,9 @@ namespace Test
     public class Program
     {
         public static async Task Main()
-        {
-            SClass.InnerTest test = new SClass.InnerTest();
+        { 
+            InnerTestSpectreFactory factory = new InnerTestSpectreFactory();
+            var innerTest = factory.Prompt();
             
         }
     }

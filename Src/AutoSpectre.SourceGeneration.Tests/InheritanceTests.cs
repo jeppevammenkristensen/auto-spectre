@@ -29,6 +29,6 @@ public class InheritanceTests : AutoSpectreGeneratorTestsBase
                         [TextPrompt]
                         public string InheritedValue {get;set;}
                     }
-                    """).OutputShouldContain("destination.InheritedValue = ");
+                    """).OutputShouldContain("form.InheritedValue = ");
     }
 }

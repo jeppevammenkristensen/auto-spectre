@@ -11,7 +11,7 @@ public class ValidatorTests : AutoSpectreGeneratorTestsBase
     }
     
     [Theory]
-    [InlineData("""public string? ValidateName(string name) { return name == "Jumping jack flash"; }""", "destination")]
+    [InlineData("""public string? ValidateName(string name) { return name == "Jumping jack flash"; }""", "form")]
     [InlineData("""public static string? ValidateName(string name) { return name == "Jumping jack flash"; }""", "Test.ValidateClass")]
     public void PropertyWithValidatorDefinedThatIsValidReturnsExpected(string validValidator, string access)
     {
@@ -70,7 +70,7 @@ public class Example
         return age >= 18 ? null : "Age must be at least 18";
     }
 }
-""").Should().Contain(@"var validationResult = destination.ValidateAges(items, item);
+""").Should().Contain(@"var validationResult = form.ValidateAges(items, item);
                         if (validationResult is { } error)
                         {
                             AnsiConsole.MarkupLine($""[red]{error}[/]"");
@@ -110,7 +110,7 @@ public class Example
         return null;
     }   
 }
-""").Should().Contain("var validationResult = destination.InnerItemsValidator(items, newItem);");
+""").Should().Contain("var validationResult = form.InnerItemsValidator(items, newItem);");
     }
     
     [Fact]
@@ -139,11 +139,11 @@ public class Example
         return null;
     }   
 }
-""").Should().Contain("destination.InnerItemValidator(item)");
+""").Should().Contain("form.InnerItemValidator(item)");
     }
     
     [Theory]
-    [InlineData("public string? InnerItemValidator(Inner[] items, Inner item){ return null }", "destination.InnerItemValidator(items, newItem)")]
+    [InlineData("public string? InnerItemValidator(Inner[] items, Inner item){ return null }", "form.InnerItemValidator(items, newItem)")]
     [InlineData("public static string? InnerItemValidator(Inner[] items, Inner item){ return null }", "Example.InnerItemValidator(items, newItem)")]
     public void PropertyPointingToListWithOtherClassDecoratedWithAutoSpectreFromReturnsExpectedOutput(string validator, string expectedOutput)
     {
@@ -173,7 +173,7 @@ public class Example
     
     
     [Theory]
-    [InlineData(false, "destination")]
+    [InlineData(false, "form")]
     [InlineData(true, "Test.Example")]
     public void PropertyWithEnumerableResultValidatorByConventionReturnsExpected(bool isStatic, string access)
     {

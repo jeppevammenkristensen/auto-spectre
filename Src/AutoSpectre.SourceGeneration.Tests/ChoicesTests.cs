@@ -11,14 +11,14 @@ public class ChoicesTests : AutoSpectreGeneratorTestsBase
     }
 
     [Theory]
-    [InlineData("public string[] TestChoices() => new string[0];", "destination.TestChoices()")]
+    [InlineData("public string[] TestChoices() => new string[0];", "form.TestChoices()")]
     [InlineData("public static string[] TestChoices() => new string[0];", "Test.TestForm.TestChoices()")]
-    [InlineData("public IEnumerable<string> TestChoices => null;", "destination.TestChoices")]
+    [InlineData("public IEnumerable<string> TestChoices => null;", "form.TestChoices")]
     [InlineData("public static IEnumerable<string> TestChoices => new string[0];", "Test.TestForm.TestChoices")]
     [InlineData("public const string[] TestChoices = new string[0];", "Test.TestForm.TestChoices")]
-    [InlineData("public readonly string[] TestChoices = new string[0];", "destination.TestChoices")]
+    [InlineData("public readonly string[] TestChoices = new string[0];", "form.TestChoices")]
     [InlineData("public static readonly string[] TestChoices = new string[0];", "Test.TestForm.TestChoices")]
-    [InlineData("public string[] TestChoices = new string[0];", "destination.TestChoices")]
+    [InlineData("public string[] TestChoices = new string[0];", "form.TestChoices")]
     public void ChoicesAddedThroughConvention(string choiceMethod, string call)
     {
         GetOutput($$"""
@@ -56,7 +56,7 @@ public class ChoicesTests : AutoSpectreGeneratorTestsBase
                                   
                                   public IEnumerable<string> TestChoices => null;
                              }
-                             """).OutputShouldContain(".AddChoices(destination.TestChoices");
+                             """).OutputShouldContain(".AddChoices(form.TestChoices");
     }
     
     [Fact]
@@ -76,7 +76,7 @@ public class ChoicesTests : AutoSpectreGeneratorTestsBase
                          
                          public IEnumerable<string> TheStrings => null;
                     }
-                    """).OutputShouldContain(".AddChoices(destination.TheStrings");
+                    """).OutputShouldContain(".AddChoices(form.TheStrings");
     }
     
     [Fact]

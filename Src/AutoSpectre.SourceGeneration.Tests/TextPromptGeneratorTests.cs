@@ -83,7 +83,7 @@ public class TextPromptGeneratorTests : AutoSpectreGeneratorTestsBase
                        }
                   }
 
-                  """).HasNoSourceGeneratorDiagnosticWith(DiagnosticIds.Id0020_InitializerNeeded).Output.Should().Contain("var item = destination.InitOther();");
+                  """).HasNoSourceGeneratorDiagnosticWith(DiagnosticIds.Id0020_InitializerNeeded).Output.Should().Contain("var item = form.InitOther();");
     }
 
     [Fact]
@@ -119,7 +119,7 @@ public class TextPromptGeneratorTests : AutoSpectreGeneratorTestsBase
 
                   """)
             .HasNoSourceGeneratorDiagnosticWith(DiagnosticIds.Id0020_InitializerNeeded)
-            .OutputShouldContain("var item = destination.InitOther();");
+            .OutputShouldContain("var item = form.InitOther();");
     }
     
     [Fact]

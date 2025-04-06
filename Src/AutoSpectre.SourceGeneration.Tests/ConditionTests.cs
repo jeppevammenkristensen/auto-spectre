@@ -27,7 +27,7 @@ public class ConditionTests : AutoSpectreGeneratorTestsBase
                                
                                public bool NameCondition => true;
                            }
-                           """).Should().Contain(@"if (destination.NameCondition == true)");
+                           """).Should().Contain(@"if (form.NameCondition == true)");
     }
     
     [Fact]
@@ -47,7 +47,7 @@ public class ConditionTests : AutoSpectreGeneratorTestsBase
                                
                                public bool NameCondition() => true
                            }
-                           """).Should().Contain(@"if (destination.NameCondition() == true)");
+                           """).Should().Contain(@"if (form.NameCondition() == true)");
     }
     
     [Fact]
@@ -67,7 +67,7 @@ public class ConditionTests : AutoSpectreGeneratorTestsBase
                                
                                public bool CustomCondition() => true
                            }
-                           """).Should().Contain(@"if (destination.CustomCondition() == true)");
+                           """).Should().Contain(@"if (form.CustomCondition() == true)");
     }
     
     [Fact]
@@ -87,6 +87,6 @@ public class ConditionTests : AutoSpectreGeneratorTestsBase
                                
                                public bool CustomCondition() => true;
                            }
-                           """).Should().Contain(@"if (destination.CustomCondition() == false)");
+                           """).Should().Contain(@"if (form.CustomCondition() == false)");
     }
 }
