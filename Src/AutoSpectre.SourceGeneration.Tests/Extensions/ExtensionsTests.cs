@@ -9,9 +9,11 @@ using Xunit.Abstractions;
 
 namespace AutoSpectre.SourceGeneration.Tests.Extensions;
 
-
 public class ExtensionsTests
 {
+  
+    
+    
     private readonly ITestOutputHelper _testOutputHelper;
 
     public ExtensionsTests(ITestOutputHelper testOutputHelper)

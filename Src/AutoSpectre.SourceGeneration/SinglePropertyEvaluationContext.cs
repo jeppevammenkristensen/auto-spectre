@@ -53,7 +53,7 @@ public interface IConditionContext
 public class SingleFormEvaluationContext
 {
     public ConfirmedCulture? ConfirmedCulture { get; set; }
-    public bool DisableDumpMethod { get; set; }
+    //public bool DisableDumpMethod { get; set; }
     public IMethodSymbol? UsedConstructor { get; set; }
 }
 

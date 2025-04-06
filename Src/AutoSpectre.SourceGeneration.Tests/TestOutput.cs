@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using AutoSpectre.SourceGeneration.Tests.TestUtils;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.CodeAnalysis;
@@ -11,7 +12,7 @@ namespace AutoSpectre.SourceGeneration.Tests;
 public record TestOutput(ImmutableArray<Diagnostic> CompileDiagnostics,
     ImmutableArray<Diagnostic> GeneratorDiagnostics, Compilation OutputCompilation)
 {
-    public string Output => OutputCompilation.SyntaxTrees.Last().ToString();
+    public string Output => OutputCompilation.SyntaxTrees.GetGeneratedAutoSpectreFactoryCode().ToString(); // first syntax tree is the original syntax, the second is the generated factory and the last one is the SpectreFactory addition
     
     
     public TestOutput ShouldHaveSourceGeneratorDiagnosticOnlyOnce(string id)
