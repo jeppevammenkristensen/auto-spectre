@@ -29,7 +29,7 @@ public class TaskStepGeneratorTests : AutoSpectreGeneratorTestsBase
                                     
                                   }
                              }
-                             """).Should().Contain("destination.Hello();");
+                             """).Should().Contain("form.Hello();");
 
     }
 
@@ -53,7 +53,7 @@ public class TaskStepGeneratorTests : AutoSpectreGeneratorTestsBase
                                       await Task.Delay(5000);
                                   }
                              }
-                             """).Should().Contain("destination.HelloAsync(");
+                             """).Should().Contain("form.HelloAsync(");
     }
 
     [Fact]
@@ -79,7 +79,7 @@ public class TaskStepGeneratorTests : AutoSpectreGeneratorTestsBase
                                     await Task.Delay(5000);
                                 }
                              }
-                             """).Should().Contain("if (destination.Test == true)");
+                             """).Should().Contain("if (form.Test == true)");
     }
 
     [Fact]
@@ -110,7 +110,7 @@ public class TaskStepGeneratorTests : AutoSpectreGeneratorTestsBase
                                       return Enumerable.Range(1, 100);
                                   }
                               }
-                             """).Should().Contain("await destination.Intro()").And.Contain("GetAsync");
+                             """).Should().Contain("await form.Intro()").And.Contain("PromptAsync");
     }
 
     [Fact]

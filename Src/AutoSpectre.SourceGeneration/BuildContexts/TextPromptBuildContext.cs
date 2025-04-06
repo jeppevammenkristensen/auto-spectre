@@ -8,6 +8,7 @@ using AutoSpectre.SourceGeneration.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Spectre.Console;
+using static AutoSpectre.SourceGeneration.CodeBuildConstants;
 
 namespace AutoSpectre.SourceGeneration.BuildContexts;
 
@@ -103,7 +104,7 @@ internal class TextPromptBuildContext : PromptBuilderContextWithPropertyContext
     {
         if (Context.ConfirmedDefaultValue is { } confirmed)
         {
-            var name = confirmed.Instance ? $"destination.{confirmed.Name}" : $"{Context.TargetType.FullName()}.{confirmed.Name}";
+            var name = confirmed.Instance ? $"{FormName }.{confirmed.Name}" : $"{Context.TargetType.FullName()}.{confirmed.Name}";
             
             if (confirmed.Type == DefaultValueType.Property)
             {
@@ -144,6 +145,6 @@ internal class TextPromptBuildContext : PromptBuilderContextWithPropertyContext
 
     private void BuildCulture(StringBuilder builder)
     {
-        builder.AppendLine($".WithCulture({CodeBuildConstants.CultureVariableName})");
+        builder.AppendLine($".WithCulture({CultureVariableName})");
     }
 }

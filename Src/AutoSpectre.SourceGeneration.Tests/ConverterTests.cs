@@ -11,7 +11,7 @@ public class ConverterTests : AutoSpectreGeneratorTestsBase
 
     [Theory]
     [InlineData("public static string PropertyConverter(DateTime input) => string.Empty;",".UseConverter(Test.TestForm.PropertyConverter)")]
-    [InlineData("public string PropertyConverter(DateTime input) => string.Empty;",".UseConverter(destination.PropertyConverter)")]
+    [InlineData("public string PropertyConverter(DateTime input) => string.Empty;",".UseConverter(form.PropertyConverter)")]
     public void ValidConverterSinglePromptGeneratesExpectedResult(string converter, string expected)
     {
         GetOutput($$"""
@@ -36,7 +36,7 @@ public class ConverterTests : AutoSpectreGeneratorTestsBase
     
     [Theory]
     [InlineData("public static string PropertyConverter(DateTime input) => string.Empty;",".UseConverter(Test.TestForm.PropertyConverter)")]
-    [InlineData("public string PropertyConverter(DateTime input) => string.Empty;",".UseConverter(destination.PropertyConverter)")]
+    [InlineData("public string PropertyConverter(DateTime input) => string.Empty;",".UseConverter(form.PropertyConverter)")]
     public void ValidConverterMultiSelectPromptGeneratesExpectedResult(string converter, string expected)
     {
         GetOutput($$"""

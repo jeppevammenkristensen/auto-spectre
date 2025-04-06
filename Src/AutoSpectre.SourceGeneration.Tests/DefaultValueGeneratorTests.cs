@@ -25,7 +25,7 @@ public class DefaultValueGeneratorTests : AutoSpectreGeneratorTestsBase
                          [TextPrompt(DefaultValueSource=nameof(Property))]
                          public string Property {get;set;} = "Jeppe"
                     }
-                    """).OutputShouldContain(".DefaultValue(destination.Property)");
+                    """).OutputShouldContain(".DefaultValue(form.Property)");
     }
     
     [Fact]
@@ -65,15 +65,15 @@ public class DefaultValueGeneratorTests : AutoSpectreGeneratorTestsBase
     }
     
     [Theory]
-    [InlineData("public string DefaultValueSource {get;set}", ".DefaultValue(destination.DefaultValueSource)")]
+    [InlineData("public string DefaultValueSource {get;set}", ".DefaultValue(form.DefaultValueSource)")]
     [InlineData("public static string DefaultValueSource {get;set}", ".DefaultValue(Test.TestForm.DefaultValueSource)")]
     [InlineData("public static string DefaultValueSource() => string.Empty;", ".DefaultValue(Test.TestForm.DefaultValueSource())")]
-    [InlineData("public string DefaultValueSource() => string.Empty;", ".DefaultValue(destination.DefaultValueSource())")]
+    [InlineData("public string DefaultValueSource() => string.Empty;", ".DefaultValue(form.DefaultValueSource())")]
     [InlineData("public const string DefaultValueSource = string.Empty;", "TestForm.DefaultValueSource")]
     [InlineData("public static readonly string DefaultValueSource = string.Empty;", "TestForm.DefaultValueSource")]
     [InlineData("public static string DefaultValueSource = string.Empty;", "TestForm.DefaultValueSource")]
-    [InlineData("public string DefaultValueSource = string.Empty;", "destination.DefaultValueSource")]
-    [InlineData("public readonly string DefaultValueSource = string.Empty;", "destination.DefaultValueSource")]
+    [InlineData("public string DefaultValueSource = string.Empty;", "form.DefaultValueSource")]
+    [InlineData("public readonly string DefaultValueSource = string.Empty;", "form.DefaultValueSource")]
     public void DefaultValueValidSource(string source, string expected)
     {
         GetOutput($$"""
@@ -119,10 +119,10 @@ public class DefaultValueGeneratorTests : AutoSpectreGeneratorTestsBase
     }
     
     [Theory]
-    [InlineData("public string DefaultValueSource {get;set}", ".DefaultValue(destination.DefaultValueSource)")]
+    [InlineData("public string DefaultValueSource {get;set}", ".DefaultValue(form.DefaultValueSource)")]
     [InlineData("public static string DefaultValueSource {get;set}", ".DefaultValue(Test.TestForm.DefaultValueSource)")]
     [InlineData("public static string DefaultValueSource() => string.Empty;", ".DefaultValue(Test.TestForm.DefaultValueSource())")]
-    [InlineData("public string DefaultValueSource() => string.Empty;", ".DefaultValue(destination.DefaultValueSource())")]
+    [InlineData("public string DefaultValueSource() => string.Empty;", ".DefaultValue(form.DefaultValueSource())")]
     public void DefaultValueValidSourceTypeEnumerable(string source, string expected)
     {
         GetOutput($$"""

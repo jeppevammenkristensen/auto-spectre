@@ -115,11 +115,11 @@ public class MultiSelectPromptGeneratorTests : AutoSpectreGeneratorTestsBase
     
    [Theory]
    [InlineData("public static int[] SelectNumbersSource { get; set; }", "TestForm.SelectNumbersSource.")]
-   [InlineData("public readonly int[] SelectNumbersSource;", "destination.SelectNumbersSource.")]
+   [InlineData("public readonly int[] SelectNumbersSource;", "form.SelectNumbersSource.")]
    [InlineData("public const int[] SelectNumbersSource;", "TestForm.SelectNumbersSource.")]
-   [InlineData("public int[] SelectNumbersSource;", "destination.SelectNumbersSource.")]
+   [InlineData("public int[] SelectNumbersSource;", "form.SelectNumbersSource.")]
    [InlineData("public static int[] SelectNumbersSource() => null;", "TestForm.SelectNumbersSource().")]
-   [InlineData("public int[] SelectNumbersSource() => null;", "destination.SelectNumbersSource().")]
+   [InlineData("public int[] SelectNumbersSource() => null;", "form.SelectNumbersSource().")]
     public void SelectPromptWithValidVariation(string variation, string expected)
     {
         GetOutput($$"""

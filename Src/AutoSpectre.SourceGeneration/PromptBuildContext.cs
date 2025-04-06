@@ -59,7 +59,7 @@ public abstract class PromptBuildContext
     
     protected string GetStaticOrInstancePrepend(bool isStatic)
     {
-        return "destination".GetStaticOrInstance(Context.TargetType.FullName(), isStatic);
+        return CodeBuildConstants.FormName.GetStaticOrInstance(Context.TargetType.FullName(), isStatic);
     }
     
 }

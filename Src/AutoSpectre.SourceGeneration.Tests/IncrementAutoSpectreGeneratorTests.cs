@@ -76,7 +76,7 @@ namespace Test
         public TestForm Get(TestForm destination = null)
         {
             destination ??= new Test.TestForm();
-            // Prompt for values for destination.MultiSelect
+            // Prompt for values for form.MultiSelect
             {
                 List<int> items = new List<int>();
                 bool continuePrompting = true;
@@ -88,10 +88,10 @@ namespace Test
                 }
                 while (continuePrompting);
                 int[]? result = items.ToArray();
-                destination.MultiSelect = result;
+                form.MultiSelect = result;
             }
 
-            // Prompt for values for destination.Items
+            // Prompt for values for form.Items
             {
                 List<string> items = new List<string>();
                 bool continuePrompting = true;
@@ -103,10 +103,10 @@ namespace Test
                 }
                 while (continuePrompting);
                 System.Collections.Generic.List<string> result = items;
-                destination.Items = result;
+                form.Items = result;
             }
 
-            // Prompt for values for destination.BooleanValues
+            // Prompt for values for form.BooleanValues
             {
                 List<bool> items = new List<bool>();
                 bool continuePrompting = true;
@@ -118,7 +118,7 @@ namespace Test
                 }
                 while (continuePrompting);
                 System.Collections.Generic.HashSet<bool> result = new System.Collections.Generic.HashSet<bool>(items);
-                destination.BooleanValues = result;
+                form.BooleanValues = result;
             }
 
             return destination;
@@ -163,7 +163,7 @@ namespace Test
                     }
                 }
 
-                """).Should().Contain(".UseConverter(destination.OtherStringConverter)");
+                """).Should().Contain(".UseConverter(form.OtherStringConverter)");
 
         }
 
@@ -201,7 +201,7 @@ namespace Test
                                                 }
                                             }
 
-                                            """).Should().Contain(".UseConverter(destination.OtherStringConverter)");
+                                            """).Should().Contain(".UseConverter(form.OtherStringConverter)");
 
         }
 
@@ -265,7 +265,7 @@ namespace Test;
                     }
                 }
 
-                """).Should().Contain(".UseConverter(destination.OtherStringConverter)").And.Contain("MultiSelectionPrompt<OtherTest.OtherClass>");
+                """).Should().Contain(".UseConverter(form.OtherStringConverter)").And.Contain("MultiSelectionPrompt<OtherTest.OtherClass>");
 
         }
         
@@ -302,7 +302,7 @@ namespace Test;
                     }
                 }
 
-                """).Should().Contain(".UseConverter(destination.OtherConverter)").And.Contain("MultiSelectionPrompt<OtherTest.OtherClass>");
+                """).Should().Contain(".UseConverter(form.OtherConverter)").And.Contain("MultiSelectionPrompt<OtherTest.OtherClass>");
 
         }
 
@@ -372,10 +372,10 @@ namespace Test
             {
                 AnsiConsole.MarkupLine("Enter [green]Other[/]");
                 var item = OtherClassSpectreFactory.Get();
-                destination.Other = item;
+                form.Other = item;
             }
 
-            // Prompt for values for destination.ListOfOther
+            // Prompt for values for form.ListOfOther
             {
                 List<OtherClass> items = new List<OtherClass>();
                 bool continuePrompting = true;
@@ -391,7 +391,7 @@ namespace Test
                 }
                 while (continuePrompting);
                 System.Collections.Generic.List<OtherTest.OtherClass> result = items;
-                destination.ListOfOther = result;
+                form.ListOfOther = result;
             }
 
             return destination;
@@ -461,13 +461,13 @@ namespace Test
         public TestForm Get(TestForm destination = null)
         {
             destination ??= new Test.TestForm();
-            destination.Name = AnsiConsole.Prompt(new TextPrompt<string>("Enter [green]Name[/]"));
-            destination.BoolTest = AnsiConsole.Confirm("Custom title");
-            destination.Source = AnsiConsole.Prompt(new SelectionPrompt<int>().Title("Enter [green]Source[/]").PageSize(10).AddChoices(destination.Sources.ToArray()));
-            destination.MultiSelect = AnsiConsole.Prompt(new MultiSelectionPrompt<int>().Title("Enter [green]MultiSelect[/]").PageSize(10).AddChoices(destination.Sources.ToArray()));
-            destination.ReadOnlyList = AnsiConsole.Prompt(new MultiSelectionPrompt<int>().Title("Enter [green]ReadOnlyList[/]").PageSize(10).AddChoices(destination.Sources.ToArray()));
-            destination.ReadOnlyList2 = AnsiConsole.Prompt(new MultiSelectionPrompt<int>().Title("Enter [green]ReadOnlyList2[/]").PageSize(10).AddChoices(destination.Sources.ToArray())).ToImmutableList();
-            destination.HashSet = new System.Collections.Generic.HashSet<int>(AnsiConsole.Prompt(new MultiSelectionPrompt<int>().Title("Enter [green]HashSet[/]").PageSize(10).AddChoices(destination.Sources.ToArray())));
+            form.Name = AnsiConsole.Prompt(new TextPrompt<string>("Enter [green]Name[/]"));
+            form.BoolTest = AnsiConsole.Confirm("Custom title");
+            form.Source = AnsiConsole.Prompt(new SelectionPrompt<int>().Title("Enter [green]Source[/]").PageSize(10).AddChoices(form.Sources.ToArray()));
+            form.MultiSelect = AnsiConsole.Prompt(new MultiSelectionPrompt<int>().Title("Enter [green]MultiSelect[/]").PageSize(10).AddChoices(form.Sources.ToArray()));
+            form.ReadOnlyList = AnsiConsole.Prompt(new MultiSelectionPrompt<int>().Title("Enter [green]ReadOnlyList[/]").PageSize(10).AddChoices(form.Sources.ToArray()));
+            form.ReadOnlyList2 = AnsiConsole.Prompt(new MultiSelectionPrompt<int>().Title("Enter [green]ReadOnlyList2[/]").PageSize(10).AddChoices(form.Sources.ToArray())).ToImmutableList();
+            form.HashSet = new System.Collections.Generic.HashSet<int>(AnsiConsole.Prompt(new MultiSelectionPrompt<int>().Title("Enter [green]HashSet[/]").PageSize(10).AddChoices(form.Sources.ToArray())));
             return destination;
         }
     }
@@ -519,7 +519,7 @@ namespace Test
         public TestForm Get(TestForm destination = null)
         {
             destination ??= new Test.TestForm();
-            destination.Name = AnsiConsole.Prompt(new SelectionPrompt<TestEnum>().Title("Enter [green]Name[/]").PageSize(10).AddChoices(Enum.GetValues<TestEnum>()));
+            form.Name = AnsiConsole.Prompt(new SelectionPrompt<TestEnum>().Title("Enter [green]Name[/]").PageSize(10).AddChoices(Enum.GetValues<TestEnum>()));
             return destination;
         }
     }
