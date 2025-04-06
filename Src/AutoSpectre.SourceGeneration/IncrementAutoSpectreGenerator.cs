@@ -97,7 +97,9 @@ public class IncrementAutoSpectreGenerator : IIncrementalGenerator
                                 syntaxContext.TargetSymbol.Locations.FirstOrDefault()));
                         }
 
+
                         productionContext.AddSource($"{targetNamedType}AutoSpectreFactory.g.cs", code);
+                        productionContext.AddSource($"SpectreFactory.{targetNamedType}.g.cs", builder.BuildPartialSpectreFactory());
                     }
                 }
                 else

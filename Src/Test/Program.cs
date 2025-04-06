@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AutoSpectre;
 using AutoSpectre.Extensions;
 using Dumpify;
+using Spectre.Console;
 using Test.Enums;
 
 
@@ -12,21 +13,35 @@ namespace Test
     public class Program
     {
         public static async Task Main()
-        { 
-            InnerTestSpectreFactory factory = new InnerTestSpectreFactory();
-            var innerTest = factory.Prompt();
-            
+        {
+            var result = SpectreFactory.GetSpectreFactoryTest_SClass();
+            await result.PromptAsync(new SClass("Jeppe Roi Kristensen"));
+
+
         }
     }
 
-    [AutoSpectreForm(DisableDump = false)]
+    [AutoSpectreForm()]
     public class SClass
     {
+        private readonly string _firstName;
+
+        public SClass(string firstName)
+        {
+            _firstName = firstName;
+        }
+        
         [SelectPrompt(Title = "Select \"name\"")]
         public string Name { get; set; } = string.Empty;
         
         [TextPrompt]
         public SomeEnum SomeEnum { get; set; } = SomeEnum.First;
+
+        [TaskStep(StatusText = "Processing", UseStatus = true, SpinnerStyle = "yellow bold")]
+        public async Task Hello()
+        {
+            await Task.Delay(5000);
+        }
         
         public IEnumerable<string> NameSource()  {
             yield return "First";

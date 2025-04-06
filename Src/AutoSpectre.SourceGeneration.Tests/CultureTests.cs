@@ -25,8 +25,7 @@ public class CultureTests : AutoSpectreGeneratorTestsBase
                          public string SomeProperty {get;set;}
                     }
                     """).OutputShouldContain("var culture = CultureInfo.CurrentUICulture;")
-            .OutputShouldContain(".WithCulture(culture)")
-            .ShouldContainNamespace("AutoSpectre.Extensions");
+            .OutputShouldContain(".WithCulture(culture)");
     }
     
     [Fact]
@@ -46,7 +45,6 @@ public class CultureTests : AutoSpectreGeneratorTestsBase
                     }
                     """).OutputShouldContain("var culture = new CultureInfo(\"da-DK\")")
             .OutputShouldContain(".WithCulture(culture)")
-            .ShouldContainNamespace("AutoSpectre.Extensions")
             .DumpGeneratedCode(_helper);
     }
     

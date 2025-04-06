@@ -12,7 +12,8 @@ public class AutoSpectreForm : Attribute
     public string? Culture { get; set; }
     
     /// <summary>
-    /// Enable this to not generate a Dump extension method
+    /// This has been retired
     /// </summary>
+    [Obsolete("Retired used dumpify instead", true)]
     public bool DisableDump { get; set; }
 }

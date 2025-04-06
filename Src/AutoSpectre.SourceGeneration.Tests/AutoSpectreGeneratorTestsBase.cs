@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using AutoSpectre.SourceGeneration.Tests.TestUtils;
 using FluentAssertions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -94,7 +95,7 @@ public class AutoSpectreGeneratorTestsBase
         driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var generateDiagnostics);
         generateDiagnostics.Should().NotContain(d => d.Severity == DiagnosticSeverity.Error, "Failed: " + generateDiagnostics.FirstOrDefault()?.GetMessage());
 
-        string output = outputCompilation.SyntaxTrees.Last().ToString();
+        string output = outputCompilation.SyntaxTrees.GetGeneratedAutoSpectreFactoryCode().ToString();
 
         foreach (var diagnostic in generateDiagnostics)
         {
