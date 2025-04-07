@@ -128,11 +128,11 @@ internal class ReuseExistingAutoSpectreFactoryPromptBuildContext : PromptBuilder
     {
         if (NamedTypeSource.NamedTypeAnalysis.HasAnyAsyncDecoratedMethods)
         {
-            return $"await {SpectreFactoryInstanceVariableName}.GetAsync({variableName});";
+            return $"await {SpectreFactoryInstanceVariableName}.PromptAsync({variableName});";
         }
         else
         {
-            return $"{SpectreFactoryInstanceVariableName}.Get({variableName});";
+            return $"{SpectreFactoryInstanceVariableName}.Prompt({variableName});";
         }
     }
 

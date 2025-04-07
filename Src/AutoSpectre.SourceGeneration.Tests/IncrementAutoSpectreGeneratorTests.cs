@@ -307,98 +307,47 @@ namespace Test;
         }
 
 
-        [Fact(Skip = "To volatile to changes")]
+        [Fact]
         public void ValidForm_ReferencesOther_GeneratesExpected()
         {
-            GetGeneratedOutput("""
-                using AutoSpectre;
-                using System.Collections.Generic;
-                using System.Collections.Immutable;
+            GetOutput("""
+                      using AutoSpectre;
+                      using System.Collections.Generic;
+                      using System.Collections.Immutable;
 
+                      /// <summary>
+                      /// Helps create and fill <see cref = "TestForm"/> with values
+                      /// </summary>
+                      namespace Test  
+                      {
+                          [AutoSpectreForm]
+                          public class TestForm 
+                          {
+                              [TextPrompt]
+                              public OtherTest.OtherClass Other {get;set;}
 
-                /// <summary>
-                /// Helps create and fill <see cref = "TestForm"/> with values
-                /// </summary>
-                public interface ITestFormSpectreFactory
-                {
-                    TestForm Get(TestForm destination = null);
-                }
+                              [TextPrompt]
+                              public List<OtherTest.OtherClass> ListOfOther {get;set;} = new ();
+                          }                   
+                          
+                          /// <summary>
+                          /// Helps create and fill <see cref = "TestForm"/> with values
+                          /// </summary>
+                          public interface ITestFormSpectreFactory
+                          {
+                              Test.TestForm Prompt(TestForm destination = null);
+                          }
+                      }
 
-                /// <summary>
-                /// Helps create and fill <see cref = "TestForm"/> with values
-                /// </summary>
-                namespace Test  
-                {
-                    [AutoSpectreForm]
-                    public class TestForm 
-                    {
-                        [Ask]
-                        public OtherTest.OtherClass Other {get;set;}
-
-                        [Ask]
-                        public List<OtherTest.OtherClass> ListOfOther {get;set;} = new ();
-                    }                   
-                }
-
-                namespace OtherTest 
-                {
-                    [AutoSpectreForm]
-                    public class OtherClass
-                    {
-                        
-                    }
-                }
-                """).Should().Be("""
-using Spectre.Console;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Collections.Immutable;
-using OtherTest;
-
-namespace Test
-{
-    public interface ITestFormSpectreFactory
-    {
-        TestForm Get(TestForm destination = null);
-    }
-
-    public class TestFormSpectreFactory : ITestFormSpectreFactory
-    {
-        public TestForm Get(TestForm destination = null)
-        {
-            IOtherClassSpectreFactory OtherClassSpectreFactory = new OtherClassSpectreFactory();
-            destination ??= new Test.TestForm();
-            {
-                AnsiConsole.MarkupLine("Enter [green]Other[/]");
-                var item = OtherClassSpectreFactory.Get();
-                form.Other = item;
-            }
-
-            // Prompt for values for form.ListOfOther
-            {
-                List<OtherClass> items = new List<OtherClass>();
-                bool continuePrompting = true;
-                do
-                {
-                    {
-                        AnsiConsole.MarkupLine("Enter [green]ListOfOther[/]");
-                        var newItem = OtherClassSpectreFactory.Get();
-                        items.Add(newItem);
-                    }
-
-                    continuePrompting = AnsiConsole.Confirm("Add more items?");
-                }
-                while (continuePrompting);
-                System.Collections.Generic.List<OtherTest.OtherClass> result = items;
-                form.ListOfOther = result;
-            }
-
-            return destination;
-        }
-    }
-}
-""");
+                      namespace OtherTest 
+                      {
+                          [AutoSpectreForm]
+                          public class OtherClass
+                          {
+                              
+                          }
+                      }
+                      """).Output.Should().Contain("OtherClassSpectreFactory.Prompt(");
         }
 
         [Fact(Skip = "To volatile to changes")]
