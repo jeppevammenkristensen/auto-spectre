@@ -12,7 +12,14 @@ public static class ResultExtensions
     public static SyntaxTree GetGeneratedAutoSpectreFactoryCode(this IEnumerable<SyntaxTree> trees)
     {
         // Return the second last tree
-        return trees.ToArray()[^2];
+        try
+        {
+            return trees.ToArray()[^2];
+        }
+        catch (Exception e)
+        {
+            throw new InvalidOperationException("Failed to retrive generated code.", e);
+        }
     }
     
     public static SyntaxTree GetSpectreFactory(this IEnumerable<SyntaxTree> trees)

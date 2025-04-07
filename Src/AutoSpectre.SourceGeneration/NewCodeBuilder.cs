@@ -321,10 +321,12 @@ namespace {{ Type.ContainingNamespace}}
         var builder = new StringBuilder();
         var typeName = Type.FullName();
         var typeNameWithUnderscore = typeName.Replace(".","_");
+        
+        var getSpectreFactoryMethodName = $"GetSpectreFactory_{typeNameWithUnderscore}";
 
         var spectreInterfaceType = IsAsync ? $"IAsyncSpectreFactory<{typeName}>" : $"ISpectreFactory<{typeName}>";
 
-        builder.AppendLine($"public static {spectreInterfaceType} GetSpectreFactory_{typeNameWithUnderscore}() => new {SpectreFactoryClassName}();");
+        builder.AppendLine($"public static {spectreInterfaceType} {getSpectreFactoryMethodName}() => new {SpectreFactoryClassName}();");
 
         var returnType = TaskOrTypeName(typeName, IsAsync);
         var methodName = IsAsync ? "PromptAsync" : "Prompt";
@@ -338,7 +340,7 @@ namespace {{ Type.ContainingNamespace}}
             builder.AppendLine($"public static {asyncString} {returnType} {methodName}_{typeNameWithUnderscore}()");
             builder.AppendLine("{");
             builder.AppendLine($"\tvar result = new {typeName}();");
-            builder.AppendLine($"\tvar factory = GetSpectreFactory{typeNameWithUnderscore}();");
+            builder.AppendLine($"\tvar factory = {getSpectreFactoryMethodName}();");
             builder.AppendLine($"\treturn {awaitString} factory.{methodName}(result);");
             builder.AppendLine("}");
         }
@@ -346,14 +348,14 @@ namespace {{ Type.ContainingNamespace}}
         {
             builder.AppendLine($"public static {asyncString} {returnType} {methodName}_{typeNameWithUnderscore}({typeName} result)");
             builder.AppendLine("{");
-            builder.AppendLine($"\tvar factory = GetSpectreFactory{typeNameWithUnderscore}();");
+            builder.AppendLine($"\tvar factory = {getSpectreFactoryMethodName}();");
             builder.AppendLine($"\treturn {awaitString} factory.{methodName}(result);");
             builder.AppendLine("}");
         }
 
         builder.AppendLine($"public static {asyncString} {returnType} {methodName}(this {typeName} form)");
         builder.AppendLine("{");
-        builder.AppendLine($"\tvar factory = GetSpectreFactory{typeNameWithUnderscore}();");
+        builder.AppendLine($"\tvar factory = {getSpectreFactoryMethodName}();");
         builder.AppendLine($"\treturn {awaitString} factory.{methodName}(form);");
 
         builder.AppendLine("}");
