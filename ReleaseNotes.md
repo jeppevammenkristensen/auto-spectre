@@ -1,5 +1,28 @@
 # Releases
 
+## 0.10.0
+
+### AutoSpectre
+
+* Interfaces `ISpectreFactory<T>` and `IAutoSpectreFactory<T>` has been added to add a shared interface for the generated classes.
+* Added `SpectreFactory`as an extension point for source generation
+* Added some extensions methods for creating a prompt from a ISpectreFactory
+* Removed `DisableDump 
+
+### AutoSpectre.SourceGeneration
+
+* The logic for generating the implementation has been changed so it always required to call `Prompt` or `PromptAsync` with a not null input
+* Removed support for `Dump` extensions methods and prompt extension methods.
+* Much helper logic for generating prompt has been moved from custom extensions methods to the `SpectreFactory` class (introducing both non extension methods and extension methods).
+
+## 0.9.0
+
+### AutoSpectre.SourceGeneration
+
+* Added support for the EnableSearch
+* Removed AskAttribute
+* Made SpectreDump method obsolete as better alternatives exist.
+
 ## 0.8.0
 
 ### AutoSpectre

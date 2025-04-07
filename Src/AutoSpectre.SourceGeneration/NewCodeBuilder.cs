@@ -324,7 +324,7 @@ namespace {{ Type.ContainingNamespace}}
 
         var spectreInterfaceType = IsAsync ? $"IAsyncSpectreFactory<{typeName}>" : $"ISpectreFactory<{typeName}>";
 
-        builder.AppendLine($"public static {spectreInterfaceType} GetSpectreFactory{typeNameWithUnderscore}() => new {SpectreFactoryClassName}();");
+        builder.AppendLine($"public static {spectreInterfaceType} GetSpectreFactory_{typeNameWithUnderscore}() => new {SpectreFactoryClassName}();");
 
         var returnType = TaskOrTypeName(typeName, IsAsync);
         var methodName = IsAsync ? "PromptAsync" : "Prompt";
