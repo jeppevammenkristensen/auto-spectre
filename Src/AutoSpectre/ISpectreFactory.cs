@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Threading.Tasks;
 
 namespace AutoSpectre;
 
@@ -22,27 +21,6 @@ public interface ISpectreFactory<T> : ISpectreFactory where T : notnull
 /// Marker interface for SpectreFactory. An implementation can be sync or async
 /// </summary>
 public interface ISpectreFactory
-{
-
-}
-
-public interface IAsyncSpectreFactory<T> : ISpectreFactory where T : notnull
-{
-    Task<T> PromptAsync(T form);
-}
-
-public abstract class AsyncSpectreFactoryBase<T> : IAsyncSpectreFactory<T> where T : notnull
-{
-    public T Prompt(T form)
-    {
-        return PromptAsync(form).GetAwaiter().GetResult();
-    }
-
-    public abstract Task<T> PromptAsync(T? form);
-
-}
-
-public static partial class SpectreFactory
 {
 
 }

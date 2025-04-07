@@ -108,144 +108,144 @@ Behind the scenes this will generate an interface factory and implentation using
 
 ```csharp
 /// <summary>
-/// Helps create and fill <see cref = "Example"/> with values
-/// </summary>
-public interface IExampleSpectreFactory
-{
-    Example Get(Example destination = null);
-}
-
-/// <summary>
-/// Helps create and fill <see cref = "Example"/> with values
-/// </summary>
-public class ExampleSpectreFactory : IExampleSpectreFactory
-{
-    public Example Get(Example destination = null)
+    /// Helps create and fill <see cref = "ExampleNamespace.Example"/> with values
+    /// </summary>
+    public interface IExampleSpectreFactory : ISpectreFactory<ExampleNamespace.Example>
     {
-        IOtherAutoSpectreFormClassSpectreFactory OtherAutoSpectreFormClassSpectreFactory = new OtherAutoSpectreFormClassSpectreFactory();
-        destination ??= new Autospectre.Examples.Examples.GithubSample.Example();
-        var culture = new CultureInfo("da-DK");
-        // Prompt for values for destination.IntItems
-        {
-            List<int> items = new List<int>();
-            bool continuePrompting = true;
-            do
-            {
-                var item = AnsiConsole.Prompt(new TextPrompt<int>("Add item").WithCulture(culture));
-                items.Add(item);
-                continuePrompting = AnsiConsole.Confirm("Add more items?");
-            }
-            while (continuePrompting);
-            int[] result = items.ToArray();
-            destination.IntItems = result;
-        }
-
-        destination.FirstName = AnsiConsole.Prompt(new TextPrompt<string?>("Enter first name").AllowEmpty().WithCulture(culture).DefaultValue(destination.FirstNameDefaultValue).DefaultValueStyle("bold"));
-        destination.LeftHanded = AnsiConsole.Confirm("Enter [green]LeftHanded[/]");
-        destination.Other = AnsiConsole.Prompt(new SelectionPrompt<SomeEnum>().Title("Choose your [red]value[/]").PageSize(10).AddChoices(Enum.GetValues<SomeEnum>()));
-        destination.Password = AnsiConsole.Prompt(new TextPrompt<string?>("Enter [green]Password[/]").AllowEmpty().WithCulture(culture).Secret('*'));
-        destination.Name = AnsiConsole.Prompt(new TextPrompt<string>("Enter [green]Name[/]").WithCulture(culture).AddChoices(Example.NameChoices()).ChoicesStyle("red on yellow").InvalidChoiceMessage("Must be one of the names"));
-        {
-            AnsiConsole.MarkupLine("Enter [green]ChildForm[/]");
-            var item = new Autospectre.Examples.Examples.GithubSample.OtherAutoSpectreFormClass();
-            OtherAutoSpectreFormClassSpectreFactory.Get(item);
-            destination.ChildForm = item;
-        }
-
-        // Prompt for values for destination.Investors
-        {
-            List<OtherAutoSpectreFormClass> items = new List<OtherAutoSpectreFormClass>();
-            bool continuePrompting = true;
-            do
-            {
-                {
-                    AnsiConsole.MarkupLine("Enter [green]Investors[/]");
-                    var newItem = new Autospectre.Examples.Examples.GithubSample.OtherAutoSpectreFormClass();
-                    OtherAutoSpectreFormClassSpectreFactory.Get(newItem);
-                    items.Add(newItem);
-                }
-
-                continuePrompting = AnsiConsole.Confirm("Add more items?");
-            }
-            while (continuePrompting);
-            System.Collections.Generic.IReadOnlyList<Autospectre.Examples.Examples.GithubSample.OtherAutoSpectreFormClass> result = items;
-            destination.Investors = result;
-        }
-
-        AnsiConsole.Status().SpinnerStyle("green on yellow").Spinner(Spinner.Known.Christmas).Start("This will take a while", ctx =>
-        {
-            destination.DoSomething(AnsiConsole.Console);
-        });
-        destination.Item = AnsiConsole.Prompt(new SelectionPrompt<string>().Title("Enter [green]Item[/]").PageSize(3).WrapAround(true).MoreChoicesText("Press down to see more choices").HighlightStyle("purple").AddChoices(destination.ItemSource.ToArray()));
-        destination.SpecialProjection = AnsiConsole.Prompt(new MultiSelectionPrompt<int>().Title("Enter [green]SpecialProjection[/]").UseConverter(destination.SpecialProjectionConverter).PageSize(10).InstructionsText("Check the special items you want to select").AddChoices(destination.SpecialProjectionSource.ToArray()));
-        destination.EnterYear = AnsiConsole.Prompt(new TextPrompt<int>("Enter [green]EnterYear[/]").WithCulture(culture).Validate(ctx =>
-        {
-            var result = destination.EnterYearValidator(ctx);
-            return result == null ? ValidationResult.Success() : ValidationResult.Error(result);
-        }));
-        // Prompt for values for destination.Names
-        {
-            List<string> items = new List<string>();
-            bool continuePrompting = true;
-            do
-            {
-                bool valid = false;
-                while (!valid)
-                {
-                    var item = AnsiConsole.Prompt(new TextPrompt<string>("Enter [green]Names[/]").WithCulture(culture));
-                    var validationResult = destination.NamesValidator(items, item);
-                    if (validationResult is { } error)
-                    {
-                        AnsiConsole.MarkupLine($"[red]{error}[/]");
-                        valid = false;
-                    }
-                    else
-                    {
-                        valid = true;
-                        items.Add(item);
-                    }
-                }
-
-                continuePrompting = AnsiConsole.Confirm("Add more items?");
-            }
-            while (continuePrompting);
-            System.Collections.Generic.HashSet<string> result = new System.Collections.Generic.HashSet<string>(items);
-            destination.Names = result;
-        }
-
-        destination.AddExistingName = AnsiConsole.Confirm("Enter [green]AddExistingName[/]");
-        if (destination.AddExistingName == true)
-        {
-            destination.ExistingName = AnsiConsole.Prompt(new TextPrompt<string?>("Enter [green]ExistingName[/]").AllowEmpty().WithCulture(culture));
-        }
-
-        if (destination.AddExistingName == false)
-        {
-            destination.NewName = AnsiConsole.Prompt(new TextPrompt<string?>("Enter [green]NewName[/]").AllowEmpty().WithCulture(culture));
-        }
-
-        destination.SearchString = AnsiConsole.Prompt(new SelectionPrompt<string>().Title("Enter [green]SearchString[/]").PageSize(10).EnableSearch().SearchPlaceholderText("Placeholder \"text\"").AddChoices(destination.SearchStringSource().ToArray()));
-
-        return destination;
     }
-}
+
+    /// <summary>
+    /// Helps create and fill <see cref = "ExampleNamespace.Example"/> with values
+    /// </summary>
+    public class ExampleSpectreFactory : IExampleSpectreFactory
+    {
+        public ExampleNamespace.Example Prompt(ExampleNamespace.Example form)
+        {
+            if (form == null)
+                throw new ArgumentNullException(nameof(form));
+            IOtherAutoSpectreFormClassSpectreFactory OtherAutoSpectreFormClassSpectreFactory = new OtherAutoSpectreFormClassSpectreFactory();
+            var culture = new CultureInfo("da-DK");
+            // Prompt for values for form.IntItems
+            {
+                List<int> items = new List<int>();
+                bool continuePrompting = true;
+                do
+                {
+                    var item = AnsiConsole.Prompt(new TextPrompt<int>("Add item").WithCulture(culture));
+                    items.Add(item);
+                    continuePrompting = AnsiConsole.Confirm("Add more items?");
+                }
+                while (continuePrompting);
+                int[] result = items.ToArray();
+                form.IntItems = result;
+            }
+
+            form.FirstName = AnsiConsole.Prompt(new TextPrompt<string?>("Enter first name").AllowEmpty().WithCulture(culture).DefaultValue(form.FirstNameDefaultValue).DefaultValueStyle("bold"));
+            form.LeftHanded = AnsiConsole.Prompt(new ConfirmationPrompt("Enter [green]LeftHanded[/]"));
+            form.Other = AnsiConsole.Prompt(new SelectionPrompt<ExampleNamespace.SomeEnum>().Title("Choose your [red]value[/]").PageSize(10).AddChoices(Enum.GetValues<ExampleNamespace.SomeEnum>()));
+            form.Password = AnsiConsole.Prompt(new TextPrompt<string?>("Enter [green]Password[/]").AllowEmpty().WithCulture(culture).Secret('*'));
+            form.Name = AnsiConsole.Prompt(new TextPrompt<string>("Enter [green]Name[/]").WithCulture(culture).AddChoices(ExampleNamespace.Example.NameChoices).InvalidChoiceMessage("Must be one of the names").ChoicesStyle("red on yellow"));
+            {
+                AnsiConsole.MarkupLine("Enter [green]ChildForm[/]");
+                var item = new ExampleNamespace.OtherAutoSpectreFormClass();
+                OtherAutoSpectreFormClassSpectreFactory.Promptitem);
+                form.ChildForm = item;
+            }
+
+            // Prompt for values for form.Investors
+            {
+                List<OtherAutoSpectreFormClass> items = new List<OtherAutoSpectreFormClass>();
+                bool continuePrompting = true;
+                do
+                {
+                    {
+                        AnsiConsole.MarkupLine("Enter [green]Investors[/]");
+                        var newItem = new ExampleNamespace.OtherAutoSpectreFormClass();
+                        OtherAutoSpectreFormClassSpectreFactory.PromptnewItem);
+                        items.Add(newItem);
+                    }
+
+                    continuePrompting = AnsiConsole.Confirm("Add more items?");
+                }
+                while (continuePrompting);
+                System.Collections.Generic.IReadOnlyList<ExampleNamespace.OtherAutoSpectreFormClass> result = items;
+                form.Investors = result;
+            }
+
+            AnsiConsole.Status().SpinnerStyle("green on yellow").Spinner(Spinner.Known.Christmas).Start("This will take a while", ctx =>
+            {
+                form.DoSomething(AnsiConsole.Console);
+            });
+            form.Item = AnsiConsole.Prompt(new SelectionPrompt<string>().Title("Enter [green]Item[/]").PageSize(3).WrapAround(true).MoreChoicesText("Press down to see more choices").HighlightStyle("purple").AddChoices(form.ItemSource.ToArray()));
+            form.SpecialProjection = AnsiConsole.Prompt(new MultiSelectionPrompt<int>().Title("Enter [green]SpecialProjection[/]").UseConverter(form.SpecialProjectionConverter).PageSize(10).InstructionsText("Check the special items you want to select").AddChoices(form.SpecialProjectionSource.ToArray()));
+            form.EnterYear = AnsiConsole.Prompt(new TextPrompt<int>("Enter [green]EnterYear[/]").WithCulture(culture).Validate(ctx =>
+            {
+                var result = form.EnterYearValidator(ctx);
+                return result == null ? ValidationResult.Success() : ValidationResult.Error(result);
+            }));
+            // Prompt for values for form.Names
+            {
+                List<string> items = new List<string>();
+                bool continuePrompting = true;
+                do
+                {
+                    bool valid = false;
+                    while (!valid)
+                    {
+                        var item = AnsiConsole.Prompt(new TextPrompt<string>("Enter [green]Names[/]").WithCulture(culture));
+                        var validationResult = form.NamesValidator(items, item);
+                        if (validationResult is { } error)
+                        {
+                            AnsiConsole.MarkupLine($"[red]{error}[/]");
+                            valid = false;
+                        }
+                        else
+                        {
+                            valid = true;
+                            items.Add(item);
+                        }
+                    }
+
+                    continuePrompting = AnsiConsole.Confirm("Add more items?");
+                }
+                while (continuePrompting);
+                System.Collections.Generic.HashSet<string> result = new System.Collections.Generic.HashSet<string>(items);
+                form.Names = result;
+            }
+
+            form.AddExistingName = AnsiConsole.Prompt(new ConfirmationPrompt("Enter [green]AddExistingName[/]"));
+            if (form.AddExistingName == true)
+            {
+                form.ExistingName = AnsiConsole.Prompt(new TextPrompt<string?>("Enter [green]ExistingName[/]").AllowEmpty().WithCulture(culture));
+            }
+
+            if (form.AddExistingName == false)
+            {
+                form.NewName = AnsiConsole.Prompt(new TextPrompt<string?>("Enter [green]NewName[/]").AllowEmpty().WithCulture(culture));
+            }
+
+            form.SearchString = AnsiConsole.Prompt(new SelectionPrompt<string>().Title("Enter [green]SearchString[/]").PageSize(10).EnableSearch().SearchPlaceholderText("Placeholder \"text\"").AddChoices(form.SearchStringSource().ToArray()));
+            return form;
+        }
+    }
 ```
 
 ### How to call
 
 ```csharp
-IExampleSpectreFactory formFactory = new ExampleSpectreFactory();
-            
-// The form object is initialized in the Get method
-var form = formFactory.Get();
+// Initalize factory and form
+var exampleSpectreFactory = new ExampleSpectreFactory();
+var result = exampleSpectreFactory.Prompt(new Example());
 
-// We pass a pre initialized form object to the get method
-var preinitializedForm = new Example();
-preinitializedForm = formFactory.Get(preinitializedForm); 
+// Initialize through SpectreFactory
+ISpectreFactory<Example> exampleFactory = SpectreFactory.GetSpectreFactoryConsoleApp8_Example();
+exampleSpectreFactory.Prompt(new Example());
 
-// An alternative can be to use the generated extension method
-// this will initalize the factory and call the get Method
-var form = new Example().SpectrePrompt();
+// Prompt directly. Possible if the form has an empty constructor
+var directPromptResult = SpectreFactory.Prompt_ConsoleApp8_Example();
+
+// Through extension method
+var promptThroughExtension = new Example().Prompt();
 
 ```
 
@@ -257,10 +257,10 @@ The class that you wan't populated, should be decorated with the `AutoSpectreFor
 
 You can control the overall culture used by setting the culture property. This will be used for TextPrompts. If it's isn't set the CurrentUICulture will be used.
 
-### DisableDump
+### ~~DisableDump~~ Removed since version 0.10.0
 
-If you do want to generate the SpectreDump method, you can disable it using the DisableDump property.
-Note that the SpectreDump will be removed in a future version
+~~If you do want to generate the SpectreDump method, you can disable it using the DisableDump property.
+Note that the SpectreDump will be removed in a future version~~
 
 ### Inheritance
 
@@ -283,18 +283,14 @@ public class DerivedClass : BaseClass
 
 ### Constructor
 
-Since version 0.5.0 the class is allowed to not have an empty constructor. But in that case the Get/GetAsync method will change to be for a passed in instance. Requirering you to new up the class before calling the Get method.
+Since version 0.5.0 the class is allowed to not have an empty constructor. But in that case the Prompt/PromptAsync method will change to be for a passed in instance. Requirering you to new up the class before calling the Prompt method.
 
-If you have multiple constructors, you can decorate the constructor intended for initalization by using the `UsedConstructor`attribute
+Since version 0.10.0 the passed in form must not be null.
+
+~~If you have multiple constructors, you can decorate the constructor intended for initalization by using the `UsedConstructor`attribute~~
 
 ```csharp
 public void Get(Example destination)
-```
-
-Compared to below where destination can be preinitialized or null (in which case the result will be newed up in the call)
-
-```csharp
-public Example Get(Example destination = null)
 ```
 
 ## The property attributes
@@ -374,7 +370,7 @@ The filosophy for this method is that you can do 'custom' things.
 
 ### Requirements for the method
 
-It can return either void or Task. If the return type is Task this will affect how the SpectreFactory is generated. As the Get call will be async instead and be named GetAsync.
+It can return either void or Task. If the return type is Task this will affect how the SpectreFactory is generated. As the Prompt call will be async instead and be named PromptAsync.
 
 It allows you to have `IAnsiConsole` as a parameter, and that will be injected into the method when it's called. This should make it easier to do testing if that is desired.
 
@@ -429,12 +425,12 @@ public class CollectionSample
 ```csharp
 public interface ICollectionSampleSpectreFactory
 {
-    CollectionSample Get(CollectionSample destination = null);
+    CollectionSample PromptCollectionSample destination = null);
 }
 
 public class CollectionSampleSpectreFactory : ICollectionSampleSpectreFactory
 {
-    public CollectionSample Get(CollectionSample destination = null)
+    public CollectionSample PromptCollectionSample destination = null)
     {
         destination ??= new Test.CollectionSample();
         destination.Multiselect = AnsiConsole.Prompt(new MultiSelectionPrompt<string>().Title("Select multiple items").PageSize(10).AddChoices(destination.Items.ToArray()));
@@ -484,7 +480,7 @@ public class ConverterForms
 ```csharp
 public class ConverterFormsSpectreFactory : IConverterFormsSpectreFactory
 {
-    public ConverterForms Get(ConverterForms destination = null)
+    public ConverterForms PromptConverterForms destination)
     {
         destination ??= new ConsoleApp1.ConverterForms();
         destination.Person = AnsiConsole.Prompt(new SelectionPrompt<ConsoleApp1.Person?>().Title("Select person").UseConverter(destination.PersonToString).PageSize(10).AddChoices(destination.GetPersons().ToArray()));
@@ -757,3 +753,26 @@ public string NegatePrompt { get; set; }
 
 public bool NegatePromptCondition => false;
 ```
+
+## Factories
+
+### ISpectreFactory and IAutoSpectreFactory
+
+In the AutoSpectre library two general interfaces are exposed that the generated factories will implement
+
+* `ISpectreFactory<T>` which exposes the Prompt method
+* `IAutoSpectreFactory<T>` which exposes the PromptAsync method.
+
+Both of the factories implements the `ISpectreFactory` which is a marker interface to identify factories.
+
+These were introduced in version 0.10.0 and was a breaking change as previously the method name was Get/GetAsync which has now been changed to Prompt/PromptAsync. 
+
+### SpectreFactory
+
+A new static class has been created to help create factories and/or prompt for values. It will generate the following
+
+* A method for creating the factory. For instance for SomeNamespace.Someclass the generated method will be called GetSpectreFactory_SomeNamespace_Someclass
+* A method for prompting for the values that return an instance of the class filled will values will be created. The name will be Prompt_SomeNamespace_Someclass. If the class can be initalized without constructor it will have no parameters otherwise it will require an instance of the form class. (PromptAsync if async)
+* An extension method will be added where Prompt can be called directly on an instance of a form class (PromptAsync if async)
+
+**Note** Prior to version 0.10.0 extensions method SpectreDump was added. This one has been removed.
