@@ -10,5 +10,6 @@ public enum AskTypeCopy
     /// Presents a selection dialog
     /// </summary>
     Selection,
-    Task
+    Task,
+    Break
 }

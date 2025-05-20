@@ -113,7 +113,7 @@ internal class TextPromptBuildContext : PromptBuilderContextWithPropertyContext
             else if (confirmed.Type == DefaultValueType.Method)
             {
                 
-                builder.AppendLine($".DefaultValue({name}());");
+                builder.AppendLine($".DefaultValue({name}())");
             }
             else
             {

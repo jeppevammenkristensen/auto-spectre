@@ -14,7 +14,7 @@ namespace Test
     {
         public static async Task Main()
         {
-            var result = SpectreFactory.GetSpectreFactoryTest_SClass();
+            var result = SpectreFactory.GetSpectreFactory_Test_SClass();
             await result.PromptAsync(new SClass("Jeppe Roi Kristensen"));
 
 
@@ -30,7 +30,12 @@ namespace Test
         {
             _firstName = firstName;
         }
-        
+
+        [TextPrompt(Title = "Enter date", DefaultValueSource = nameof(DateDefault))]
+        public DateOnly Date { get; set; }
+
+        public DateOnly DateDefault() => DateOnly.FromDateTime(DateTime.Now);
+
         [SelectPrompt(Title = "Select \"name\"")]
         public string Name { get; set; } = string.Empty;
         

@@ -21,7 +21,7 @@ public class TaskStepBuildContext : PromptBuildContext
     public override string GenerateOutput(string destination)
     {
         var builder = new StringBuilder();
-        if (_generateTitle)
+        if (this.EvaluationContext.IsTaskStep && _generateTitle)
         {
             builder.AppendLine($"AnsiConsole.MarkupLine({GenerateTitleString()});");    
         }
@@ -39,6 +39,11 @@ public class TaskStepBuildContext : PromptBuildContext
         
         EndStatus(builder);
 
+        if (!EvaluationContext.IsTaskStep)
+        {
+            builder.AppendLine($"return {CodeBuildConstants.FormName}");
+        }
+
 
         return builder.ToString();
     }
@@ -49,8 +54,6 @@ public class TaskStepBuildContext : PromptBuildContext
         {
             return;
         }
-
-
 
         var text = EvaluationContext.ReturnTypeIsTask switch
         {

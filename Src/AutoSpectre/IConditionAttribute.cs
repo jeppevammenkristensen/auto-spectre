@@ -1,16 +1,7 @@
-﻿using System;
+﻿namespace AutoSpectre;
 
-namespace AutoSpectre;
-
-public class AutoSpectreStepAttribute : Attribute, IConditionAttribute
+public interface IConditionAttribute
 {
-    /// <summary>
-    /// The title to display for the prompt. If not specified, the following
-    /// will be used:
-    /// Enter [green]{PropertyName}[/]
-    /// </summary>
-    public virtual string? Title { get; set; }
-
     /// <summary>
     /// Indicates a reference to a condition that determines whether a prompt should
     /// be displayed for the given property. The condition can be a property or a method with no parameters

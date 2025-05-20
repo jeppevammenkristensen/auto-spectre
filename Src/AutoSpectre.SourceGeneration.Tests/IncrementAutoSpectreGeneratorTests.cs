@@ -228,7 +228,7 @@ namespace Test;
     }               
 
 """).Should().Contain("IOtherSpectreFactory OtherSpectreFactory = new OtherSpectreFactory();").And
-                .Contain("var newItem = new Test.Other();").And.Contain("OtherSpectreFactory.Get(newItem);");
+                .Contain("var newItem = new Test.Other();").And.Contain("OtherSpectreFactory.Prompt(newItem);");
         }
         
         [Fact]

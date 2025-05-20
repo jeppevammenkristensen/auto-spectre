@@ -21,6 +21,10 @@ public class LazyTypes
     private readonly Lazy<INamedTypeSymbol?> _selectPrompt;
     private readonly Lazy<INamedTypeSymbol?> _taskStepPrompt;
     private readonly Lazy<INamedTypeSymbol?> _usedconstructorAttribute;
+    private readonly Lazy<INamedTypeSymbol?> _breakAttribute;
+
+    private readonly Lazy<INamedTypeSymbol?> _dateOnly;
+    private readonly Lazy<INamedTypeSymbol?> _timeOnly;
 
     public INamedTypeSymbol? ListGeneric => _listGeneric.Value;
     public INamedTypeSymbol? HashSet => _hashSet.Value;
@@ -32,6 +36,9 @@ public class LazyTypes
     public INamedTypeSymbol? SelectPrompt => _selectPrompt.Value;
     public INamedTypeSymbol? TaskStepPrompt => _taskStepPrompt.Value;
     public INamedTypeSymbol? UsedConstructorAttribute => _usedconstructorAttribute.Value;
+    public INamedTypeSymbol? DateOnly => _dateOnly.Value;
+    public INamedTypeSymbol? TimeOnly => _timeOnly.Value;
+    public INamedTypeSymbol? BreakAttribute => _breakAttribute.Value;
 
     public LazyTypes(Compilation compilation)
     {
@@ -53,6 +60,9 @@ public class LazyTypes
             compilation.GetTypeByMetadataName($"AutoSpectre.{nameof(TaskStepAttribute)}"));
         _usedconstructorAttribute = new Lazy<INamedTypeSymbol?>(() =>
             compilation.GetTypeByMetadataName($"AutoSpectre.{nameof(AutoSpectre.UsedConstructorAttribute)}"));
+        _dateOnly = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName("System.DateOnly"));
+        _timeOnly = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName("System.TimeOnly"));
+        _breakAttribute = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName($"AutoSpectre.{nameof(AutoSpectre.BreakAttribute)}"));
     }
 
     /// <summary>
