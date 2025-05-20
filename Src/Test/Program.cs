@@ -33,6 +33,17 @@ namespace Test
 
         [TextPrompt(Title = "Enter date", DefaultValueSource = nameof(DateDefault))]
         public DateOnly Date { get; set; }
+        
+        [TextPrompt]
+        public bool Abort { get; set; }
+
+
+
+        [Break(Condition = nameof(Abort))]
+        public void AbortMethod(IAnsiConsole console)
+        {
+            console.MarkupLine("Aborting");
+        }
 
         public DateOnly DateDefault() => DateOnly.FromDateTime(DateTime.Now);
 

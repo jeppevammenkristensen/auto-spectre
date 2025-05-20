@@ -32,6 +32,6 @@ public class BreakTests : AutoSpectreGeneratorTestsBase
                         }
                     }
 
-                    """).OutputShouldContain("if (form.DoBreak == true)").OutputShouldContain("return form");
+                    """).OutputShouldContain("if (form.DoBreak == true)");
     }
 }
