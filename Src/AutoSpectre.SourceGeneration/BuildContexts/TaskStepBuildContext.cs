@@ -41,7 +41,7 @@ public class TaskStepBuildContext : PromptBuildContext
 
         if (!EvaluationContext.IsTaskStep)
         {
-            builder.AppendLine($"return {CodeBuildConstants.FormName}");
+            builder.AppendLine($"return {CodeBuildConstants.FormName};");
         }
 
 
