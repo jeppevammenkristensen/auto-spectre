@@ -144,4 +144,16 @@ public class TranslatedMemberAttributeData
 
     public int? PageSize { get; set; }
 
+    public static TranslatedMemberAttributeData BreakPrompt(string? condition, bool conditionNegated, bool useStatus, string? statusText, string? spinnerStyle,SpinnerKnownTypesCopy? spinnerType)
+    {
+        return new TranslatedMemberAttributeData(AskTypeCopy.Break, null, string.Empty, null, null, condition,
+            conditionNegated, null, null)
+
+        {
+            UseStatus = useStatus,
+            StatusText = statusText,
+            SpinnerStyle = spinnerStyle,
+            SpinnerType = spinnerType,
+        };
+    }
 }

@@ -17,9 +17,7 @@ public class TargetFormEvaluator
     public GeneratorAttributeSyntaxContext SyntaxContext { get; }
 
     private readonly LazyTypes _lazyTypes;
-
-  
-
+    
     public TargetFormEvaluator(AttributeData attributeData, INamedTypeSymbol targetNamedType, SourceProductionContext productionContext, GeneratorAttributeSyntaxContext syntaxContext)
     {
         AttributeData = attributeData;

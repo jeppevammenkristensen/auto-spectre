@@ -99,7 +99,10 @@ internal class StepContextBuilderOperation
             return;
         }
         
-        if (EvaluateSingleMethodEvaluationContext(method) is not {} singleMethodEvaluationContext)
+        var isTaskStep = memberAttributeData.AskType == AskTypeCopy.Task; // Will hate myself when there are more than two method types
+        
+        // This evaluation should catch both a TaskStep and a Break Attribute
+        if (EvaluateSingleMethodEvaluationContext(method, isTaskStep) is not {} singleMethodEvaluationContext)
         {
             return;
         }
@@ -183,7 +186,7 @@ internal class StepContextBuilderOperation
     /// <param name="method"></param>
     /// <returns></returns>
     /// <exception cref="InvalidOperationException"></exception>
-    private SingleMethodEvaluationContext? EvaluateSingleMethodEvaluationContext(IMethodSymbol method)
+    private SingleMethodEvaluationContext? EvaluateSingleMethodEvaluationContext(IMethodSymbol method, bool isTaskStep)
     {
         var typesByMetadataName =
             this.SyntaxContext.SemanticModel.Compilation.GetTypesByMetadataName("System.Threading.Tasks.Task");
@@ -203,7 +206,7 @@ internal class StepContextBuilderOperation
             {
                 var hasAnsiConsole = method.Parameters.FirstOrDefault() is { };
                 var isAsync = method.ReturnType.Equals(this.Types.Task, SymbolEqualityComparer.Default);
-                return new SingleMethodEvaluationContext(method, isAsync, hasAnsiConsole);
+                return new SingleMethodEvaluationContext(method, isAsync, hasAnsiConsole, isTaskStep);
                 
             }
             else
@@ -736,12 +739,20 @@ internal class StepContextBuilderOperation
                 }
                 else
                 {
-                    ProductionContext.ReportDiagnostic(Diagnostic.Create(
-                        new("AutoSpectre_JJK0007", $"Type currently not supported",
-                            $"Only classes with {Constants.AutoSpectreFormAttributeFullyQualifiedName} supported",
-                            "General", DiagnosticSeverity.Warning, true),
-                        evaluationContext.Property.Locations.FirstOrDefault()));
-                    return null;
+                    // Return a warning if the given type is in the current solution and is a reference type
+                    if (type.Locations.Any(location => location.IsInSource) && type.IsReferenceType)
+                    {
+                        ProductionContext.ReportDiagnostic(Diagnostic.Create(
+                            new("AutoSpectre_JJK0007", $"Type currently not supported",
+                                $"Only classes with {Constants.AutoSpectreFormAttributeFullyQualifiedName} supported",
+                                "General", DiagnosticSeverity.Warning, true),
+                            evaluationContext.Property.Locations.FirstOrDefault()));
+                        return null;    
+                    }
+                    else
+                    {
+                        return new TextPromptBuildContext(memberAttributeData, type, evaluationContext.IsNullable, evaluationContext);
+                    }
                 }
             }
             else

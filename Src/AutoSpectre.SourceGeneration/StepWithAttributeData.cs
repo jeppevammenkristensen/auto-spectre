@@ -46,11 +46,18 @@ public class StepWithAttributeData
         if (attributeData.TryGetAttributePropertyValue<SpinnerKnownTypesCopy>(nameof(TaskStepAttribute.SpinnerType), out var value))
         {
             spinnerType = value;
-        } 
+        }
+
+
+        if (attributeData.AttributeClass.Name == nameof(TaskStepAttribute))
+        {
+            TranslatedMemberAttribute = TranslatedMemberAttributeData.TaskPrompt(title, condition, conditionNegated, useStatus, statusText, spinnerStyle, spinnerType);    
+        }
+        else
+        {
+            TranslatedMemberAttribute = TranslatedMemberAttributeData.BreakPrompt(condition, conditionNegated, useStatus, statusText, spinnerStyle, spinnerType);   
+        }
         
-        
-        
-        TranslatedMemberAttribute = TranslatedMemberAttributeData.TaskPrompt(title, condition, conditionNegated, useStatus, statusText, spinnerStyle, spinnerType);
     }
     
     public StepWithAttributeData(IPropertySymbol property, AttributeData attributeData)

@@ -11,6 +11,25 @@ public class TextPromptGeneratorTests : AutoSpectreGeneratorTestsBase
 
     }
 
+    [Theory]
+    [InlineData("System.DateOnly")]
+    [InlineData("System.TimeOnly")]
+    public void PropertyWithNonSpecialTypeThatShouldGenerateTextPrompt(string type)
+    {
+        GetOutput($$"""
+                    using AutoSpectre;
+                    using System.Collections.Generic;
+                    namespace Test;
+
+                    [AutoSpectreForm]
+                    public class TestForm
+                    {
+                         [TextPrompt]
+                         public {{ type }} Property {get;set;}
+                    }
+                    """).Output.Should().Contain($"new TextPrompt<{type}>(");
+    }
+
     [Fact]
     public void PropertyWithPromptStyleRendersCorrectly()
     {

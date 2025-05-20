@@ -12,13 +12,16 @@ public class SingleMethodEvaluationContext : IConditionContext
     public bool ReturnTypeIsTask { get; }
     public bool HasAnsiConsoleParameter { get; }
 
+    public bool IsTaskStep { get; private set; }
+
     private Lazy<MethodDeclarationSyntax> _methodSyntaxLazy;
 
-    public SingleMethodEvaluationContext(IMethodSymbol method, bool returnTypeIsTask, bool hasAnsiConsoleParameter)
+    public SingleMethodEvaluationContext(IMethodSymbol method, bool returnTypeIsTask, bool hasAnsiConsoleParameter, bool isTaskStep)
     {
         Method = method;
         ReturnTypeIsTask = returnTypeIsTask;
         HasAnsiConsoleParameter = hasAnsiConsoleParameter;
+        IsTaskStep = isTaskStep;
         _methodSyntaxLazy = new Lazy<MethodDeclarationSyntax>(() =>
             Method.DeclaringSyntaxReferences[0].GetSyntax() as MethodDeclarationSyntax ?? throw new InvalidOperationException());
     }
