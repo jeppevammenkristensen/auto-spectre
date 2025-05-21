@@ -359,11 +359,11 @@ Other interesting attribute properties are:
 
 ## The method attribute
 
-If you wan't to do something that doesn't fit prompting. Between some of the steps you can use the `TaskStepAttribute` to do that.
+If you wan't to do something that doesn't fit prompting. Between some of the steps you can use the `TaskStepAttribute` or to do that.
 
 The filosophy for this method is that you can do 'custom' things.
 
-* You can choose display whatever you may want to the user (for instance figlet text)
+* You can choose to display whatever you may want to the user (for instance figlet text)
 * You can do a lookup to a database or an api.
 * You can do some processing of the data you currently collected
 * If the current supplied property step attributes does not fit your needs you do some custom prompting to set a property values. **NOTE** If you use the Status bar, prompting is not allowed, so it would be important that UseStatus is set to false in that case.
@@ -383,6 +383,12 @@ Unlike the property based step attributes we will not generate a default title i
 You can control whether or not you want a status bar(spinner) to run when the method is called. This is done by setting the `UseStatus` property to true and adding text to the `StatusText` property. Both are required. The choice was that it was more intuitive that the status will be displayed by having two properties instead of StatusText being optional. You can control the spinner type and style by using the `SpinnerType` and `SpinnerStyle` properties.
 
 The spinner type is set by using the `SpinnerKnownTypes` this has been generated from the KnownTypes. Custom spinner types are not possible. Alternatively you can generate the status inside the method, and thereby allowing you all the flexibility you want.
+
+## BreakAttribute
+
+The break attribute has much of the same functionality as the TaskStepAttribute. The difference is that it will break/exit the current prompting and return to the caller if a condition is met. It has the same properties as the TaskStepAttribute except for Title. And unlike the TaskStepAttribute it is required to have a valid condition defined.
+
+
 
 ## Collections strategy
 
