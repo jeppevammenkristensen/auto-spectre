@@ -8,7 +8,6 @@
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <IsRoslynComponent>true</IsRoslynComponent>
     <VersionPrefix>0.11.0</VersionPrefix>
-    <VersionSuffix>preview-01</VersionSuffix>
   </PropertyGroup>
 
   <PropertyGroup>

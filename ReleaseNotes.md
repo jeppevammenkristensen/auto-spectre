@@ -1,5 +1,9 @@
 # Releases
 
+## 0.11.0
+
+* Added the BreakAttribute to allow for breaking the prompt flow
+
 ## 0.10.0
 
 ### AutoSpectre
@@ -7,7 +11,7 @@
 * Interfaces `ISpectreFactory<T>` and `IAutoSpectreFactory<T>` has been added to add a shared interface for the generated classes.
 * Added `SpectreFactory`as an extension point for source generation
 * Added some extensions methods for creating a prompt from a ISpectreFactory
-* Removed `DisableDump 
+* Removed `DisableDump`
 
 ### AutoSpectre.SourceGeneration
 
