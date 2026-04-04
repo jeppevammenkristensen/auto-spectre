@@ -1,0 +1,10 @@
+<Project>
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <Authors>Jeppe Roi Kristensen</Authors>
+    <RepositoryUrl>https://github.com/jeppevammenkristensen/auto-spectre</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <VersionPrefix>0.12.0</VersionPrefix>
+    <VersionSuffix>alpha-02</VersionSuffix>
+  </PropertyGroup>
+</Project>
