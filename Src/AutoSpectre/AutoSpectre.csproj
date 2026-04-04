@@ -33,8 +33,27 @@
           Visible="false" />
   </ItemGroup>
 
+  <!-- Embed the analyzer and code fixes into this package -->
+  <ItemGroup>
+    <None Include="..\AutoSpectreAnalyzer\AutoSpectreAnalyzer\AutoSpectreAnalyzer\bin\$(Configuration)\netstandard2.0\AutoSpectreAnalyzer.dll"
+          Pack="true"
+          PackagePath="analyzers/dotnet/cs"
+          Visible="false" />
+    <None Include="..\AutoSpectreAnalyzer\AutoSpectreAnalyzer\AutoSpectreAnalyzer.CodeFixes\bin\$(Configuration)\netstandard2.0\AutoSpectreAnalyzer.CodeFixes.dll"
+          Pack="true"
+          PackagePath="analyzers/dotnet/cs"
+          Visible="false"
+          Condition="Exists('..\AutoSpectreAnalyzer\AutoSpectreAnalyzer\AutoSpectreAnalyzer.CodeFixes\bin\$(Configuration)\netstandard2.0\AutoSpectreAnalyzer.CodeFixes.dll')" />
+  </ItemGroup>
+
   <Target Name="BuildSourceGenerator" BeforeTargets="Build;Pack" Condition="'$(NoBuild)' != 'true'">
     <MSBuild Projects="..\AutoSpectre.SourceGeneration\AutoSpectre.SourceGeneration.csproj"
+             Targets="Build"
+             Properties="Configuration=$(Configuration);TargetFramework=netstandard2.0" />
+  </Target>
+
+  <Target Name="BuildAnalyzer" BeforeTargets="Build;Pack" Condition="'$(NoBuild)' != 'true'">
+    <MSBuild Projects="..\AutoSpectreAnalyzer\AutoSpectreAnalyzer\AutoSpectreAnalyzer\AutoSpectreAnalyzer.csproj"
              Targets="Build"
              Properties="Configuration=$(Configuration);TargetFramework=netstandard2.0" />
   </Target>

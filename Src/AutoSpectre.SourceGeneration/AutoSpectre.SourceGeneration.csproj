@@ -2,11 +2,12 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <IsPackable>false</IsPackable>
+    <IsPackable>true</IsPackable>
     <LangVersion>11</LangVersion>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <IsRoslynComponent>true</IsRoslynComponent>    
     <PackageReleaseNotes>This is being embedded in AutoSpectre directly.</PackageReleaseNotes>
+    
   </PropertyGroup>
 
   <PropertyGroup>

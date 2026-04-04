@@ -76,7 +76,7 @@ namespace AutoSpectreAnalyzer.Test.Utilities
             public TestV2()
             {
                 ReferenceAssemblies = CodeAnalyzerHelper.CurrentXunitV2;
-                TestState.AdditionalReferences.Add(typeof(AskAttribute).Assembly);
+                TestState.AdditionalReferences.Add(typeof(TextPromptAttribute).Assembly);
 
                 // xunit diagnostics are reported in both normal and generated code
                 TestBehaviors |= TestBehaviors.SkipGeneratedCodeCheck;

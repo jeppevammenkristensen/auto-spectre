@@ -9,6 +9,11 @@
     <Project Path="AutoSpectre.SourceGeneration.Tests/AutoSpectre.SourceGeneration.Tests.csproj" />
     <Project Path="AutoSpectre.SourceGeneration/AutoSpectre.SourceGeneration.csproj" />
   </Folder>
+  <Folder Name="/Analyzer/">
+    <Project Path="AutoSpectreAnalyzer/AutoSpectreAnalyzer/AutoSpectreAnalyzer/AutoSpectreAnalyzer.csproj" />
+    <Project Path="AutoSpectreAnalyzer/AutoSpectreAnalyzer/AutoSpectreAnalyzer.CodeFixes/AutoSpectreAnalyzer.CodeFixes.csproj" />
+    <Project Path="AutoSpectreAnalyzer/AutoSpectreAnalyzer/AutoSpectreAnalyzer.Test/AutoSpectreAnalyzer.Test.csproj" />
+  </Folder>
   <Project Path="AutoSpectre/AutoSpectre.csproj" />
   <Project Path="Test/Test.csproj" />
 </Solution>
