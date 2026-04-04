@@ -4,9 +4,11 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="AutoSpectre.SourceGeneration.Samples/AutoSpectre.SourceGeneration.Samples.csproj" />
-  <Project Path="AutoSpectre.SourceGeneration.Tests/AutoSpectre.SourceGeneration.Tests.csproj" />
-  <Project Path="AutoSpectre.SourceGeneration/AutoSpectre.SourceGeneration.csproj" />
+  <Folder Name="/SourceGenerator/">
+    <Project Path="AutoSpectre.SourceGeneration.Samples/AutoSpectre.SourceGeneration.Samples.csproj" />
+    <Project Path="AutoSpectre.SourceGeneration.Tests/AutoSpectre.SourceGeneration.Tests.csproj" />
+    <Project Path="AutoSpectre.SourceGeneration/AutoSpectre.SourceGeneration.csproj" />
+  </Folder>
   <Project Path="AutoSpectre/AutoSpectre.csproj" />
   <Project Path="Test/Test.csproj" />
 </Solution>
