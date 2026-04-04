@@ -8,6 +8,9 @@ using Spectre.Console;
 
 namespace AutoSpectre.Prompts;
 
+/// <summary>
+/// Extensions for <see cref="IAnsiConsole"/> to support reading input with features like autocomplete and masking.
+/// </summary>
 public static partial class AnsiConsoleExtensions
 {
     internal static async Task<string> ReadLine(this IAnsiConsole console, Style? style, bool secret, char? mask, IEnumerable<string>? items = null, CancellationToken cancellationToken = default)

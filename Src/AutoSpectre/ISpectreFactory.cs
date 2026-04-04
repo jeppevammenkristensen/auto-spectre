@@ -10,7 +10,7 @@ namespace AutoSpectre;
 public interface ISpectreFactory<T> : ISpectreFactory where T : notnull
 { 
     /// <summary>
-    /// Prompt and enrich a given item of type <see cref="T"/>
+    /// Prompt and enrich a given item of type <typeparamref name="T"/>
     /// </summary>
     /// <param name="form">The form to enrich</param>
     /// <returns></returns>

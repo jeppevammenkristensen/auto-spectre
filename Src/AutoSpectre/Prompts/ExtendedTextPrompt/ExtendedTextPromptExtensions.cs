@@ -5,6 +5,9 @@ using Spectre.Console;
 
 namespace AutoSpectre.Prompts;
 
+/// <summary>
+/// Extension methods for configuring <see cref="ExtendedTextPrompt{T}"/> instances.
+/// </summary>
 public static class ExtendedTextPromptExtensions
 {
     /// <summary>
@@ -47,6 +50,13 @@ public static class ExtendedTextPromptExtensions
         return obj;
     }
 
+    /// <summary>
+    /// Sets the delegate used to convert a string value to <typeparamref name="T"/>.
+    /// </summary>
+    /// <typeparam name="T">The prompt result type.</typeparam>
+    /// <param name="obj">The prompt.</param>
+    /// <param name="converter">The string-to-value conversion delegate.</param>
+    /// <returns>The same instance so that multiple calls can be chained.</returns>
     public static ExtendedTextPrompt<T> WithFromStringConverter<T>(this ExtendedTextPrompt<T> obj,
         TryParseFromStringDelegate<T> converter)
     {
@@ -57,6 +67,13 @@ public static class ExtendedTextPromptExtensions
         return obj;
     }
 
+    /// <summary>
+    /// Sets the help text displayed alongside the prompt.
+    /// </summary>
+    /// <typeparam name="T">The prompt result type.</typeparam>
+    /// <param name="obj">The prompt.</param>
+    /// <param name="helpText">The help text to display.</param>
+    /// <returns>The same instance so that multiple calls can be chained.</returns>
     public static ExtendedTextPrompt<T> WithHelp<T>(this ExtendedTextPrompt<T> obj, string helpText)
     {
         if (obj == null) throw new ArgumentNullException(nameof(obj));

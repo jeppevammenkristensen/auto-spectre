@@ -2,6 +2,10 @@ using System;
 
 namespace AutoSpectre;
 
+/// <summary>
+/// Base attribute for step attributes that are applied to methods rather than properties.
+/// Supports optional status spinner display during method execution.
+/// </summary>
 [AttributeUsage(AttributeTargets.Method)]
 public abstract class MethodBasedAttribute : AutoSpectreStepAttribute
 {

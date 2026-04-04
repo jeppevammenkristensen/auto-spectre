@@ -2,6 +2,9 @@
 
 namespace AutoSpectre;
 
+/// <summary>
+/// Decorates a property to present a selection prompt, allowing the user to choose from a list of items.
+/// </summary>
 [AttributeUsage(AttributeTargets.Property)]
 public class SelectPromptAttribute : AutoSpectreStepAttribute
 {

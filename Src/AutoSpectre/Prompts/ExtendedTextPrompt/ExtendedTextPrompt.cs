@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -14,7 +15,6 @@ namespace AutoSpectre.Prompts;
 /// <summary>
 /// This is an extension of the TextPrompt from the Spectre.Console library
 /// With the ability to override the Converter that converts a string value to
-/// <see cref="T"/>
 /// </summary>
 /// <typeparam name="T">The prompt result type.</typeparam>
 public sealed class ExtendedTextPrompt<T> : IPrompt<T>, IHasCulture
@@ -88,9 +88,16 @@ public sealed class ExtendedTextPrompt<T> : IPrompt<T>, IHasCulture
     /// </summary>
     public Func<T, string>? Converter { get; set; } = TypeConverterHelper.ConvertToString;
 
+    /// <summary>
+    /// Gets or sets the delegate used to convert a string value to <typeparamref name="T"/>.
+    /// By default uses <see cref="TypeConverterHelper.TryConvertFromStringWithCulture{T}"/>.
+    /// </summary>
     public TryParseFromStringDelegate<T>? FromStringConverter { get; set; } =
         TypeConverterHelper.TryConvertFromStringWithCulture<T>;
-    
+
+    /// <summary>
+    /// Gets or sets the help text displayed alongside the prompt.
+    /// </summary>
     public string? HelpText { get; set; }
 
     /// <summary>
@@ -189,7 +196,7 @@ public sealed class ExtendedTextPrompt<T> : IPrompt<T>, IHasCulture
                         continue;
                     }
                 }
-                else if (!FromStringConverter(input, Culture, out result) || result == null)
+                else if (FromStringConverter == null || !FromStringConverter(input, Culture, out result) || result == null)
                 {
                     console.MarkupLine(ValidationErrorMessage);
                     WritePrompt(console);
@@ -264,7 +271,12 @@ public sealed class ExtendedTextPrompt<T> : IPrompt<T>, IHasCulture
         console.Markup(markup + " ");
     }
 
-    private bool ValidateResult(T value, out string? message)
+    
+    private bool ValidateResult(T value,
+#if !NETSTANDARD2_0
+   [NotNullWhen(false)]
+#endif
+        out string? message)
     {
         if (Validator != null)
         {
