@@ -14,8 +14,6 @@ namespace Test
         {
             var result = SpectreFactory.GetSpectreFactory_Test_SClass();
             await result.PromptAsync(new SClass("Jeppe Roi Kristensen"));
-
-
         }
     }
 
