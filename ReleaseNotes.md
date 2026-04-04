@@ -4,6 +4,8 @@
 
 * IMPORTANT: From this version and forward. The AutoSpectre.SourceGeneration package will be integrated directly into AutoSpectre, so you only need to install AutoSpectre. In a near future the AutoSpectre.SourceGeneration nuget package will be made obsolete
 * AutoSpectre now target .netStandard, net8.0 and net10.0
+* Rewrote Analyzers to be included directly in the AutoSpectre package. 
+  * Added a new analyzer to check for empty AutoSpectreForm classes (classes decorated with the AutoSpectreForm attribute that does not have any step attributes)
 
 ## 0.11.0
 
