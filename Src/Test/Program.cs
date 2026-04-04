@@ -20,6 +20,13 @@ namespace Test
     }
 
     [AutoSpectreForm()]
+    public class OtherClass
+    {
+        [TextPrompt]
+        public string Name { get; set; } = string.Empty;
+    }
+
+    [AutoSpectreForm()]
     public class SClass
     {
         private readonly string _firstName;

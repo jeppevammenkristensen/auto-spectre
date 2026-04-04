@@ -8,10 +8,7 @@ namespace AutoSpectreAnalyzer.Extensions;
 
 public static class Extensions
 {
-    public static INamedTypeSymbol? GetAskAttribute(this Compilation compilation)
-    {
-        return compilation.GetTypeByMetadataName("AutoSpectre.AskAttribute");
-    }
+    
 
     public static INamedTypeSymbol? GetAutoSpectreFormAttribute(this Compilation compilation)
     {

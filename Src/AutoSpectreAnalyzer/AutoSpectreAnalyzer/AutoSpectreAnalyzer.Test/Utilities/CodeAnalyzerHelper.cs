@@ -11,7 +11,7 @@ namespace AutoSpectreAnalyzer.Test.Utilities
 
         static CodeAnalyzerHelper()
         {
-            CurrentXunitV2 = ReferenceAssemblies.Default.AddPackages(
+            CurrentXunitV2 = ReferenceAssemblies.Net.Net80.AddPackages(
                 ImmutableArray.Create(
                     new PackageIdentity("System.Collections.Immutable", "1.6.0"),
                     new PackageIdentity("xunit.abstractions", "2.0.3"),
