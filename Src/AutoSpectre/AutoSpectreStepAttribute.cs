@@ -2,6 +2,10 @@
 
 namespace AutoSpectre;
 
+/// <summary>
+/// Base attribute for AutoSpectre step attributes that define prompts for properties.
+/// Subclasses include <see cref="TextPromptAttribute"/> and <see cref="SelectPromptAttribute"/>.
+/// </summary>
 public class AutoSpectreStepAttribute : Attribute, IConditionAttribute
 {
     /// <summary>

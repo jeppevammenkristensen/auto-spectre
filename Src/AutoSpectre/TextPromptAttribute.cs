@@ -2,6 +2,10 @@
 
 namespace AutoSpectre;
 
+/// <summary>
+/// Decorates a property to present a text input prompt, allowing the user to enter a value.
+/// For boolean properties, a confirmation prompt is generated instead.
+/// </summary>
 [AttributeUsage(AttributeTargets.Property)]
 public class TextPromptAttribute : AutoSpectreStepAttribute
 {
@@ -28,7 +32,10 @@ public class TextPromptAttribute : AutoSpectreStepAttribute
     /// </summary>
     public string? Validator { get; set; }
 
-    // Hide the inputted text
+    
+    /// <summary>
+    /// Indicates whether the input should be treated as secret, masking the input with the specified mask character.
+    /// </summary>
     public bool Secret { get; set; }
 
     /// <summary>
@@ -61,7 +68,7 @@ public class TextPromptAttribute : AutoSpectreStepAttribute
 
     /// <summary>
     /// This method is only relevant if the property type is a type that is also
-    /// decorated with the <see cref="AutoSpectreFormAttribute"/>. It is used to
+    /// decorated with the <see cref="AutoSpectreForm"/>. It is used to
     /// initialize an instance of the decorated property type. It is not needed
     /// if the property type has an empty constructor. You can leave this out if you
     /// have a method called Init{TypeName}. The method must be public but can be instance or static

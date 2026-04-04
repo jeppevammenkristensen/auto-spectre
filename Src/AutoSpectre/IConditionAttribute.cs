@@ -1,5 +1,8 @@
 ﻿namespace AutoSpectre;
 
+/// <summary>
+/// Interface for attributes that support conditional display of prompts based on a condition.
+/// </summary>
 public interface IConditionAttribute
 {
     /// <summary>

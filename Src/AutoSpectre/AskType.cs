@@ -2,6 +2,9 @@
 
 namespace AutoSpectre
 {
+    /// <summary>
+    /// Specifies the type of prompt to present to the user.
+    /// </summary>
     public enum AskType
     {
         /// <summary>

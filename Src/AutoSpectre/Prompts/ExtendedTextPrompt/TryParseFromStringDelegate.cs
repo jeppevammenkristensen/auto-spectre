@@ -2,9 +2,12 @@
 
 namespace AutoSpectre.Prompts.ExtendedTextPrompt;
 
+
 /// <summary>
-/// A delegate for taking a <see cref="string"/> value and a CultureInfo (that can be null) and try
-/// to convert it the given <see cref="T"/> type. 
+/// Represents a delegate that tries to parse a string value into a specified type, considering culture information.
 /// </summary>
+/// <param name="value">The string value to parse.</param>
+/// <param name="culture">The culture to use for parsing.</param>
+/// <param name="result">The parsed result, if successful.</param>
 /// <typeparam name="T"></typeparam>
 public delegate bool TryParseFromStringDelegate<T>(string value, CultureInfo? culture, out T? result);
