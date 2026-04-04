@@ -38,10 +38,10 @@ public static class ExtendedTextPromptExtensions
             throw new ArgumentNullException(nameof(obj));
         }
 
-        if (style is null)
-        {
-            throw new ArgumentNullException(nameof(style));
-        }
+        // if (style is null)
+        // {
+        //     throw new ArgumentNullException(nameof(style));
+        // }
 
         obj.PromptStyle = style;
         return obj;
@@ -362,11 +362,6 @@ public static class ExtendedTextPromptExtensions
             throw new ArgumentNullException(nameof(obj));
         }
 
-        if (style is null)
-        {
-            throw new ArgumentNullException(nameof(style));
-        }
-
         obj.DefaultValueStyle = style;
         return obj;
     }
@@ -383,11 +378,6 @@ public static class ExtendedTextPromptExtensions
         if (obj is null)
         {
             throw new ArgumentNullException(nameof(obj));
-        }
-
-        if (style is null)
-        {
-            throw new ArgumentNullException(nameof(style));
         }
 
         obj.ChoicesStyle = style;

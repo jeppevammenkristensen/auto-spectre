@@ -13,7 +13,7 @@ public class IncrementAutoSpectreGenerator : IIncrementalGenerator
 {
     private HashSet<string> _memberAttributeNames = new HashSet<string>()
     {
-        "AskAttribute", nameof(TextPromptAttribute), nameof(SelectPromptAttribute), nameof(TaskStepAttribute), nameof(BreakAttribute)
+        "AskAttribute", TextPromptAttributeNames.AttributeName, SelectPromptAttributeNames.AttributeName, TaskStepAttributeNames.AttributeName, BreakAttributeNames.AttributeName
     };
     
     public void Initialize(IncrementalGeneratorInitializationContext context)

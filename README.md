@@ -1,6 +1,6 @@
 # Auto Spectre
 
- _[![AutoSpectre.SourceGeneration Nuget Version](https://img.shields.io/nuget/v/AutoSpectre.SourceGeneration?style=flat-square&label=NuGet%3A%20AutoSpectre.SourceGeneration)](https://www.nuget.org/packages/AutoSpectre.SourceGeneration)_ _[![AutoSpectre](https://img.shields.io/nuget/v/AutoSpectre?style=flat-square&label=NuGet%3A%20AutoSpectre)](https://www.nuget.org/packages/AutoSpectre)_ _[![AutoSpectre.Analyzer](https://img.shields.io/nuget/v/AutoSpectre.Analyzer?style=flat-square&label=NuGet%3A%20AutoSpectre.Analyzer)](https://www.nuget.org/packages/AutoSpectre.Analyzer)_
+ _[![AutoSpectre](https://img.shields.io/nuget/v/AutoSpectre?style=flat-square&label=NuGet%3A%20AutoSpectre)](https://www.nuget.org/packages/AutoSpectre)_
 
 Source generator project to generate classes that can be used in a console to prompt for values using Spectre.Console
 
@@ -9,6 +9,7 @@ Source generator project to generate classes that can be used in a console to pr
 Decorate a class with the AutoSpectreForm attribute and then decorate the properties (must be settable) with a TextPrompt or SelectPrompt attribute.
 
 **NOTE** The `AskAttribute` that was marked as obsolete and split into `TextPromptAttribute` and `SelectPromptAttribute` to avoid having a lot of properties only relevant for one or another type of prompt, has been removed.
+**NOTE** From version 0.12.0 and forward AutoSpectre.SourceGeneration is being deprecated and instead build directly into AutoSpectre. When upgrading to 0.12.0 and later remember to remove older versions of it 
 
 ### Example input
 

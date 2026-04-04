@@ -38,7 +38,7 @@ public class TargetFormEvaluator
     
     private TranslatedFormAttributeData TranslateForm(AttributeData attributeData)
     {
-        var culture = attributeData.GetAttributePropertyValue<string>(nameof(AutoSpectreForm.Culture));
+        var culture = attributeData.GetAttributePropertyValue<string>(AutoSpectreFormNames.Culture);
         return new TranslatedFormAttributeData(culture);
     }
 

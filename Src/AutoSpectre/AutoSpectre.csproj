@@ -1,20 +1,15 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <VersionPrefix>0.11.0</VersionPrefix>
-    <TargetFramework>netstandard2.0</TargetFramework>
+  <PropertyGroup>    
+    <TargetFrameworks>netstandard2.0; net8.0;net10.0</TargetFrameworks>
     <LangVersion>latest</LangVersion>
-    <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <Description>Classes used by the AutoSpectre.SourceGeneration package</Description>
-    <Authors>Jeppe Roi Kristensen</Authors>
-    <RepositoryUrl>https://github.com/jeppevammenkristensen/auto-spectre</RepositoryUrl>
-    <PackageReleaseNotes>Handle Search in SelectPrompt </PackageReleaseNotes>
+    <PackageReleaseNotes>AutoSpectre now directly references the source generator</PackageReleaseNotes>
     <PackageIcon>ghost.png</PackageIcon>
-    <PackageReadmeFile>Readme.md</PackageReadmeFile>    
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>Readme.md</PackageReadmeFile>
   </PropertyGroup>
-
+  
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <DocumentationFile>bin\Release\AutoSpectre.xml</DocumentationFile>
   </PropertyGroup>
@@ -27,7 +22,21 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Spectre.Console" Version="0.49.1" />
+    <PackageReference Include="Spectre.Console" Version="0.55.0" />
   </ItemGroup>
+
+  <!-- Embed the source generator into this package so consumers only need to reference AutoSpectre -->
+  <ItemGroup>
+    <None Include="..\AutoSpectre.SourceGeneration\bin\$(Configuration)\netstandard2.0\AutoSpectre.SourceGeneration.dll"
+          Pack="true"
+          PackagePath="analyzers/dotnet/cs"
+          Visible="false" />
+  </ItemGroup>
+
+  <Target Name="BuildSourceGenerator" BeforeTargets="Build;Pack" Condition="'$(NoBuild)' != 'true'">
+    <MSBuild Projects="..\AutoSpectre.SourceGeneration\AutoSpectre.SourceGeneration.csproj"
+             Targets="Build"
+             Properties="Configuration=$(Configuration);TargetFramework=netstandard2.0" />
+  </Target>
 
 </Project>

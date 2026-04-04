@@ -34,22 +34,22 @@ public class StepWithAttributeData
         var title = attributeData.GetAttributePropertyValue<string?>("Title");
 
         #pragma warning disable CS0618 // Type or member is obsolete
-        var condition = attributeData.GetAttributePropertyValue<string>(nameof(TextPromptAttribute.Condition));
+        var condition = attributeData.GetAttributePropertyValue<string>(IConditionAttributeNames.Condition);
 
-        var conditionNegated = attributeData.GetAttributePropertyValue<bool>(nameof(TextPromptAttribute.NegateCondition));
+        var conditionNegated = attributeData.GetAttributePropertyValue<bool>(IConditionAttributeNames.NegateCondition);
 
-        var useStatus = attributeData.GetAttributePropertyValue<bool>(nameof(TaskStepAttribute.UseStatus));
-        var statusText = attributeData.GetAttributePropertyValue<string?>(nameof(TaskStepAttribute.StatusText));
+        var useStatus = attributeData.GetAttributePropertyValue<bool>(MethodBasedAttributeNames.UseStatus);
+        var statusText = attributeData.GetAttributePropertyValue<string?>(MethodBasedAttributeNames.StatusText);
 
-        var spinnerStyle = attributeData.GetAttributePropertyValue<string?>(nameof(TaskStepAttribute.SpinnerStyle));
+        var spinnerStyle = attributeData.GetAttributePropertyValue<string?>(MethodBasedAttributeNames.SpinnerStyle);
         SpinnerKnownTypesCopy? spinnerType = null;
-        if (attributeData.TryGetAttributePropertyValue<SpinnerKnownTypesCopy>(nameof(TaskStepAttribute.SpinnerType), out var value))
+        if (attributeData.TryGetAttributePropertyValue<SpinnerKnownTypesCopy>(MethodBasedAttributeNames.SpinnerType, out var value))
         {
             spinnerType = value;
         }
 
 
-        if (attributeData.AttributeClass.Name == nameof(TaskStepAttribute))
+        if (attributeData.AttributeClass.Name == TaskStepAttributeNames.AttributeName)
         {
             TranslatedMemberAttribute = TranslatedMemberAttributeData.TaskPrompt(title, condition, conditionNegated, useStatus, statusText, spinnerStyle, spinnerType);    
         }
@@ -72,26 +72,26 @@ public class StepWithAttributeData
                     $"Enter [green]{property.Name}[/]";
 
 #pragma warning disable CS0618 // Type or member is obsolete
-        var condition = attributeData.GetAttributePropertyValue<string>(nameof(TextPromptAttribute.Condition));
+        var condition = attributeData.GetAttributePropertyValue<string>(IConditionAttributeNames.Condition);
 
-        var conditionNegated = attributeData.GetAttributePropertyValue<bool>(nameof(TextPromptAttribute.NegateCondition));
+        var conditionNegated = attributeData.GetAttributePropertyValue<bool>(IConditionAttributeNames.NegateCondition);
         
-        if (attributeData.AttributeClass.Name == nameof(TextPromptAttribute))
+        if (attributeData.AttributeClass.Name == TextPromptAttributeNames.AttributeName)
         {
-            var validator = attributeData.GetAttributePropertyValue<string>(nameof(TextPromptAttribute.Validator));
-            var secret = attributeData.GetAttributePropertyValue<bool>(nameof(TextPromptAttribute.Secret));
-            var mask = attributeData.GetAttributePropertyValue<char?>(nameof(TextPromptAttribute.Mask), '*');
-            string? defaultValueStyle = attributeData.GetAttributePropertyValue<string>(nameof(TextPromptAttribute.DefaultValueStyle));
-            string? promptStyle = attributeData.GetAttributePropertyValue<string>(nameof(TextPromptAttribute.PromptStyle));
-            string? typeInitializer = attributeData.GetAttributePropertyValue<string>(nameof(TextPromptAttribute.TypeInitializer));
-            var choicesSource = attributeData.GetAttributePropertyValue<string>(nameof(TextPromptAttribute.ChoicesSource));
-            var choicesStyle = attributeData.GetAttributePropertyValue<string>(nameof(TextPromptAttribute.ChoicesStyle));
-            var choicesInvalidText = attributeData.GetAttributePropertyValue<string>(nameof(TextPromptAttribute.ChoicesInvalidText));
+            var validator = attributeData.GetAttributePropertyValue<string>(TextPromptAttributeNames.Validator);
+            var secret = attributeData.GetAttributePropertyValue<bool>(TextPromptAttributeNames.Secret);
+            var mask = attributeData.GetAttributePropertyValue<char?>(TextPromptAttributeNames.Mask, '*');
+            string? defaultValueStyle = attributeData.GetAttributePropertyValue<string>(TextPromptAttributeNames.DefaultValueStyle);
+            string? promptStyle = attributeData.GetAttributePropertyValue<string>(TextPromptAttributeNames.PromptStyle);
+            string? typeInitializer = attributeData.GetAttributePropertyValue<string>(TextPromptAttributeNames.TypeInitializer);
+            var choicesSource = attributeData.GetAttributePropertyValue<string>(TextPromptAttributeNames.ChoicesSource);
+            var choicesStyle = attributeData.GetAttributePropertyValue<string>(TextPromptAttributeNames.ChoicesStyle);
+            var choicesInvalidText = attributeData.GetAttributePropertyValue<string>(TextPromptAttributeNames.ChoicesInvalidText);
             var defaultValueSource =
-                attributeData.GetAttributePropertyValue<string>(nameof(TextPromptAttribute.DefaultValueSource));
-            var searchEnabled = attributeData.GetAttributePropertyValue<bool?>(nameof(SelectPromptAttribute.SearchEnabled)) ?? null;
+                attributeData.GetAttributePropertyValue<string>(TextPromptAttributeNames.DefaultValueSource);
+            var searchEnabled = attributeData.GetAttributePropertyValue<bool?>(SelectPromptAttributeNames.SearchEnabled) ?? null;
             var searchPlaceholderText =
-                attributeData.GetAttributePropertyValue<string?>(nameof(SelectPromptAttribute.SearchPlaceholderText)) ??
+                attributeData.GetAttributePropertyValue<string?>(SelectPromptAttributeNames.SearchPlaceholderText) ??
                 null;
 
             TranslatedMemberAttribute = TranslatedMemberAttributeData.TextPrompt(title,
@@ -111,18 +111,18 @@ public class StepWithAttributeData
                 searchPlaceholderText);
         }
         
-        else if (attributeData.AttributeClass.Name == nameof(SelectPromptAttribute))
+        else if (attributeData.AttributeClass.Name == SelectPromptAttributeNames.AttributeName)
         {
-            var selectionSource = attributeData.GetAttributePropertyValue<string?>(nameof(SelectPromptAttribute.Source)) ?? null;
-            var converter = attributeData.GetAttributePropertyValue<string?>(nameof(SelectPromptAttribute.Converter)) ?? null;
-            var pageSize = attributeData.GetAttributePropertyValue<int?>(nameof(SelectPromptAttribute.PageSize)) ?? null;
-            var wrapAround = attributeData.GetAttributePropertyValue<bool?>(nameof(SelectPromptAttribute.WrapAround)) ?? null;
-            var moreChoicesText = attributeData.GetAttributePropertyValue<string?>(nameof(SelectPromptAttribute.MoreChoicesText)) ?? null;
-            var instructionsText = attributeData.GetAttributePropertyValue<string?>(nameof(SelectPromptAttribute.InstructionsText)) ?? null;
-            var highlightStyle = attributeData.GetAttributePropertyValue<string?>(nameof(SelectPromptAttribute.HighlightStyle)) ?? null;
-            var searchEnabled = attributeData.GetAttributePropertyValue<bool?>(nameof(SelectPromptAttribute.SearchEnabled)) ?? null;
+            var selectionSource = attributeData.GetAttributePropertyValue<string?>(SelectPromptAttributeNames.Source) ?? null;
+            var converter = attributeData.GetAttributePropertyValue<string?>(SelectPromptAttributeNames.Converter) ?? null;
+            var pageSize = attributeData.GetAttributePropertyValue<int?>(SelectPromptAttributeNames.PageSize) ?? null;
+            var wrapAround = attributeData.GetAttributePropertyValue<bool?>(SelectPromptAttributeNames.WrapAround) ?? null;
+            var moreChoicesText = attributeData.GetAttributePropertyValue<string?>(SelectPromptAttributeNames.MoreChoicesText) ?? null;
+            var instructionsText = attributeData.GetAttributePropertyValue<string?>(SelectPromptAttributeNames.InstructionsText) ?? null;
+            var highlightStyle = attributeData.GetAttributePropertyValue<string?>(SelectPromptAttributeNames.HighlightStyle) ?? null;
+            var searchEnabled = attributeData.GetAttributePropertyValue<bool?>(SelectPromptAttributeNames.SearchEnabled) ?? null;
             var searchPlaceholderText =
-                attributeData.GetAttributePropertyValue<string?>(nameof(SelectPromptAttribute.SearchPlaceholderText)) ??
+                attributeData.GetAttributePropertyValue<string?>(SelectPromptAttributeNames.SearchPlaceholderText) ??
                 null;
 
             TranslatedMemberAttribute = TranslatedMemberAttributeData.SelectPrompt(title,
