@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoSpectre;
-using AutoSpectre.Extensions;
-using Dumpify;
 using Spectre.Console;
 using Test.Enums;
 

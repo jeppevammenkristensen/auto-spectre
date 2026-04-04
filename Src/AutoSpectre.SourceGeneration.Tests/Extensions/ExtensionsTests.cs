@@ -1,9 +1,12 @@
-﻿using System.Reflection;
+﻿using System.Globalization;
+using System.Reflection;
+using AutoSpectre.Extensions;
 using AutoSpectre.SourceGeneration.Extensions;
 using FluentAssertions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Spectre.Console;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -112,5 +115,39 @@ public class ExtensionsTests
         compilation.GetDiagnostics().Should().NotContain(x => x.Severity == DiagnosticSeverity.Error);
 
         return (compilation, syntaxTree);
+    }
+
+    [Fact]
+    public void WithCulture_SetsCultureOnPrompt()
+    {
+        var prompt = new TextPrompt<double>("Enter value:");
+        var culture = new CultureInfo("da-DK");
+
+        var result = prompt.WithCulture(culture);
+
+        result.Culture.Should().Be(culture);
+        result.Should().BeSameAs(prompt);
+    }
+
+    [Fact]
+    public void WithCulture_ThrowsOnNull()
+    {
+        TextPrompt<double>? prompt = null;
+
+        var act = () => prompt!.WithCulture(new CultureInfo("da-DK"));
+
+        act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
+    public void WithCulture_DifferentCultures_UpdatesCulture()
+    {
+        var prompt = new TextPrompt<double>("Enter value:");
+
+        prompt.WithCulture(new CultureInfo("da-DK"));
+        prompt.Culture.Should().Be(new CultureInfo("da-DK"));
+
+        prompt.WithCulture(new CultureInfo("en-US"));
+        prompt.Culture.Should().Be(new CultureInfo("en-US"));
     }
 }
