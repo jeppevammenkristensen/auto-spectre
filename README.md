@@ -8,7 +8,6 @@ Source generator project to generate classes that can be used in a console to pr
 
 Decorate a class with the AutoSpectreForm attribute and then decorate the properties (must be settable) with a TextPrompt or SelectPrompt attribute.
 
-**NOTE** The `AskAttribute` that was marked as obsolete and split into `TextPromptAttribute` and `SelectPromptAttribute` to avoid having a lot of properties only relevant for one or another type of prompt, has been removed.
 **NOTE** From version 0.12.0 and forward AutoSpectre.SourceGeneration is being deprecated and instead build directly into AutoSpectre. When upgrading to 0.12.0 and later remember to remove older versions of it 
 
 ### Example input
