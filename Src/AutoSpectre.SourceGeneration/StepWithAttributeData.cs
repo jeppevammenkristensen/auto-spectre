@@ -94,6 +94,7 @@ public class StepWithAttributeData
                 attributeData.GetAttributePropertyValue<string?>(SelectPromptAttributeNames.SearchPlaceholderText) ??
                 null;
 
+
             TranslatedMemberAttribute = TranslatedMemberAttributeData.TextPrompt(title,
                 validator,
                 condition,
@@ -123,7 +124,11 @@ public class StepWithAttributeData
             var searchEnabled = attributeData.GetAttributePropertyValue<bool?>(SelectPromptAttributeNames.SearchEnabled) ?? null;
             var searchPlaceholderText =
                 attributeData.GetAttributePropertyValue<string?>(SelectPromptAttributeNames.SearchPlaceholderText) ??
-                null;
+                null;            
+            var cancelResult =
+                attributeData.GetAttributePropertyValue<string?>(SelectPromptAttributeNames.CancelResult) ?? null;
+
+            
 
             TranslatedMemberAttribute = TranslatedMemberAttributeData.SelectPrompt(title,
                 selectionSource,
@@ -136,7 +141,8 @@ public class StepWithAttributeData
                 instructionsText,
                 highlightStyle, 
                 searchEnabled,
-                searchPlaceholderText);
+                searchPlaceholderText,
+                cancelResult);
         }
         
         else

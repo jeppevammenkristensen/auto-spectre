@@ -292,6 +292,7 @@ internal class StepContextBuilderOperation
             EvaluateMoreChoicesText(memberAttributeData, ref propertyContext);
             EvaluateInstructionText(memberAttributeData, ref propertyContext);
             EvaluateHighlightStyle(propertyContext, memberAttributeData);
+            EvaluateCancelResult(propertyContext, memberAttributeData);
             
             if (propertyContext.ConfirmedSelectionSource is { })
             {
@@ -318,6 +319,102 @@ internal class StepContextBuilderOperation
         }
     }
 
+    /// <summary>
+    /// A string match deducted
+    /// </summary>
+    /// <param name="Value">The value</param>
+    /// <param name="Deduced">If its deducted</param>
+    private class StringMatch
+    {
+        public string Match { get; }
+        public bool Deducted { get; }
+
+        public StringMatch(string match, bool deducted)
+        {
+            Match = match;
+            Deducted = deducted;
+        }
+
+        public static StringMatch From(string? match, string fallback)
+        {
+            if (string.IsNullOrWhiteSpace(match))
+            {
+                return new StringMatch(fallback, true);
+            }
+            
+            return new StringMatch(match!, false);
+        }
+
+        public string Value => Match;
+    };
+
+    private void EvaluateCancelResult(SinglePropertyEvaluationContext propertyContext, TranslatedMemberAttributeData memberAttributeData)
+    {
+        var search = StringMatch.From(memberAttributeData.CancelResult, $"{propertyContext.Property.Name}CancelResult");
+        
+        var candidates = TargetType.GetMembers()
+            .Where(x => x.Name == search.Match).ToList();
+
+        if (candidates is {Count: 0})
+        {
+            if (search.Deducted)
+                return;
+
+            ProductionContext.ReportDiagnostic(Diagnostic.Create(
+                new(DiagnosticIds.Id0028_CancelResult_NotFound,
+                    $"No matches found for CancelResult source {search.Value}",
+                    $"No candidate with name {search.Value} was found on {TargetType.Name}",
+                    "General", DiagnosticSeverity.Warning, true),
+                propertyContext.Property.Locations.FirstOrDefault()));
+            return;
+
+        }
+
+        foreach (var symbol in candidates.Where(IsPublic.And(
+                     MethodWithNoParametersSpec
+                         .Or(new FieldSpecification<ISymbol>())
+                         .Or(Check.Property<ISymbol>()))))
+        {
+            ITypeSymbol typeSymbol = symbol switch
+            {
+                IMethodSymbol methodSymbol => methodSymbol.ReturnType,
+                IPropertySymbol propertySymbol => propertySymbol.Type,
+                IFieldSymbol fieldSymbol => fieldSymbol.Type,
+                _ => throw new InvalidOperationException("This should not occur")
+            };
+
+            if (propertyContext.IsEnumerable)
+            {
+                if (EnumerableOfTypeSpec(propertyContext.RequiredUnderlyingType) == typeSymbol)
+                {
+                    propertyContext.ConfirmedCancelResult = new ConfirmedCancelResult(search.Value, CancelResultType.Method, symbol.IsStatic);
+                    return;
+                }
+            }
+            else
+            {
+                if (OfTypeSpec(propertyContext.Type) == typeSymbol)
+                {
+                    propertyContext.ConfirmedCancelResult = new ConfirmedCancelResult(search.Value, CancelResultType.Value, symbol.IsStatic);
+                }
+            }
+        }
+
+        if (propertyContext.ConfirmedCancelResult is not null)
+            return;
+
+        var expectedType = propertyContext.IsEnumerable
+            ? $"an enumerable of {propertyContext.RequiredUnderlyingType}"
+            : propertyContext.Type.ToString();
+
+        ProductionContext.ReportDiagnostic(Diagnostic.Create(
+            new(DiagnosticIds.Id0029_CancelResult_NotValid,
+                $"The match for CancelResult source {search.Value} was not valid",
+                $"The source with name {search.Value} must be public and be either a method with no parameters, a property or a field of type {expectedType}",
+                "General", DiagnosticSeverity.Warning, true),
+            propertyContext.Property.Locations.FirstOrDefault()));
+    }
+
     private void EvaluateChoices(SinglePropertyEvaluationContext propertyEvaluationContext,
         TranslatedMemberAttributeData memberAttributeData)
     {
@@ -329,7 +426,7 @@ internal class StepContextBuilderOperation
         var nameCandidate = memberAttributeData.ChoicesSource ?? $"{propertyEvaluationContext.Property.Name}Choices";
         var isGuess = memberAttributeData.ChoicesSource == null;
 
-        TypeFieldMethodPropertySpecifiations spec = new(EnumerableOfTypeSpec(propertyEvaluationContext.Type));
+        TypeFieldMethodPropertySpecifications spec = new(EnumerableOfTypeSpec(propertyEvaluationContext.Type));
 
         var candidates = TargetType
             .GetMembers()
@@ -344,8 +441,6 @@ internal class StepContextBuilderOperation
             {
                 
                 string? choiceInvalidText = null;
-
-                
 
                 ChoiceSourceType choiceSourceType = default;
 
@@ -434,8 +529,8 @@ internal class StepContextBuilderOperation
         SinglePropertyEvaluationContext propertyContext)
     {
         var selectionSource = memberAttributeData.SelectionSource ?? $"{propertyContext.Property.Name}Source";
-        TypeFieldMethodPropertySpecifiations specs =
-            new TypeFieldMethodPropertySpecifiations(EnumerableOfTypeSpec(propertyContext.GetSingleType().type));
+        TypeFieldMethodPropertySpecifications specs =
+            new TypeFieldMethodPropertySpecifications(EnumerableOfTypeSpec(propertyContext.GetSingleType().type));
             
         var match = TargetType
             .GetAllMembers()
@@ -924,11 +1019,11 @@ internal class StepContextBuilderOperation
         }
     }
 
-    public class TypeFieldMethodPropertySpecifiations
+    public class TypeFieldMethodPropertySpecifications
     {
         private readonly Specification<ITypeSymbol> _type;
 
-        public TypeFieldMethodPropertySpecifiations(Specification<ITypeSymbol> type)
+        public TypeFieldMethodPropertySpecifications(Specification<ITypeSymbol> type)
         {
             _type = type;
 

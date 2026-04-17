@@ -1,4 +1,5 @@
-﻿namespace AutoSpectre.SourceGeneration;
+﻿// ReSharper disable InconsistentNaming
+namespace AutoSpectre.SourceGeneration;
 
 public static class DiagnosticIds
 {
@@ -25,4 +26,6 @@ public static class DiagnosticIds
     public const string Id0025_DefaultValueSource_NotFound = "AutoSpectre_JJK025";
     public const string Id0026_NoSelectionSource = "AutoSpectre_JJK0026";
     public const string Id0027_NoConstructor = "AutoSpectre_JJK027";
+    public const string Id0028_CancelResult_NotFound = "AutoSpectre_JJK028";
+    public const string Id0029_CancelResult_NotValid = "AutoSpectre_JJK029";
 }

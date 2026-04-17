@@ -4,6 +4,23 @@ using Microsoft.CodeAnalysis.CSharp;
 
 namespace AutoSpectre.SourceGeneration.Extensions.Specification;
 
+public class TypeSpecification<T> : Specification<T> where T : ITypeSymbol
+{
+    public ITypeSymbol TypeSymbol { get; }
+    public SymbolEqualityComparer SymbolEqualityComparer { get; }
+
+    public TypeSpecification(ITypeSymbol typeSymbol, SymbolEqualityComparer? comparer)
+    {
+        TypeSymbol = typeSymbol;
+        SymbolEqualityComparer = comparer ?? SymbolEqualityComparer.Default;
+    }
+    
+    public override bool IsSatisfiedBy(T obj)
+    {
+        return obj.Equals(TypeSymbol, SymbolEqualityComparer);
+    }
+}
+
 public class EnumerableSpecification<T> : Specification<T> where T : ITypeSymbol
 {
     public ITypeSymbol? Type { get; set; }

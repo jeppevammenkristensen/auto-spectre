@@ -62,4 +62,9 @@ public class SelectPromptAttribute : AutoSpectreStepAttribute
     /// Set this to override the default placeholder text displayed for search
     /// </summary>
     public string? SearchPlaceholderText { get; set; }
+    
+    /// <summary>
+    /// Sets the result or the Func to return when the user cancels the selection
+    /// </summary>
+    public string? CancelResult { get; set; }
 }

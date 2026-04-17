@@ -5,7 +5,9 @@
     <LangVersion>latest</LangVersion>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <Description>Classes used by the AutoSpectre.SourceGeneration package</Description>
-    <PackageReleaseNotes>AutoSpectre now directly references the source generator and analyzers. </PackageReleaseNotes>
+    <PackageReleaseNotes>
+      - Added support for CancelResult in SelectPrompts
+    </PackageReleaseNotes>
     <PackageIcon>ghost.png</PackageIcon>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
