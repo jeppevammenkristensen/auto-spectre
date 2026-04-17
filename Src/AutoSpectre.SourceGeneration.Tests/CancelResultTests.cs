@@ -38,6 +38,31 @@ public class CancelResultTests : AutoSpectreGeneratorTestsBase
                              """).OutputShouldContain($".AddCancelResult({call})");
     }
 
+    [Theory]
+    [InlineData("First")]
+    [InlineData("Another")]
+    [InlineData("SomePropertyName")]
+    public void CancelResultConventionIsDerivedFromPropertyName(string propertyName)
+    {
+        GetOutput($$"""
+                    using AutoSpectre;
+                    using System.Collections.Generic;
+
+                    namespace Test;
+
+                    [AutoSpectreForm]
+                    public class TestForm
+                    {
+                         [SelectPrompt]
+                         public string {{propertyName}} {get;set;}
+
+                         public List<string> {{propertyName}}Source => new();
+
+                         public string {{propertyName}}CancelResult => string.Empty;
+                    }
+                    """).OutputShouldContain($".AddCancelResult(form.{propertyName}CancelResult)");
+    }
+
     [Fact]
     public void CancelResultAddedThroughExplicitName()
     {
