@@ -1,5 +1,9 @@
 # Releases
 
+## 0.13.0
+
+* Added support for new CancelResult in AutoSpectre
+
 ## 0.12.0
 
 * IMPORTANT: From this version and forward. The AutoSpectre.SourceGeneration package will be integrated directly into AutoSpectre, so you only need to install AutoSpectre. In a near future the AutoSpectre.SourceGeneration nuget package will be made obsolete

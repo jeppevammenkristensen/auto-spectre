@@ -32,6 +32,10 @@ public static class SpecificationRecipes
     public static EnumerableSpecification<ITypeSymbol> EnumerableOfTypeSpec(ITypeSymbol typeSymbol) =>
         new EnumerableSpecification<ITypeSymbol>()
             .WithUnderlyingType(typeSymbol);
+
+    public static TypeSpecification<ITypeSymbol> OfTypeSpec(ITypeSymbol typeSymbol,
+        SymbolEqualityComparer? comparer = null)
+        => new TypeSpecification<ITypeSymbol>(typeSymbol, comparer);
     
     /// <summary>
     /// Returns a <see cref="Specification{T}"/> that evaluates if a given symbol is Public and an Instance

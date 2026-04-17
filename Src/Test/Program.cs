@@ -13,7 +13,7 @@ namespace Test
         public static async Task Main()
         {
             var result = SpectreFactory.GetSpectreFactory_Test_SClass();
-            await result.PromptAsync(new SClass("Jeppe Roi Kristensen"));
+            var m = await result.PromptAsync(new SClass("Jeppe Roi Kristensen"));
         }
     }
 
@@ -39,7 +39,23 @@ namespace Test
         
         [TextPrompt]
         public bool Abort { get; set; }
+        
+        [SelectPrompt(Source = nameof(SomePromptSource))]
+        public string SomePrompt { get; set; }
+        
+         public List<string?> SomePromptSource => ["Jeppe", "Roo"];
+         public static string SomePromptCancelResult => "[empty]";        
+         
+         [SelectPrompt(Source = nameof(OtherPromptSource), CancelResult = nameof(OtherPromptCancelResult))]
+         public List<string> OtherPrompt { get; set; }
+         public List<string> OtherPromptSource = ["Jeppe", "Poul", "Mikkel"];
+         public List<string> OtherPromptCancelResult(string name) => ["Jeppe"];
 
+        [TaskStep]
+        public void DoIt(IAnsiConsole console)
+        {
+            console.MarkupLineInterpolated($"[dim]{SomePrompt}[/]");
+        }
 
 
         [Break(Condition = nameof(Abort))]

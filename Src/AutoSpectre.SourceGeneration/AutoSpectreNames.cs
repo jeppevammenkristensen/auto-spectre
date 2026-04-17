@@ -31,6 +31,7 @@ public const string InstructionsText = "InstructionsText";
 public const string HighlightStyle = "HighlightStyle";
 public const string SearchEnabled = "SearchEnabled";
 public const string SearchPlaceholderText = "SearchPlaceholderText";
+public const string CancelResult = "CancelResult";
 }
 public class TaskStepAttributeNames
 {

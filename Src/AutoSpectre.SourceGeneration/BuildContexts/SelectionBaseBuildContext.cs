@@ -53,6 +53,16 @@ internal abstract class SelectionBaseBuildContext : PromptBuilderContextWithProp
     {
         return GetStaticOrInstancePrepend(Context.ConfirmedSelectionSource!.IsStatic);
     }
+    
+    protected string GenerateCancel()
+    {
+        if (Context.ConfirmedCancelResult is { } confirmed)
+        {
+            return $".AddCancelResult({GetStaticOrInstancePrepend(confirmed.IsStatic)}.{confirmed.Name})";
+        }
+
+        return string.Empty;
+    }
 
     protected string GetSelector() => Context.ConfirmedSelectionSource!.Source switch
     {

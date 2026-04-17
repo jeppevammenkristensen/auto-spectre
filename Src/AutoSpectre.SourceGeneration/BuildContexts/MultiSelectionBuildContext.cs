@@ -53,6 +53,7 @@ new MultiSelectionPrompt<{type}>()
 {GenerateHighlightStyle()}
 {GenerateWrapAround()}
 {GenerateMoreChoicesText()}
+{GenerateCancel()}
 {GenerateInstructionsText()}
 .AddChoices({GetChoicePrepend()}.{GetSelector()}.ToArray()))
 """;

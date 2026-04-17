@@ -56,7 +56,13 @@ public abstract class PromptBuildContext
     {
         return Enumerable.Empty<string>();
     }
-    
+
+
+    /// <summary>
+    /// Gets the appropriate prepend string for accessing a static or instance member, using the form variable name.
+    /// </summary>
+    /// <param name="isStatic">Indicates whether the member is static or instance-based.</param>
+    /// <returns>A string containing the appropriate accessor prefix for static or instance members.</returns>
     protected string GetStaticOrInstancePrepend(bool isStatic)
     {
         return CodeBuildConstants.FormName.GetStaticOrInstance(Context.TargetType.FullName(), isStatic);
