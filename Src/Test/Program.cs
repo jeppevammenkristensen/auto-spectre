@@ -46,10 +46,10 @@ namespace Test
          public List<string?> SomePromptSource => ["Jeppe", "Roo"];
          public static string SomePromptCancelResult => "[empty]";        
          
-         [SelectPrompt(Source = nameof(OtherPromptSource), CancelResult = nameof(OtherPromptCancelResult))]
+         [SelectPrompt(Source = nameof(OtherPromptSource))]
          public List<string> OtherPrompt { get; set; }
-         public List<string> OtherPromptSource = ["Jeppe", "Poul", "Mikkel"];
-         public List<string> OtherPromptCancelResult(string name) => ["Jeppe"];
+         public readonly List<string> OtherPromptSource = ["Jeppe", "Poul", "Mikkel"];
+         public List<string> OtherPromptCancelResult() => ["Jeppe"];
 
         [TaskStep]
         public void DoIt(IAnsiConsole console)
