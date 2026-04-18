@@ -3,14 +3,10 @@
 #:package AutoSpectre@0.12.0
 #:property PublishAot=false 
 using Spectre.Console.Cli;
-using TruePath;
 using Spectre.Console;
 using FileBasedApp.Toolkit;
-using FileBasedApp.Toolkit.SimpleExec;
 using System.IO.Abstractions;
 using AutoSpectre;
-using CustomNamespace;
-using TruePath.TestableIO.System.IO;
 using FileBasedApp.Toolkit.CommandCli;
 using FileBasedApp.Toolkit.Dotnet;
 
@@ -99,25 +95,22 @@ public class RunCommand : AsyncCommand<RunCommand.Settings> // For sync only you
     }
 }
 
-namespace CustomNamespace
+[AutoSpectreForm]
+
+public class Prompt
 {
-    [AutoSpectreForm]
-
-    public class Prompt
+    public Prompt(string source)
     {
-        public Prompt(string source)
-        {
-            Source = source;
-        }
-
-        public bool SourceCondition() => string.IsNullOrWhiteSpace(Source);
-
-        [SelectPrompt] public string? Source { get; set; }
-
-        public string[] SourceSource = ["local", "github", "nuget"];
-
-        [TextPrompt(Secret = true)] public string ApiKey { get; set; }
-
-        public bool ApiKeyCondition() => Source == "nuget";
+        Source = source;
     }
+
+    public bool SourceCondition() => string.IsNullOrWhiteSpace(Source);
+
+    [SelectPrompt] public string? Source { get; set; }
+
+    public string[] SourceSource = ["local", "github", "nuget"];
+
+    [TextPrompt(Secret = true)] public string ApiKey { get; set; }
+
+    public bool ApiKeyCondition() => Source == "nuget";
 }
