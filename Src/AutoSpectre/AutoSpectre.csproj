@@ -26,7 +26,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Spectre.Console" Version="0.55.0" />
+    <PackageReference Include="Spectre.Console" Version="0.55.2" />
   </ItemGroup>
 
   <!-- Embed the source generator into this package so consumers only need to reference AutoSpectre -->

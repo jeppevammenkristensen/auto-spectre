@@ -15,7 +15,7 @@ public static class Extensions
         object? effectiveForeground = null;
         object? effectiveBackground = null;
         string? effectiveLink = null;
-        string error = null;
+        string? error = null;
 
         var parts = text.Split(new[] {' '});
         var foreground = true;
