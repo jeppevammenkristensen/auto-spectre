@@ -253,6 +253,7 @@ internal class StepContextBuilderOperation
         {
             EvaluateNamedType(propertyContext, memberAttributeData);
             EvaluateDefaultValue(propertyContext, memberAttributeData);
+            EvaluateEditableDefaultValue(propertyContext, memberAttributeData);
             EvaluatePromptStyle(propertyContext, memberAttributeData);
             EvaluateValidation(propertyContext, memberAttributeData);
             EvaluateChoices(propertyContext,memberAttributeData);
@@ -716,6 +717,27 @@ internal class StepContextBuilderOperation
                     propertyContext.Property.Locations.FirstOrDefault()));
             }
         }
+    }
+
+    private void EvaluateEditableDefaultValue(SinglePropertyEvaluationContext propertyContext,
+        TranslatedMemberAttributeData memberAttributeData)
+    {
+        if (!memberAttributeData.EditableDefaultValue)
+            return;
+
+        if (propertyContext.ConfirmedDefaultValue is not null &&
+            propertyContext.Type.SpecialType != SpecialType.System_Boolean)
+        {
+            return;
+        }
+
+        ProductionContext.ReportDiagnostic(Diagnostic.Create(
+            new(DiagnosticIds.Id0030_EditableDefaultValue_Ignored,
+                "EditableDefaultValue has no effect",
+                "EditableDefaultValue requires a TextPrompt with a resolvable DefaultValue. " +
+                "It is ignored on bool properties (ConfirmationPrompt) or when no DefaultValueSource resolves.",
+                "General", DiagnosticSeverity.Warning, true),
+            propertyContext.Property.Locations.FirstOrDefault()));
     }
 
     /// <summary>

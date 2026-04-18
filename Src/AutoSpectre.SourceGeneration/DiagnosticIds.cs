@@ -28,4 +28,5 @@ public static class DiagnosticIds
     public const string Id0027_NoConstructor = "AutoSpectre_JJK027";
     public const string Id0028_CancelResult_NotFound = "AutoSpectre_JJK028";
     public const string Id0029_CancelResult_NotValid = "AutoSpectre_JJK029";
+    public const string Id0030_EditableDefaultValue_Ignored = "AutoSpectre_JJK030";
 }

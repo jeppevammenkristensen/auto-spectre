@@ -325,6 +325,19 @@ The style can be controlled by setting the `DefaultValueStyle`
 
 Default value is only currently used for single items (not enumerables)
 
+##### EditableDefaultValue
+
+Setting `EditableDefaultValue = true` pre-injects the resolved `DefaultValueSource` into the input line so the user can edit it instead of retyping. Maps to Spectre.Console's `TextPrompt<T>.EditableDefaultValue`.
+
+```csharp
+[TextPrompt(DefaultValueSource = nameof(FirstNameDefaultValue), EditableDefaultValue = true)]
+public string FirstName { get; set; } = string.Empty;
+
+public string FirstNameDefaultValue => "John Doe";
+```
+
+The flag is silently ignored on bool properties (which generate a `ConfirmationPrompt`) and when no `DefaultValueSource` resolves — in both cases the source generator emits warning `AutoSpectre_JJK030`.
+
 #### IEnumerable types
 
 In the case of a `TextPromptAttribute` and an `IEnumerable<T>` value. The rules above will be applied to a single type, and after collecting input the user will be prompted if the want's to continue.
@@ -358,6 +371,22 @@ Other interesting attribute properties are:
 * InstructionsText (only for multiselect). This is custom text to guide them to select mulitiple items
 * HighlightStyle
 * EnableSearch ( and SearchPlaceholderText). This will enable search to limit displayed drop down values. The SearchPlaceholderText can control the search help text being displayed-
+
+#### CancelResult
+
+Use the `CancelResult` property to point at a source (method with no parameters, property, or field — public, instance or static) that supplies a sentinel value returned when the selection is cancelled. Maps to Spectre.Console's `SelectionPrompt<T>.AddCancelResult`.
+
+By convention a member named `{PropertyName}CancelResult` with a matching return type is picked up automatically without setting the attribute property. See [CancelResult convention](#cancelresult-1).
+
+```csharp
+[SelectPrompt(CancelResult = nameof(OverrideCancel))]
+public string MenuChoice { get; set; } = string.Empty;
+
+public List<string> MenuChoiceSource => new() { "Start", "Settings" };
+public string OverrideCancel => "Cancelled";
+```
+
+When the referenced member is missing or has the wrong shape the source generator emits `AutoSpectre_JJK028` / `AutoSpectre_JJK029`.
 
 ## The method attribute
 
@@ -760,6 +789,18 @@ public bool FirstNameCondition => true;
 public string NegatePrompt { get; set; }
 
 public bool NegatePromptCondition => false;
+```
+
+### CancelResult
+
+You can leave out the `CancelResult` on a `SelectPromptAttribute` if you have a member named `{PropertyName}CancelResult` (method with no parameters, property, or field — public, instance or static) that returns the property type.
+
+```csharp
+[SelectPrompt]
+public string MenuChoice { get; set; } = string.Empty;
+
+public List<string> MenuChoiceSource => new() { "Start", "Settings" };
+public string MenuChoiceCancelResult => "Cancelled";
 ```
 
 ## Factories

@@ -34,6 +34,12 @@ namespace Test
             _firstName = firstName;
         }
 
+        [TextPrompt(EditableDefaultValue = true, DefaultValueSource = nameof(SomeValueDefaultValueSource))]
+        public string SomeValue { get; set; }
+
+        public string SomeValueDefaultValueSource() => "Angry";
+        
+        
         [TextPrompt(Title = "Enter date", DefaultValueSource = nameof(DateDefault))]
         public DateOnly Date { get; set; }
         
@@ -51,12 +57,7 @@ namespace Test
          public readonly List<string> OtherPromptSource = ["Jeppe", "Poul", "Mikkel"];
          public List<string> OtherPromptCancelResult() => ["Jeppe"];
 
-        [TaskStep]
-        public void DoIt(IAnsiConsole console)
-        {
-            console.MarkupLineInterpolated($"[dim]{SomePrompt}[/]");
-        }
-
+        
 
         [Break(Condition = nameof(Abort))]
         public void AbortMethod(IAnsiConsole console)

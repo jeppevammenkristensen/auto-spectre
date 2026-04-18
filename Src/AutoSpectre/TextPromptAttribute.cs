@@ -104,4 +104,11 @@ public class TextPromptAttribute : AutoSpectreStepAttribute
     /// This is only relevant if the type of the proeprty is an enum
     /// </summary>
     public string? SearchPlaceholderText { get; set; }
+
+    /// <summary>
+    /// When true and a <see cref="DefaultValueSource"/> resolves, the default value is pre-injected
+    /// into the text field so the user can edit it instead of retyping. Only applies to TextPrompt;
+    /// ignored (with a warning) on bool properties that emit a ConfirmationPrompt.
+    /// </summary>
+    public bool EditableDefaultValue { get; set; }
 }
