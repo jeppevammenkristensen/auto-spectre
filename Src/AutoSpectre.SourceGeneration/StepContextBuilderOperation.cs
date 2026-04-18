@@ -835,7 +835,7 @@ internal class StepContextBuilderOperation
     {
         var type = evaluationContext.IsEnumerable ? evaluationContext.UnderlyingType : evaluationContext.Type;
 
-        if (type.SpecialType == SpecialType.System_Boolean)
+        if (type!.SpecialType == SpecialType.System_Boolean)
         {
             return new ConfirmPromptBuildContext(memberAttributeData.Title, evaluationContext.IsNullable,
                 evaluationContext);
