@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using FluentAssertions;
+using Microsoft.CodeAnalysis;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -136,11 +137,94 @@ public class DefaultValueGeneratorTests : AutoSpectreGeneratorTestsBase
                     {
                          [TextPrompt(DefaultValueSource=nameof(DefaultValueSource))]
                          public List<string> Property {get;set;} = "Jeppe"
-                         
+
                          {{ source }}
                     }
                     """).OutputShouldContain(expected);
     }
 
-   
+    [Fact]
+    public void EditableDefaultValueEmittedWhenDefaultResolves()
+    {
+        GetOutput($$"""
+                    using AutoSpectre;
+                    using System.Collections.Generic;
+
+                    namespace Test;
+
+                    [AutoSpectreForm]
+                    public class TestForm
+                    {
+                         [TextPrompt(DefaultValueSource=nameof(PropertyDefault), EditableDefaultValue=true)]
+                         public string Property {get;set;}
+
+                         public string PropertyDefault => "Jeppe";
+                    }
+                    """)
+            .OutputShouldContain(".DefaultValue(form.PropertyDefault)")
+            .OutputShouldContain(".EditableDefaultValue(true)")
+            .HasNoSourceGeneratorDiagnosticWith(DiagnosticIds.Id0030_EditableDefaultValue_Ignored);
+    }
+
+    [Fact]
+    public void EditableDefaultValueFalseByDefault()
+    {
+        var output = GetOutput($$"""
+                    using AutoSpectre;
+                    using System.Collections.Generic;
+
+                    namespace Test;
+
+                    [AutoSpectreForm]
+                    public class TestForm
+                    {
+                         [TextPrompt(DefaultValueSource=nameof(PropertyDefault))]
+                         public string Property {get;set;}
+
+                         public string PropertyDefault => "Jeppe";
+                    }
+                    """);
+        output.Output.Should().NotContain(".EditableDefaultValue");
+    }
+
+    [Fact]
+    public void EditableDefaultValueWithoutDefaultSourceReportsDiagnostic()
+    {
+        var output = GetOutput($$"""
+                    using AutoSpectre;
+                    using System.Collections.Generic;
+
+                    namespace Test;
+
+                    [AutoSpectreForm]
+                    public class TestForm
+                    {
+                         [TextPrompt(EditableDefaultValue=true)]
+                         public string Property {get;set;}
+                    }
+                    """)
+            .ShouldHaveSourceGeneratorDiagnosticOnlyOnce(DiagnosticIds.Id0030_EditableDefaultValue_Ignored);
+        output.Output.Should().NotContain(".EditableDefaultValue");
+    }
+
+    [Fact]
+    public void EditableDefaultValueOnBoolReportsDiagnostic()
+    {
+        var output = GetOutput($$"""
+                    using AutoSpectre;
+                    using System.Collections.Generic;
+
+                    namespace Test;
+
+                    [AutoSpectreForm]
+                    public class TestForm
+                    {
+                         [TextPrompt(EditableDefaultValue=true)]
+                         public bool Property {get;set;}
+                    }
+                    """)
+            .ShouldHaveSourceGeneratorDiagnosticOnlyOnce(DiagnosticIds.Id0030_EditableDefaultValue_Ignored)
+            .OutputShouldContain("new ConfirmationPrompt");
+        output.Output.Should().NotContain(".EditableDefaultValue");
+    }
 }

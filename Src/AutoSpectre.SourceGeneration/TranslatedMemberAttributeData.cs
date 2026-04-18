@@ -68,7 +68,8 @@ public class TranslatedMemberAttributeData
         string? choicesInvalidText,
         string? defaultValue,
         bool? searchEnabled,
-        string? searchPlaceholderText)
+        string? searchPlaceholderText,
+        bool editableDefaultValue)
     {
         return new(askType: AskTypeCopy.Normal,
             selectionSource: null,
@@ -78,7 +79,7 @@ public class TranslatedMemberAttributeData
             condition: condition,
             conditionNegated: conditionNegated,
             searchEnabled: searchEnabled,
-            searchPlaceholderText: searchPlaceholderText, 
+            searchPlaceholderText: searchPlaceholderText,
             cancelResult: null)
         {
             Secret = secret,
@@ -89,7 +90,8 @@ public class TranslatedMemberAttributeData
             ChoicesSource = choiceSource,
             ChoicesStyle = choicesStyle,
             ChoicesInvalidText = choicesInvalidText,
-            DefaultValue = defaultValue
+            DefaultValue = defaultValue,
+            EditableDefaultValue = editableDefaultValue
         };
     }
 
@@ -106,6 +108,8 @@ public class TranslatedMemberAttributeData
     public char? Mask { get; set; }
 
     public bool Secret { get; set; }
+
+    public bool EditableDefaultValue { get; set; }
 
     public static TranslatedMemberAttributeData SelectPrompt(string title, string? selectionSource, string? converter,
         string? condition, bool conditionNegated, int? pageSize, bool? wrapAround, string? moreChoicesText,

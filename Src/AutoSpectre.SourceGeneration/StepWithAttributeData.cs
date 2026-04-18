@@ -93,6 +93,8 @@ public class StepWithAttributeData
             var searchPlaceholderText =
                 attributeData.GetAttributePropertyValue<string?>(SelectPromptAttributeNames.SearchPlaceholderText) ??
                 null;
+            var editableDefaultValue =
+                attributeData.GetAttributePropertyValue<bool>(TextPromptAttributeNames.EditableDefaultValue);
 
 
             TranslatedMemberAttribute = TranslatedMemberAttributeData.TextPrompt(title,
@@ -107,9 +109,10 @@ public class StepWithAttributeData
                 choicesSource,
                 choicesStyle,
                 choicesInvalidText,
-                defaultValueSource, 
-                searchEnabled, 
-                searchPlaceholderText);
+                defaultValueSource,
+                searchEnabled,
+                searchPlaceholderText,
+                editableDefaultValue);
         }
         
         else if (attributeData.AttributeClass.Name == SelectPromptAttributeNames.AttributeName)

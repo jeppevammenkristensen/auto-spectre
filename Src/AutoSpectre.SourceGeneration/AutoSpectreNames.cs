@@ -53,6 +53,7 @@ public const string ChoicesStyle = "ChoicesStyle";
 public const string ChoicesInvalidText = "ChoicesInvalidText";
 public const string SearchEnabled = "SearchEnabled";
 public const string SearchPlaceholderText = "SearchPlaceholderText";
+public const string EditableDefaultValue = "EditableDefaultValue";
 }
 
 public class UsedConstructorAttributeNames
