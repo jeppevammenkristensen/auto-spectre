@@ -4,6 +4,7 @@
 
 * Added support for new CancelResult in AutoSpectre
 * Added support for `EditableDefaultValue` on `TextPromptAttribute`. When set alongside a `DefaultValueSource`, the default is pre-injected into the input field so the user can edit it instead of retyping. Emits diagnostic `AutoSpectre_JJK030` when used without a resolvable default or on a bool property (which becomes a `ConfirmationPrompt`).
+* Added support for `ClearOnFinish``on `TextPromptAttribute`.w
 
 ## 0.12.0
 

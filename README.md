@@ -338,6 +338,15 @@ public string FirstNameDefaultValue => "John Doe";
 
 The flag is silently ignored on bool properties (which generate a `ConfirmationPrompt`) and when no `DefaultValueSource` resolves — in both cases the source generator emits warning `AutoSpectre_JJK030`.
 
+##### ClearOnFinish
+
+Settings `ClearOnFinish = true` will clear the input line after the user has finished entering the value.
+
+```csharp
+[TextPrompt(ClearOnFinish = true]
+public string FirstName { get; set; } = string.Empty;
+```
+
 #### IEnumerable types
 
 In the case of a `TextPromptAttribute` and an `IEnumerable<T>` value. The rules above will be applied to a single type, and after collecting input the user will be prompted if the want's to continue.

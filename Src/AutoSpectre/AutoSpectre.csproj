@@ -8,6 +8,7 @@
     <PackageReleaseNotes>
       - Added support for CancelResult in SelectPrompts
       - Added support for EditableDefaultValue on TextPrompt (pre-injects the resolved DefaultValue into the input line so the user can edit instead of retyping)
+      - Added support for ClearOnFinish
     </PackageReleaseNotes>
     <PackageIcon>ghost.png</PackageIcon>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>
