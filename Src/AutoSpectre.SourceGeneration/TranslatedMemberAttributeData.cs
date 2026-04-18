@@ -69,7 +69,8 @@ public class TranslatedMemberAttributeData
         string? defaultValue,
         bool? searchEnabled,
         string? searchPlaceholderText,
-        bool editableDefaultValue)
+        bool editableDefaultValue,
+        bool clearOnFinish)
     {
         return new(askType: AskTypeCopy.Normal,
             selectionSource: null,
@@ -91,9 +92,12 @@ public class TranslatedMemberAttributeData
             ChoicesStyle = choicesStyle,
             ChoicesInvalidText = choicesInvalidText,
             DefaultValue = defaultValue,
-            EditableDefaultValue = editableDefaultValue
+            EditableDefaultValue = editableDefaultValue,
+            ClearOnFinish = clearOnFinish,
         };
     }
+
+    public bool ClearOnFinish { get; set; }
 
     public string? ChoicesInvalidText { get; set; }
 
