@@ -6,9 +6,11 @@
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <Description>Classes used by the AutoSpectre.SourceGeneration package</Description>
     <PackageReleaseNotes>
+      - Upgraded Spectre.Console dependency to 0.55.2
       - Added support for CancelResult in SelectPrompts
       - Added support for EditableDefaultValue on TextPrompt (pre-injects the resolved DefaultValue into the input line so the user can edit instead of retyping)
       - Added support for ClearOnFinish
+      - Fixed bug where forms declared outside any namespace emitted invalid "namespace &lt;global namespace&gt;" in the generated code
     </PackageReleaseNotes>
     <PackageIcon>ghost.png</PackageIcon>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>

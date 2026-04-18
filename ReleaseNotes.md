@@ -2,9 +2,11 @@
 
 ## 0.13.0
 
+* Upgraded `Spectre.Console` dependency to 0.55.2.
 * Added support for new CancelResult in AutoSpectre
 * Added support for `EditableDefaultValue` on `TextPromptAttribute`. When set alongside a `DefaultValueSource`, the default is pre-injected into the input field so the user can edit it instead of retyping. Emits diagnostic `AutoSpectre_JJK030` when used without a resolvable default or on a bool property (which becomes a `ConfirmationPrompt`).
 * Added support for `ClearOnFinish` on `TextPromptAttribute`
+* Fixed bug where a form class declared outside any namespace (e.g. in a top-level/file-based program) produced invalid generated code containing `namespace <global namespace>`. The generator now emits the factory at top level and skips the `using <namespace>;` directive in the partial `SpectreFactory`.
 
 ## 0.12.0
 
