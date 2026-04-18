@@ -16,4 +16,5 @@
   </Folder>
   <Project Path="AutoSpectre/AutoSpectre.csproj" />
   <Project Path="Test/Test.csproj" />
+  <Project Path="Test2/Test2.csproj" />
 </Solution>
