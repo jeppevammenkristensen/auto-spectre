@@ -5,7 +5,7 @@
     <RepositoryUrl>https://github.com/jeppevammenkristensen/auto-spectre</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <VersionPrefix>0.13.0</VersionPrefix>
-    <VersionSuffix>alpha-02</VersionSuffix>
+    <VersionSuffix>alpha-03</VersionSuffix>
     
   </PropertyGroup>
 </Project>
