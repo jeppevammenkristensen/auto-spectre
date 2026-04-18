@@ -111,4 +111,9 @@ public class TextPromptAttribute : AutoSpectreStepAttribute
     /// ignored (with a warning) on bool properties that emit a ConfirmationPrompt.
     /// </summary>
     public bool EditableDefaultValue { get; set; }
+    
+    /// <summary>
+    /// When true, the text field is cleared after the user has finished entering text.
+    /// </summary>
+    public bool ClearOnFinish { get; set; }
 }

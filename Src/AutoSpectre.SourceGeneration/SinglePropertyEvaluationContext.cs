@@ -355,6 +355,8 @@ public class SinglePropertyEvaluationContext : IConditionContext
     /// </summary>
     public ConfirmedCancelResult? ConfirmedCancelResult { get; set; }
 
+    public ConfirmedClearOnFinish? ConfirmedClearOnFinish { get; set; }
+
 
     /// <summary>
     /// Creates a new <see cref="SinglePropertyEvaluationContext"/> from the given property symbol,

@@ -254,6 +254,7 @@ internal class StepContextBuilderOperation
             EvaluateNamedType(propertyContext, memberAttributeData);
             EvaluateDefaultValue(propertyContext, memberAttributeData);
             EvaluateEditableDefaultValue(propertyContext, memberAttributeData);
+            EvaluateClearOnFinish(propertyContext, memberAttributeData);
             EvaluatePromptStyle(propertyContext, memberAttributeData);
             EvaluateValidation(propertyContext, memberAttributeData);
             EvaluateChoices(propertyContext,memberAttributeData);
@@ -317,6 +318,14 @@ internal class StepContextBuilderOperation
                 // Diagnostic should have been added before this point
                 return;
             }
+        }
+    }
+
+    private void EvaluateClearOnFinish(SinglePropertyEvaluationContext propertyContext, TranslatedMemberAttributeData memberAttributeData)
+    {
+        if (memberAttributeData.ClearOnFinish)
+        {
+            propertyContext.ConfirmedClearOnFinish = new ConfirmedClearOnFinish();
         }
     }
 

@@ -46,6 +46,7 @@ internal class TextPromptBuildContext : PromptBuilderContextWithPropertyContext
         BuildCulture(builder);
 
         BuildSecret(builder);
+        BuildClearsOnEnter(builder);
         BuildDefaultValue(builder);
         BuildPromptStyle(builder);
         BuildChoices(builder);
@@ -133,6 +134,14 @@ internal class TextPromptBuildContext : PromptBuilderContextWithPropertyContext
     }
 
 
+    private void BuildClearsOnEnter(StringBuilder builder)
+    {
+        if (Context.ConfirmedClearOnFinish is { })
+        {
+            builder.AppendLine(".ClearOnFinish()");
+        }
+    }
+    
     private void BuildSecret(StringBuilder builder)
     {
         if (_memberAttributeData.Secret)

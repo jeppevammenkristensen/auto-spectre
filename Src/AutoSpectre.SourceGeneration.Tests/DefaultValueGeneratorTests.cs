@@ -5,6 +5,31 @@ using Xunit.Abstractions;
 
 namespace AutoSpectre.SourceGeneration.Tests;
 
+public class ClearOnFinishGeneratorTests : AutoSpectreGeneratorTestsBase
+{
+    public ClearOnFinishGeneratorTests(ITestOutputHelper helper) : base(helper)
+    {
+    }
+    
+    [Fact]
+    public void ClearOnFinishEmittedWhenTrue()
+    {
+        GetOutput($$"""
+                    using AutoSpectre;
+                    using System.Collections.Generic;
+
+                    namespace Test;
+
+                    [AutoSpectreForm]
+                    public class TestForm
+                    {
+                         [TextPrompt(ClearOnFinish=true)]
+                         public string Property {get;set;} = "Jeppe"
+                    }
+                    """).OutputShouldContain(".ClearOnFinish()");
+    }
+}
+
 public class DefaultValueGeneratorTests : AutoSpectreGeneratorTestsBase
 {
     public DefaultValueGeneratorTests(ITestOutputHelper helper) : base(helper)

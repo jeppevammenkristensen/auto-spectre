@@ -20,7 +20,7 @@ async Task Main()
 	var root = AbsolutePath.Create(Util.CurrentScriptPath) / ".." / "..";
 	var autoSpectrePath = root / "Src" / "AutoSpectre" / "AutoSpectre.csproj";
 	
-	var project = await CsharpProjectAnalysis.Init.Load(autoSpectrePath);
+	var project = await CSharpProjectAnalysis.Init.Load(autoSpectrePath);
 	var list = project.Compilation.GetNamedTypeSymbolForCurrentAssembly()
 		.Where(x => x.Name.EndsWith("Attribute") || x.Name == "AutoSpectreForm")				
 		.ToList();
