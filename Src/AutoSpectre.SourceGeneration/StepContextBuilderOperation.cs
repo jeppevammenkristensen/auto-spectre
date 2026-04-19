@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using AutoSpectre.SourceGeneration.BuildContexts;
 using AutoSpectre.SourceGeneration.Evaluation;
 using AutoSpectre.SourceGeneration.Extensions;
@@ -12,25 +13,147 @@ using static AutoSpectre.SourceGeneration.Extensions.Specification.Specification
 
 namespace AutoSpectre.SourceGeneration;
 
+
+public enum SourceAccessType
+{
+    PropertyOrField,
+    NoParameterInvocation
+}
+
+public class SourceEvaluation
+{
+    public bool Valid { get; }
+    public SourceAccessType AccessType { get; }
+    public ISymbol MatchedSymbol { get; }
+
+    // The two properties below are there to catch scenarios where the given type for instance CancelResult expects
+    // a enumerable value but there is a single value.
+    /// <summary>
+    /// Returns true if the target source is enumerable
+    /// </summary>
+    /// <remarks>For SelectionPrompt CancelResult this would return false. But for MultiSelectinPrompt it would be true</remarks>
+    public bool TargetIsEnumerable { get; }
+    public static SourceEvaluation False => new(false, default, null!, false);
+
+    public SourceEvaluation(bool valid, SourceAccessType accessType, ISymbol matchedSymbol, bool targetIsEnumerable)
+    {
+        Valid = valid;
+        AccessType = accessType;
+        MatchedSymbol = matchedSymbol;
+        TargetIsEnumerable = targetIsEnumerable;
+    }
+}
+
+internal static class SourceEvaluator
+{
+    public static SourceEvaluation EvaluateSource(ITypeSymbol targetType, SinglePropertyEvaluationContext propertyContext)
+    {
+        return EvaluateSource(targetType.GetMembers(), propertyContext);
+    }
+
+    /// <summary>
+    /// Evaluates a collection of symbol candidates to determine if any match the required type and property context criteria.
+    /// </summary>
+    /// <param name="candidates">The collection of symbols to evaluate, including methods, properties, and fields.</param>
+    /// <param name="propertyContext">The evaluation context containing type requirements and enumerable status for matching.</param>
+    /// <param name="shouldBeEnumerable">For enumerable. This is here for the TextPrompt scenario where you can have a list of values. But it's expected that the default value is single</param>
+    /// <returns>A SourceEvaluation indicating whether a matching source was found, its access type, and whether it represents a single value or collection.</returns>
+    public static SourceEvaluation EvaluateSource(IEnumerable<ISymbol> candidates,
+        SinglePropertyEvaluationContext propertyContext,
+        bool? shouldBeEnumerable = null)
+    {
+        foreach (var symbol in candidates.Where(IsPublic.And(
+                     MethodWithNoParametersSpec
+                         .Or(new FieldSpecification<ISymbol>())
+                         .Or(Check.Property<ISymbol>()))))
+        {
+            (ITypeSymbol typeSymbol, SourceAccessType accessType) = symbol switch
+            {
+                IMethodSymbol methodSymbol => (methodSymbol.ReturnType, SourceAccessType.NoParameterInvocation),
+                IPropertySymbol propertySymbol => (propertySymbol.Type, SourceAccessType.PropertyOrField),
+                IFieldSymbol fieldSymbol => (fieldSymbol.Type, SourceAccessType.PropertyOrField),
+                _ => throw new InvalidOperationException("This should not occur")
+            };
+            
+            if (propertyContext.IsEnumerable && shouldBeEnumerable is not false)
+            {
+                if (EnumerableOfTypeSpec(propertyContext.RequiredUnderlyingType) == typeSymbol)
+                {
+                    var targetIsEnumerable = propertyContext.IsEnumerable;
+                    if (shouldBeEnumerable is false)
+                    {
+                        targetIsEnumerable = false;
+                    }
+                    
+                    return new SourceEvaluation(true, accessType, symbol, targetIsEnumerable);
+                }
+                else
+                {
+                    if (OfTypeSpec(propertyContext.RequiredUnderlyingType) == typeSymbol)
+                    {
+                        return new SourceEvaluation(true, accessType, symbol, targetIsEnumerable: true);
+                    }
+                }
+            }
+            else
+            {
+                if (shouldBeEnumerable is false && propertyContext.IsEnumerable)
+                {
+                    if (OfTypeSpec(propertyContext.RequiredUnderlyingType) == typeSymbol)
+                    {
+                        return new SourceEvaluation(true, accessType,symbol, targetIsEnumerable: false);
+                        //propertyContext.ConfirmedCancelResult = new ConfirmedCancelResult(search.Value, CancelResultType.Value, symbol.IsStatic);
+                    }
+                    
+                }
+                else
+                {
+                    if (OfTypeSpec(propertyContext.Type) == typeSymbol)
+                    {
+                        return new SourceEvaluation(true, accessType,symbol, targetIsEnumerable: false);
+                        //propertyContext.ConfirmedCancelResult = new ConfirmedCancelResult(search.Value, CancelResultType.Value, symbol.IsStatic);
+                    }    
+                }
+                
+                
+                
+            }
+        }
+        
+        return SourceEvaluation.False;
+    }
+}
+
 internal class StepContextBuilderOperation
 {
     private readonly ConcurrentDictionary<INamedTypeSymbol, NamedTypedAnalysis> _analysedTypes =
         new (SymbolEqualityComparer.Default);
     
+    /// <summary>
+    /// The Roslyn syntax context for the <c>[AutoSpectreForm]</c>-decorated class being analysed.
+    /// </summary>
     public GeneratorAttributeSyntaxContext SyntaxContext { get; }
-    
+
     /// <summary>
     /// Methods or Properties on the <see cref="TargetType"/> that are
     /// candidates to have a prompt or task executed.
     /// </summary>
     public IReadOnlyList<StepWithAttributeData> StepCandidates { get; }
-    
+
     /// <summary>
     /// The target type (the type that has been decoreated with the AutoSpectreFormAttribute
     /// </summary>
     public INamedTypeSymbol TargetType { get; }
+
+    /// <summary>
+    /// The Roslyn source-production context used to emit diagnostics.
+    /// </summary>
     public SourceProductionContext ProductionContext { get; }
 
+    /// <summary>
+    /// Lazily-resolved well-known types from the compilation (e.g. <c>Task</c>, <c>IAnsiConsole</c>,
+    /// the AutoSpectre attribute symbols).
+    /// </summary>
     public LazyTypes Types { get; }
 
     internal StepContextBuilderOperation(
@@ -45,6 +168,9 @@ internal class StepContextBuilderOperation
         Types = new(SyntaxContext.SemanticModel.Compilation);
     }
 
+    /// <summary>
+    /// Convenience entry point: constructs an operation and returns the evaluated step contexts in one call.
+    /// </summary>
     public static List<IStepContext> GetStepContexts(
         GeneratorAttributeSyntaxContext syntaxContext,
         IReadOnlyList<StepWithAttributeData> candidates,
@@ -86,6 +212,10 @@ internal class StepContextBuilderOperation
         return result;
     }
 
+    /// <summary>
+    /// Processes a method-based step (TaskStep or Break): validates the signature, resolves condition and
+    /// status metadata, and appends a <see cref="MethodContext"/> to <paramref name="stepContexts"/>.
+    /// </summary>
     private void HandleMethod(IMethodSymbol method, TranslatedMemberAttributeData memberAttributeData, List<IStepContext> stepContexts, LazyTypes types)
     {
         if (!method.IsPublicInstance())
@@ -114,6 +244,10 @@ internal class StepContextBuilderOperation
             new TaskStepBuildContext(memberAttributeData.Title, singleMethodEvaluationContext)));
     }
 
+    /// <summary>
+    /// When <c>UseStatus</c> is set on the attribute, verifies the method does no prompting and that a
+    /// <c>StatusText</c> is supplied, then records the confirmed status (plus spinner style/type).
+    /// </summary>
     private void EvaluateStatus(TranslatedMemberAttributeData memberAttributeData, SingleMethodEvaluationContext singleMethodEvaluationContext)
     {
         if (memberAttributeData.UseStatus == false)
@@ -150,6 +284,9 @@ internal class StepContextBuilderOperation
         }
     }
 
+    /// <summary>
+    /// Copies the <c>SpinnerType</c> attribute value onto the method evaluation context, when set.
+    /// </summary>
     private void EvaluateSpinnerType(TranslatedMemberAttributeData memberAttributeData, SingleMethodEvaluationContext singleMethodEvaluationContext)
     {
         if (memberAttributeData.SpinnerType is { })
@@ -158,6 +295,10 @@ internal class StepContextBuilderOperation
         }
     }
 
+    /// <summary>
+    /// Validates the <c>SpinnerStyle</c> attribute value against Spectre's style syntax and records it;
+    /// reports <c>Id0019_SpinnerStyleNotValid</c> when the value is malformed.
+    /// </summary>
     private void EvaluateSpinnerStyle(TranslatedMemberAttributeData memberAttributeData, SingleMethodEvaluationContext singleMethodEvaluationContext)
     {
         if (memberAttributeData.SpinnerStyle is { } style)
@@ -232,6 +373,11 @@ internal class StepContextBuilderOperation
         return null;
     }
 
+    /// <summary>
+    /// Processes a property-based step: dispatches to the TextPrompt or SelectPrompt evaluation path based
+    /// on <see cref="TranslatedMemberAttributeData.AskType"/>, and appends the resulting build context to
+    /// <paramref name="stepContexts"/>.
+    /// </summary>
     private void HandleProperty(IPropertySymbol property, TranslatedMemberAttributeData memberAttributeData, List<IStepContext> stepContexts,
         LazyTypes types)
     {
@@ -295,7 +441,8 @@ internal class StepContextBuilderOperation
             EvaluateInstructionText(memberAttributeData, ref propertyContext);
             EvaluateHighlightStyle(propertyContext, memberAttributeData);
             EvaluateCancelResult(propertyContext, memberAttributeData);
-            
+            EvaluateDefaultValue(propertyContext, memberAttributeData);
+
             if (propertyContext.ConfirmedSelectionSource is { })
             {
                 if (!propertyContext.IsEnumerable)
@@ -321,6 +468,10 @@ internal class StepContextBuilderOperation
         }
     }
 
+    /// <summary>
+    /// Records <see cref="ConfirmedClearOnFinish"/> on the property context when <c>ClearOnFinish</c> is
+    /// set on the attribute.
+    /// </summary>
     private void EvaluateClearOnFinish(SinglePropertyEvaluationContext propertyContext, TranslatedMemberAttributeData memberAttributeData)
     {
         if (memberAttributeData.ClearOnFinish)
@@ -330,10 +481,9 @@ internal class StepContextBuilderOperation
     }
 
     /// <summary>
-    /// A string match deducted
+    /// Represents a value to match a member. It can either be direct from at given property (for instance DefaultValueSource = nameof(SomeValue) <br/>
+    /// or from a convention. For DefaultValue it would be {Property}DefaultValue
     /// </summary>
-    /// <param name="Value">The value</param>
-    /// <param name="Deduced">If its deducted</param>
     private class StringMatch
     {
         public string Match { get; }
@@ -345,11 +495,11 @@ internal class StepContextBuilderOperation
             Deducted = deducted;
         }
 
-        public static StringMatch From(string? match, string fallback)
+        public static StringMatch From(string? match, string conventionName)
         {
             if (string.IsNullOrWhiteSpace(match))
             {
-                return new StringMatch(fallback, true);
+                return new StringMatch(conventionName, true);
             }
             
             return new StringMatch(match!, false);
@@ -358,6 +508,12 @@ internal class StepContextBuilderOperation
         public string Value => Match;
     };
 
+    /// <summary>
+    /// Resolves the <c>CancelResult</c> source member (explicit or conventionally-named
+    /// <c>{PropertyName}CancelResult</c>), validates that its type matches the property, and stores the
+    /// confirmed result. Emits <c>Id0028_CancelResult_NotFound</c> / <c>Id0029_CancelResult_NotValid</c>
+    /// on failure.
+    /// </summary>
     private void EvaluateCancelResult(SinglePropertyEvaluationContext propertyContext, TranslatedMemberAttributeData memberAttributeData)
     {
         var search = StringMatch.From(memberAttributeData.CancelResult, $"{propertyContext.Property.Name}CancelResult");
@@ -380,34 +536,10 @@ internal class StepContextBuilderOperation
 
         }
 
-        foreach (var symbol in candidates.Where(IsPublic.And(
-                     MethodWithNoParametersSpec
-                         .Or(new FieldSpecification<ISymbol>())
-                         .Or(Check.Property<ISymbol>()))))
+        var source = SourceEvaluator.EvaluateSource(candidates, propertyContext);
+        if (source.Valid)
         {
-            ITypeSymbol typeSymbol = symbol switch
-            {
-                IMethodSymbol methodSymbol => methodSymbol.ReturnType,
-                IPropertySymbol propertySymbol => propertySymbol.Type,
-                IFieldSymbol fieldSymbol => fieldSymbol.Type,
-                _ => throw new InvalidOperationException("This should not occur")
-            };
-
-            if (propertyContext.IsEnumerable)
-            {
-                if (EnumerableOfTypeSpec(propertyContext.RequiredUnderlyingType) == typeSymbol)
-                {
-                    propertyContext.ConfirmedCancelResult = new ConfirmedCancelResult(search.Value, CancelResultType.Method, symbol.IsStatic);
-                    return;
-                }
-            }
-            else
-            {
-                if (OfTypeSpec(propertyContext.Type) == typeSymbol)
-                {
-                    propertyContext.ConfirmedCancelResult = new ConfirmedCancelResult(search.Value, CancelResultType.Value, symbol.IsStatic);
-                }
-            }
+            propertyContext.ConfirmedCancelResult = new ConfirmedCancelResult(search.Value, source);
         }
 
         if (propertyContext.ConfirmedCancelResult is not null)
@@ -425,6 +557,11 @@ internal class StepContextBuilderOperation
             propertyContext.Property.Locations.FirstOrDefault()));
     }
 
+    /// <summary>
+    /// Resolves the <c>ChoicesSource</c> member (explicit or <c>{PropertyName}Choices</c>) and records the
+    /// confirmed choices plus optional invalid-choice text and choices style. Emits
+    /// <c>Id0023_ChoiceCandidate_NotValid</c> / <c>Id0024_ChoiceCandidate_NotFound</c> on failure.
+    /// </summary>
     private void EvaluateChoices(SinglePropertyEvaluationContext propertyEvaluationContext,
         TranslatedMemberAttributeData memberAttributeData)
     {
@@ -492,6 +629,11 @@ internal class StepContextBuilderOperation
         }
     }
     
+    /// <summary>
+    /// For complex property types, analyses whether the type is itself decorated with
+    /// <c>[AutoSpectreForm]</c> and whether an initializer method is required. Records a
+    /// <see cref="ConfirmedNamedTypeSource"/> or reports <c>Id0020_InitializerNeeded</c>.
+    /// </summary>
     private void EvaluateNamedType(SinglePropertyEvaluationContext propertyContext, TranslatedMemberAttributeData memberAttributeData)
     {
         var namedTypeAnalysis = EvaluateType(propertyContext);
@@ -512,6 +654,10 @@ internal class StepContextBuilderOperation
         propertyContext.ConfirmedNamedTypeSource = new ConfirmedNamedTypeSource(namedTypeAnalysis, initializer?.Name, initializer?.IsStatic ?? false);
     }
     
+    /// <summary>
+    /// Finds the public, parameterless initializer method (explicit <c>TypeInitializer</c> or the
+    /// conventional <c>Init{TypeName}</c>) that returns the target named type, or <c>null</c> when none exists.
+    /// </summary>
     private IMethodSymbol? EvaluateAndReturnTypeInitializer(SinglePropertyEvaluationContext propertyContext, TranslatedMemberAttributeData memberAttributeData, NamedTypedAnalysis? namedTypedAnalysis)
     {
         var typeInitializer = memberAttributeData.TypeInitializer ?? $"Init{propertyContext.Type.Name}";
@@ -535,6 +681,11 @@ internal class StepContextBuilderOperation
 
         return null;
     }
+    /// <summary>
+    /// Resolves the <c>Source</c> member for a SelectPrompt (explicit or <c>{PropertyName}Source</c>) and
+    /// records it on the property context. Emits <c>Id0005_SelectionSourceNotFound</c> or
+    /// <c>Id0026_NoSelectionSource</c> when missing.
+    /// </summary>
     private void EvaluateSelectionSource(TranslatedMemberAttributeData memberAttributeData,
         SinglePropertyEvaluationContext propertyContext)
     {
@@ -585,6 +736,9 @@ internal class StepContextBuilderOperation
     // Note. It might seems extra ceremonious for these methods that just transfers the value. But it's just in
     // case they get extra "complex". They probably won't.
 
+    /// <summary>
+    /// Copies <c>InstructionsText</c> from the attribute onto the property context, when set.
+    /// </summary>
     private void EvaluateInstructionText(TranslatedMemberAttributeData memberAttributeData,
         ref SinglePropertyEvaluationContext propertyContext)
     {
@@ -594,6 +748,9 @@ internal class StepContextBuilderOperation
         }
     }
 
+    /// <summary>
+    /// Copies <c>MoreChoicesText</c> from the attribute onto the property context, when set.
+    /// </summary>
     private void EvaluateMoreChoicesText(TranslatedMemberAttributeData memberAttributeData,
         ref SinglePropertyEvaluationContext propertyContext)
     {
@@ -603,6 +760,9 @@ internal class StepContextBuilderOperation
         }
     }
 
+    /// <summary>
+    /// Copies <c>WrapAround</c> from the attribute onto the property context, when set.
+    /// </summary>
     private void EvaluateWrapAround(TranslatedMemberAttributeData memberAttributeData,
         ref SinglePropertyEvaluationContext propertyContext)
     {
@@ -612,6 +772,10 @@ internal class StepContextBuilderOperation
         }
     }
 
+    /// <summary>
+    /// Validates the <c>PageSize</c> attribute value (must be &gt;= 3) and stores it on the property context.
+    /// Emits <c>Id0013_PageSizeMustBeThreeOrLarger</c> when invalid.
+    /// </summary>
     private void EvaluatePageSize(TranslatedMemberAttributeData memberAttributeData,
         ref SinglePropertyEvaluationContext propertyContext)
     {
@@ -632,12 +796,19 @@ internal class StepContextBuilderOperation
         }
     }
 
+    /// <summary>
+    /// Parses and stores the <c>PromptStyle</c> attribute value on the property context.
+    /// </summary>
     private void EvaluatePromptStyle(SinglePropertyEvaluationContext propertyContext, TranslatedMemberAttributeData memberAttribute)
     {
         propertyContext.PromptStyle =
             EvaluateStyle(memberAttribute.PromptStyle, nameof(propertyContext.PromptStyle), propertyContext);
     }
 
+    /// <summary>
+    /// Verifies a raw Spectre style string parses correctly. Returns the value on success, <c>null</c> when
+    /// the input is null, and reports <c>Id0014_StyleNotValid</c> when the input is set but malformed.
+    /// </summary>
     private string? EvaluateStyle(string? style, string propertyName, SinglePropertyEvaluationContext propertyContext)
     {
         if (style == null)
@@ -657,6 +828,9 @@ internal class StepContextBuilderOperation
         }
     }
 
+    /// <summary>
+    /// Parses and stores the <c>HighlightStyle</c> attribute value on the property context.
+    /// </summary>
     private void EvaluateHighlightStyle(SinglePropertyEvaluationContext propertyContext,
         TranslatedMemberAttributeData memberAttributeData)
     {
@@ -666,11 +840,12 @@ internal class StepContextBuilderOperation
 
 
     /// <summary>
-    /// Evaluates to see if the property has an initialized
-    /// Like for instance public bool Confirm {get;set;} = true
+    /// Evaluates and assigns the default value configuration for a property by searching for matching members in the target type.
+    /// Attempts to locate a method, property, or field that matches the specified default value name and appropriate return type.
     /// </summary>
-    /// <param name="propertyContext"></param>
-    /// <param name="memberAttributeData"></param>
+    /// <param name="propertyContext">The context containing information about the property being evaluated.</param>
+    /// <param name="memberAttributeData">The attribute data containing the default value style and name specifications.</param>
+    /// <exception cref="InvalidOperationException">Thrown when the specified default value member cannot be found or does not match required specifications.</exception>
     private void EvaluateDefaultValue(SinglePropertyEvaluationContext propertyContext,
         TranslatedMemberAttributeData memberAttributeData)
     {
@@ -679,55 +854,39 @@ internal class StepContextBuilderOperation
         if (parsedStyle is {})
             propertyContext.ConfirmedDefaultStyle = new ConfirmedDefaultStyle(parsedStyle);
 
-        var defaultValue = memberAttributeData.DefaultValue ?? $"{propertyContext.Property.Name}DefaultValue";
-        var isGuess = memberAttributeData.DefaultValue == null;
+        var defaultValue = StringMatch.From(memberAttributeData.DefaultValue, $"{propertyContext.Property.Name}DefaultValue");
         
         var candidates = TargetType
             .GetMembers()
-            .Where(x => x.Name.ToString() == defaultValue)
+            .Where(x => x.Name.ToString() == defaultValue.Value)
             .ToList();
-
-        var singleReturnType = propertyContext.GetSingleType().type;
-        var method = MethodWithNoParametersSpec.WithReturnType(singleReturnType);
-        var property = PropertyOfTypeSpec(singleReturnType);
-        var field = FieldOfTypeSpec(singleReturnType);
         
-        var filter = (method | property | field) & IsPublic;
-
-        if (candidates.FirstOrDefault(filter) is { } candidate)
+        
+        // The trick with false is because there can only be a single instance for the default value
+        
+        var sourceEvaluation = SourceEvaluator.EvaluateSource(candidates, propertyContext, shouldBeEnumerable: false);
+        if (sourceEvaluation.Valid)
         {
-            DefaultValueType? valueType = null;
-            var instance = IsInstance == candidate;
-            if (method == candidate)
-            {
-                valueType = DefaultValueType.Method;
-            }
-            else if ((property | field) == candidate)
-            {
-                valueType = DefaultValueType.Property;
-            }
-
-            if (valueType == null)
-                throw new InvalidOperationException(
-                    $"Could not derive the value type of candidate with name {defaultValue}");
-
-            propertyContext.ConfirmedDefaultValue =
-                new ConfirmedDefaultValue(valueType.Value, defaultValue, parsedStyle, instance);
+            propertyContext.ConfirmedDefaultValue = new ConfirmedDefaultValue(defaultValue.Value, sourceEvaluation);
             return;
+            
         }
-        else
+       
+        if (!defaultValue.Deducted)
         {
-            if (!isGuess)
-            {
-                ProductionContext.ReportDiagnostic(Diagnostic.Create(
-                    new(DiagnosticIds.Id0025_DefaultValueSource_NotFound, $"Default value {memberAttributeData.DefaultValue} was not found. It should be a method with no parameters or a property returning a single type",
-                        $"Could not find a valid correct method, property or field with name {memberAttributeData.DefaultValue} in the target class", "General",
-                        DiagnosticSeverity.Error, true),
-                    propertyContext.Property.Locations.FirstOrDefault()));
-            }
+            ProductionContext.ReportDiagnostic(Diagnostic.Create(
+                new(DiagnosticIds.Id0025_DefaultValueSource_NotFound, $"Default value {memberAttributeData.DefaultValue} was not found. It should be a method with no parameters or a property returning a single type",
+                    $"Could not find a valid correct method, property or field with name {memberAttributeData.DefaultValue} in the target class", "General",
+                    DiagnosticSeverity.Error, true),
+                propertyContext.Property.Locations.FirstOrDefault()));
         }
+        
     }
 
+    /// <summary>
+    /// When <c>EditableDefaultValue</c> is set but there is no resolvable default or the property is a bool
+    /// (rendered as <c>ConfirmationPrompt</c>), reports <c>Id0030_EditableDefaultValue_Ignored</c>.
+    /// </summary>
     private void EvaluateEditableDefaultValue(SinglePropertyEvaluationContext propertyContext,
         TranslatedMemberAttributeData memberAttributeData)
     {
@@ -804,6 +963,11 @@ internal class StepContextBuilderOperation
         }
     }
     
+    /// <summary>
+    /// For named (non-primitive) property types, analyses whether the type is itself decorated with
+    /// <c>[AutoSpectreForm]</c>, whether it exposes async prompt steps, and whether it has an empty
+    /// constructor. Results are memoised in <c>_analysedTypes</c>.
+    /// </summary>
     private NamedTypedAnalysis? EvaluateType(SinglePropertyEvaluationContext evaluationContext)
     {
         if (evaluationContext.GetSingleType().type is not INamedTypeSymbol namedTypeSymbol)
@@ -839,6 +1003,12 @@ internal class StepContextBuilderOperation
         return namedType;
     }
 
+    /// <summary>
+    /// Picks the right <see cref="PromptBuildContext"/> for a TextPrompt property based on its type:
+    /// <see cref="ConfirmPromptBuildContext"/> for bool, <see cref="EnumPromptBuildContext"/> for enums,
+    /// <see cref="ReuseExistingAutoSpectreFactoryPromptBuildContext"/> for nested AutoSpectre forms, or a
+    /// plain <see cref="TextPromptBuildContext"/>. Reports <c>AutoSpectre_JJK0006/0007</c> for unsupported types.
+    /// </summary>
     public PromptBuildContext? GetTextPromptBuildContext(TranslatedMemberAttributeData memberAttributeData,
         SinglePropertyEvaluationContext evaluationContext)
     {
@@ -897,6 +1067,10 @@ internal class StepContextBuilderOperation
         }
     }
 
+    /// <summary>
+    /// Records <see cref="ConfirmedSearchEnabled"/> (carrying the optional placeholder text) on the property
+    /// context when <c>SearchEnabled</c> is <c>true</c> on the attribute.
+    /// </summary>
     private void EvaluateEnableSearch(SinglePropertyEvaluationContext propertyContext,
         TranslatedMemberAttributeData memberAttributeData)
     {
@@ -906,6 +1080,11 @@ internal class StepContextBuilderOperation
         }
     }
     
+    /// <summary>
+    /// Resolves the <c>Condition</c> member (explicit or conventional <c>{Name}Condition</c>) that controls
+    /// whether a step runs. The target must be a public bool property or parameterless bool-returning method.
+    /// Emits <c>Id0010_ConditionNameMatchInvalid</c> / <c>Id0011_ConditionNameNotFound</c> on failure.
+    /// </summary>
     private void EvaluateCondition(IConditionContext propertyContext,
         TranslatedMemberAttributeData memberAttributeData)
     {
@@ -973,6 +1152,12 @@ internal class StepContextBuilderOperation
         }
     }
 
+    /// <summary>
+    /// Resolves the <c>Validator</c> member (explicit or conventional <c>{PropertyName}Validator</c>) and
+    /// verifies the signature — string-returning, taking the property type (or <c>(IEnumerable&lt;T&gt;, T)</c>
+    /// for enumerable properties). Emits <c>Id0008_ValidatorNameMatchInvalid</c> /
+    /// <c>Id0009_ValidatorNameNotFound</c> on failure.
+    /// </summary>
     private void EvaluateValidation(SinglePropertyEvaluationContext propertyContext,
         TranslatedMemberAttributeData memberAttributeData)
     {
@@ -1050,6 +1235,10 @@ internal class StepContextBuilderOperation
         }
     }
 
+    /// <summary>
+    /// Bundles the type-aware field/method/property specifications used throughout this operation
+    /// so a caller can filter target-type members by "public member of type T, in any shape".
+    /// </summary>
     public class TypeFieldMethodPropertySpecifications
     {
         private readonly Specification<ITypeSymbol> _type;

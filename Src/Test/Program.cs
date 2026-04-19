@@ -49,13 +49,19 @@ namespace Test
         [SelectPrompt(Source = nameof(SomePromptSource))]
         public string SomePrompt { get; set; }
         
-         public List<string?> SomePromptSource => ["Jeppe", "Roo"];
+        public readonly string SomePromptDefaultValue = "Ulrik";
+        
+         public List<string?> SomePromptSource => ["Jeppe", "Roo", "Ulrik"];
          public static string SomePromptCancelResult => "[empty]";        
          
          [SelectPrompt(Source = nameof(OtherPromptSource))]
          public List<string> OtherPrompt { get; set; }
+
+         public string OtherPromptDefaultValue() => "Jeppe";
+         
+
          public readonly List<string> OtherPromptSource = ["Jeppe", "Poul", "Mikkel"];
-         public List<string> OtherPromptCancelResult() => ["Jeppe"];
+         public List<string> OtherPromptCancelResult() => [];
 
         
 

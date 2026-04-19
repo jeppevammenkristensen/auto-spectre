@@ -7,6 +7,9 @@ using Microsoft.CodeAnalysis;
 
 namespace AutoSpectre.SourceGeneration.BuildContexts;
 
+/// <summary>
+/// A build context for a single MultiSelectionPrompt
+/// </summary>
 internal class MultiSelectionBuildContext : SelectionBaseBuildContext
 {
     private readonly LazyTypes _lazyTypes;
@@ -29,9 +32,15 @@ internal class MultiSelectionBuildContext : SelectionBaseBuildContext
     public ITypeSymbol? UnderlyingSymbol { get; }
     public bool Nullable { get; }
 
+    /// <summary>
+    /// Generates the output code that assigns the result of the multi-selection prompt to the specified destination variable.
+    /// </summary>
+    /// <param name="destination">The name of the destination variable to which the prompt result will be assigned.</param>
+    /// <return>A string containing the generated code for the assignment statement.</return>
     public override string GenerateOutput(string destination)
     {
         StringBuilder builder = new ();
+        
         builder.Append($"{destination} = ");
         builder.Append(PromptPart());
 
@@ -53,6 +62,7 @@ new MultiSelectionPrompt<{type}>()
 {GenerateHighlightStyle()}
 {GenerateWrapAround()}
 {GenerateMoreChoicesText()}
+{GenerateDefaultValue()}
 {GenerateCancel()}
 {GenerateInstructionsText()}
 .AddChoices({GetChoicePrepend()}.{GetSelector()}.ToArray()))

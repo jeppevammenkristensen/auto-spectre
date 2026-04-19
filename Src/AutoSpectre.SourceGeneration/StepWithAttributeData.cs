@@ -133,8 +133,10 @@ public class StepWithAttributeData
                 null;            
             var cancelResult =
                 attributeData.GetAttributePropertyValue<string?>(SelectPromptAttributeNames.CancelResult) ?? null;
+            var defaultValue =
+                attributeData.GetAttributePropertyValue<string?>(SelectPromptAttributeNames.DefaultValueSource) ?? null;
 
-            
+
 
             TranslatedMemberAttribute = TranslatedMemberAttributeData.SelectPrompt(title,
                 selectionSource,
@@ -145,10 +147,11 @@ public class StepWithAttributeData
                 wrapAround,
                 moreChoicesText,
                 instructionsText,
-                highlightStyle, 
+                highlightStyle,
                 searchEnabled,
                 searchPlaceholderText,
-                cancelResult);
+                cancelResult,
+                defaultValue);
         }
         
         else

@@ -66,5 +66,16 @@ public class SelectPromptAttribute : AutoSpectreStepAttribute
     /// <summary>
     /// Sets the result or the Func to return when the user cancels the selection
     /// </summary>
+    /// <remarks></remarks>
     public string? CancelResult { get; set; }
+
+    /// <summary>
+    /// Name of a member (parameterless method, property, or field) whose value becomes the
+    /// pre-highlighted item when the prompt is shown. Omit to pick up the convention member
+    /// {PropertyName}DefaultValue automatically.
+    /// For MultiSelect (enumerable) properties, the source returns a single item of the element type —
+    /// the upstream API highlights one item, it does not pre-select a collection.
+    /// </summary>
+    /// <remarks>The convention is {PropertyName}DefaultValue</remarks>
+    public string? DefaultValueSource { get; set; }
 }

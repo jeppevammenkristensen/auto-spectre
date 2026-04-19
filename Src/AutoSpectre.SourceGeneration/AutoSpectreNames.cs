@@ -49,6 +49,7 @@ public class SelectPromptAttributeNames
     public const string SearchEnabled = "SearchEnabled";
     public const string SearchPlaceholderText = "SearchPlaceholderText";
     public const string CancelResult = "CancelResult";
+    public const string DefaultValueSource = "DefaultValueSource";
 }
 
 public class TaskStepAttributeNames

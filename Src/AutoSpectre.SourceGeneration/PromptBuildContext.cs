@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Composition.Hosting.Core;
 using System.Linq;
 using AutoSpectre.SourceGeneration.Extensions;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 namespace AutoSpectre.SourceGeneration;
@@ -65,7 +66,6 @@ public abstract class PromptBuildContext
     /// <returns>A string containing the appropriate accessor prefix for static or instance members.</returns>
     protected string GetStaticOrInstancePrepend(bool isStatic)
     {
-        return CodeBuildConstants.FormName.GetStaticOrInstance(Context.TargetType.FullName(), isStatic);
-    }
-    
-}
+        return Context.TargetType.GetStaticOrInstance(isStatic);
+    } }
+
