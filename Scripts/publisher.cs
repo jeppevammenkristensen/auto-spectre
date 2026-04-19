@@ -10,7 +10,7 @@ using AutoSpectre;
 using FileBasedApp.Toolkit.CommandCli;
 using FileBasedApp.Toolkit.Dotnet;
 
-var commandApp = new CommandApp<RunCommand>().WithDescription("Enter the description here");
+var commandApp = new CommandApp<RunCommand>().WithDescription("Publish packages for the project (currenly only AutoSpectre)");
 commandApp.Configure(ctx =>
 {
 });
@@ -27,7 +27,11 @@ public class RunCommand : AsyncCommand<RunCommand.Settings> // For sync only you
                 $"Failed to locate path {autospectreCsproj.Value}");
         }
         
+        
+        
         var prompt = new Prompt(settings.Source, settings.Release).Prompt();
+        
+        AnsiConsole.MarkupLine($"[bold green]Building packable project from {autospectreCsproj.FileName}...[/]");
 
         var executionFolder = PathUtil.GetExecutionFolder() / "Artifacts";
 
@@ -39,7 +43,7 @@ public class RunCommand : AsyncCommand<RunCommand.Settings> // For sync only you
                 .WithProject(autospectreCsproj)
                 .WithConfiguration(prompt.Release ? "Release" : "Debug");
 
-            if (settings.Release)
+            if (prompt.Release)
             { 
                 runner
                     .AddArgument("-p:IncludeSymbols=true")
@@ -61,7 +65,7 @@ public class RunCommand : AsyncCommand<RunCommand.Settings> // For sync only you
                 AnsiConsole.Write(new Rule(absolutePath.FileName));
                 await DotnetNugetPushSimpleRunner.Init()
                     .WithPackage(absolutePath)
-                    .WithSource(prompt.Source!)
+                    .WithSource(prompt.Source!) 
                     .WithSkipDuplicate()
                     .WithConditionalApiKey(prompt.ApiKey).RunAsync(token: cancellationToken);
 
@@ -84,7 +88,7 @@ public class RunCommand : AsyncCommand<RunCommand.Settings> // For sync only you
         public bool Release { get; set; }
         
         [CommandOption("--source")]
-        public string Source { get; set; }
+        public string? Source { get; set; }
         
 
         protected override ValidationResult DoValidate()
@@ -108,14 +112,14 @@ public class RunCommand : AsyncCommand<RunCommand.Settings> // For sync only you
 
         public bool SourceCondition() => string.IsNullOrWhiteSpace(Source);
 
-        [TextPrompt(Condition = nameof(Release), NegateCondition = true)]
+        [TextPrompt(Title = "Release?", Condition = nameof(Release), NegateCondition = true)]
         public bool Release { get; set; }
         
-        [SelectPrompt] public string? Source { get; set; }
+        [SelectPrompt(Title = "Select nuget source")] public string? Source { get; set; }
 
-        public string[] SourceSource = ["local", "github", "nuget"];
+        public string[] SourceSource = ["local", "github", "nuget.org"];
 
         [TextPrompt(Secret = true)] public string ApiKey { get; set; }
 
-        public bool ApiKeyCondition() => Source == "nuget";
+        public bool ApiKeyCondition() => Source == "nuget.org";
     }
