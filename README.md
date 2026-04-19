@@ -397,6 +397,24 @@ public string OverrideCancel => "Cancelled";
 
 When the referenced member is missing or has the wrong shape the source generator emits `AutoSpectre_JJK028` / `AutoSpectre_JJK029`.
 
+#### DefaultValue
+
+Use the `DefaultValue` property to point at a source (method with no parameters, property, or field — public, instance or static) whose value pre-highlights an item when the prompt is shown. Maps to Spectre.Console's `SelectionPrompt<T>.DefaultValue` and `MultiSelectionPrompt<T>.DefaultValue`.
+
+By convention a member named `{PropertyName}DefaultValue` with a matching return type is picked up automatically without setting the attribute property.
+
+For multi-select (enumerable) properties, the source returns the element type — the upstream API highlights a single item, it does not pre-select a collection.
+
+```csharp
+[SelectPrompt(DefaultValue = nameof(OverrideDefault))]
+public string MenuChoice { get; set; } = string.Empty;
+
+public List<string> MenuChoiceSource => new() { "Start", "Settings" };
+public string OverrideDefault => "Settings";
+```
+
+If the named member is missing the source generator emits `AutoSpectre_JJK025`.
+
 ## The method attribute
 
 If you wan't to do something that doesn't fit prompting. Between some of the steps you can use the `TaskStepAttribute` or to do that.

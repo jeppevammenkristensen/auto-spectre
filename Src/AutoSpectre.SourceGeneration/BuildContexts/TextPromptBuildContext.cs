@@ -105,22 +105,8 @@ internal class TextPromptBuildContext : PromptBuilderContextWithPropertyContext
     {
         if (Context.ConfirmedDefaultValue is { } confirmed)
         {
-            var name = confirmed.Instance ? $"{FormName }.{confirmed.Name}" : $"{Context.TargetType.FullName()}.{confirmed.Name}";
-
-            if (confirmed.Type == DefaultValueType.Property)
-            {
-                builder.AppendLine($".DefaultValue({name})");
-            }
-            else if (confirmed.Type == DefaultValueType.Method)
-            {
-
-                builder.AppendLine($".DefaultValue({name}())");
-            }
-            else
-            {
-                throw new InvalidOperationException($"It was unexpected. Value {confirmed.Type} was not supported");
-            }
-
+            confirmed.GeneratePrompt(Context,builder);
+            
             if (_memberAttributeData.EditableDefaultValue)
             {
                 builder.AppendLine(".EditableDefaultValue(true)");

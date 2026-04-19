@@ -12,6 +12,10 @@ public class TranslatedFormAttributeData
     }
 }
 
+/// <summary>
+/// Represents a mapping of data retrieved from relevant attributes like
+/// TextPromptAttribute and SelectPromptAttribute
+/// </summary>
 public class TranslatedMemberAttributeData
 {
     public TranslatedMemberAttributeData(AskTypeCopy askType,
@@ -115,10 +119,20 @@ public class TranslatedMemberAttributeData
 
     public bool EditableDefaultValue { get; set; }
 
-    public static TranslatedMemberAttributeData SelectPrompt(string title, string? selectionSource, string? converter,
-        string? condition, bool conditionNegated, int? pageSize, bool? wrapAround, string? moreChoicesText,
-        string? instructionsText, string? highlightStyle, bool? searchEnabled, string? searchPlaceholderText,
-        string? cancelResult)
+    public static TranslatedMemberAttributeData SelectPrompt(string title,
+        string? selectionSource,
+        string? converter,
+        string? condition,
+        bool conditionNegated,
+        int? pageSize,
+        bool? wrapAround,
+        string? moreChoicesText,
+        string? instructionsText,
+        string? highlightStyle,
+        bool? searchEnabled,
+        string? searchPlaceholderText,
+        string? cancelResult,
+        string? defaultValue)
     {
         return new(askType: AskTypeCopy.Selection,
             selectionSource: selectionSource,
@@ -127,15 +141,16 @@ public class TranslatedMemberAttributeData
             validator: null,
             condition: condition,
             conditionNegated: conditionNegated,
-            searchEnabled: searchEnabled, 
-            searchPlaceholderText: searchPlaceholderText, 
+            searchEnabled: searchEnabled,
+            searchPlaceholderText: searchPlaceholderText,
             cancelResult)
         {
             PageSize = pageSize,
             WrapAround = wrapAround,
             MoreChoicesText = moreChoicesText,
             InstructionsText = instructionsText,
-            HighlightStyle = highlightStyle
+            HighlightStyle = highlightStyle,
+            DefaultValue = defaultValue
         };
     }
 

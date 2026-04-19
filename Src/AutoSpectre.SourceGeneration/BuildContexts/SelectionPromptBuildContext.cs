@@ -34,6 +34,7 @@ internal class SelectionPromptBuildContext : SelectionBaseBuildContext
             {GeneratePageSize()}
             {GenerateWrapAround()}
             {Context.ConfirmedSearchEnabled.GetSearchString()}
+            {GenerateDefaultValue()}
             {GenerateCancel()}
             {GenerateMoreChoicesText()}
             {GenerateHighlightStyle()}

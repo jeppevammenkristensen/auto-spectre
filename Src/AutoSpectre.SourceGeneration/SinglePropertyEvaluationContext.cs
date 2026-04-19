@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using AutoSpectre.SourceGeneration.Evaluation;
 using AutoSpectre.SourceGeneration.Extensions;
 using Microsoft.CodeAnalysis;
@@ -358,6 +359,15 @@ public class SinglePropertyEvaluationContext : IConditionContext
     public ConfirmedClearOnFinish? ConfirmedClearOnFinish { get; set; }
 
 
+    public IEnumerable<object> GetConfirmedSources()
+    {
+        if (ConfirmedCancelResult is { } cancelResult)
+        {
+            yield return cancelResult;
+        }
+    }
+    
+    
     /// <summary>
     /// Creates a new <see cref="SinglePropertyEvaluationContext"/> from the given property symbol,
     /// deriving nullability and enumerable/underlying type information from the property's type.

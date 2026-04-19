@@ -1,15 +1,18 @@
 ﻿using AutoSpectre;
+using Spectre.Console;
 
 
 var someForm = new SomeForm();
-someForm.Prompt();
+MultiSelectionPrompt<string> fisto = new MultiSelectionPrompt<string>();
 
 
 [AutoSpectreForm]
 public class SomeForm
 {
-    [TextPrompt(ClearOnFinish = true, Title = "Enter your name", EditableDefaultValue = true, DefaultValueSource = nameof(NameDefault))]
-    public string Name {get;set;} = string.Empty;
-    
-    public readonly string NameDefault = "Jeppe";
+//     [SelectPrompt(Title = "Enter your name", DefaultValueSource = nameof(NameDefault))]
+//     public string[] Name {get;set;}
+//     
+//     public string[] NameSource => ["Jeppe", "Peter","Ulrik"];
+//     public List<string> NameDefault = ["Jeppe","Peter"];
+// }
 }

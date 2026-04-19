@@ -31,6 +31,11 @@ public static class AutoSpectreExtensions
     {
         return isStatic ? targetType : variable;
     }
+    
+    public static string GetStaticOrInstance(this INamedTypeSymbol targetType, bool isStatic)
+    {
+        return CodeBuildConstants.FormName.GetStaticOrInstance(targetType.FullName(), isStatic);
+    }
 
     /// <summary>
     /// Gets the safe text with quotes.
