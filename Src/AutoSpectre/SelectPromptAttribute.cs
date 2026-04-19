@@ -14,6 +14,7 @@ public class SelectPromptAttribute : AutoSpectreStepAttribute
     /// This can be omitted if you have a method matching
     /// {PropertyName}Converter
     /// </summary>
+    /// <remarks>Convention: {PropertyName}Converter</remarks>
     public string? Converter {get;set;}
     
     /// <summary>
@@ -22,6 +23,7 @@ public class SelectPromptAttribute : AutoSpectreStepAttribute
     /// It can be omitted if you have a matching property or method that matches
     /// {PropertyName}Source
     /// </summary>
+    /// <remarks>Convention: {PropertyName}Source</remarks>
     public string? Source { get; set; }
     
     /// <summary>
@@ -39,7 +41,6 @@ public class SelectPromptAttribute : AutoSpectreStepAttribute
     /// Gets or sets the text to display when there are more choices available.
     /// </summary>
     public string? MoreChoicesText { get; set; }
-
 
     /// <summary>
     /// This is only relevant when the type of property is some kind of enumerable. It the instruction text
@@ -66,7 +67,7 @@ public class SelectPromptAttribute : AutoSpectreStepAttribute
     /// <summary>
     /// Sets the result or the Func to return when the user cancels the selection
     /// </summary>
-    /// <remarks></remarks>
+    /// <remarks>Convention: {Source}CancelResult</remarks>
     public string? CancelResult { get; set; }
 
     /// <summary>
@@ -76,6 +77,6 @@ public class SelectPromptAttribute : AutoSpectreStepAttribute
     /// For MultiSelect (enumerable) properties, the source returns a single item of the element type —
     /// the upstream API highlights one item, it does not pre-select a collection.
     /// </summary>
-    /// <remarks>The convention is {PropertyName}DefaultValue</remarks>
+    /// <remarks>Convention: {PropertyName}DefaultValue</remarks>
     public string? DefaultValueSource { get; set; }
 }

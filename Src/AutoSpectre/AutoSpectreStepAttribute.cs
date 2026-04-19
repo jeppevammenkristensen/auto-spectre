@@ -18,8 +18,9 @@ public class AutoSpectreStepAttribute : Attribute, IConditionAttribute
     /// <summary>
     /// Indicates a reference to a condition that determines whether a prompt should
     /// be displayed for the given property. The condition can be a property or a method with no parameters
-    /// that returns true 
+    /// that returns true
     /// </summary>
+    /// <remarks>Convention: {PropertyName}Condition</remarks>
     public string? Condition { get; set; }
 
 

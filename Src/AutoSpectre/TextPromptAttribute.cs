@@ -30,6 +30,7 @@ public class TextPromptAttribute : AutoSpectreStepAttribute
     /// By convention if you have a method fulfilling the requirements above you can omit the Validator property
     /// if the name is {PropertyName}Validator
     /// </summary>
+    /// <remarks>Convention: {PropertyName}Validator</remarks>
     public string? Validator { get; set; }
 
     
@@ -73,12 +74,14 @@ public class TextPromptAttribute : AutoSpectreStepAttribute
     /// if the property type has an empty constructor. You can leave this out if you
     /// have a method called Init{TypeName}. The method must be public but can be instance or static
     /// </summary>
+    /// <remarks>Convention: Init{TypeName}</remarks>
     public string? TypeInitializer { get; set; }
 
     /// <summary>
     /// Use this to limit the values allowed to be entered. They will be displayed in the
     /// prompt and you be able to autocomplete with tab. The convention is {PropertyName}Choices
     /// </summary>
+    /// <remarks>Convention: {PropertyName}Choices</remarks>
     public string? ChoicesSource { get; set; }
 
     /// <summary>
