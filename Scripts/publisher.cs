@@ -1,6 +1,6 @@
 #:package FileBasedApp.Toolkit@0.20.0
 #:package FileBasedApp.Toolkit.Dotnet@0.20.0
-#:package AutoSpectre@0.12.0
+#:package AutoSpectre@0.13.0-alpha-04
 #:property PublishAot=false 
 using Spectre.Console.Cli;
 using Spectre.Console;
@@ -21,13 +21,13 @@ public class RunCommand : AsyncCommand<RunCommand.Settings> // For sync only you
     {
         var autospectreCsproj = PathUtil.GetExecutionFolder() / ".." / "Src" / "SpectreSourceGenerator.slnx";
         
-        
-        
         if (!autospectreCsproj.FileExists())
         {
             throw new InvalidOperationException(
                 $"Failed to locate path {autospectreCsproj.Value}");
         }
+        
+        var prompt = new Prompt(settings.Source, settings.Release).Prompt();
 
         var executionFolder = PathUtil.GetExecutionFolder() / "Artifacts";
 
@@ -37,7 +37,7 @@ public class RunCommand : AsyncCommand<RunCommand.Settings> // For sync only you
             var runner = DotnetPackSimpleRunner.Init()
                 .WithOutput(executionFolder)
                 .WithProject(autospectreCsproj)
-                .WithConfiguration(settings.Release ? "Release" : "Debug");
+                .WithConfiguration(prompt.Release ? "Release" : "Debug");
 
             if (settings.Release)
             { 
@@ -54,7 +54,7 @@ public class RunCommand : AsyncCommand<RunCommand.Settings> // For sync only you
 
             await runner.RunAsync(token: cancellationToken);
 
-            var prompt = new Prompt(settings.Source).Prompt();
+            
             
             foreach (var absolutePath in executionFolder.GetAllFiles("*nupkg"))
             {
@@ -95,22 +95,27 @@ public class RunCommand : AsyncCommand<RunCommand.Settings> // For sync only you
     }
 }
 
-[AutoSpectreForm]
 
-public class Prompt
-{
-    public Prompt(string source)
+    [AutoSpectreForm]
+
+    public class Prompt
     {
-        Source = source;
+        public Prompt(string source, bool settingsRelease)
+        {
+            Source = source;
+            Release = settingsRelease;
+        }
+
+        public bool SourceCondition() => string.IsNullOrWhiteSpace(Source);
+
+        [TextPrompt(Condition = nameof(Release), NegateCondition = true)]
+        public bool Release { get; set; }
+        
+        [SelectPrompt] public string? Source { get; set; }
+
+        public string[] SourceSource = ["local", "github", "nuget"];
+
+        [TextPrompt(Secret = true)] public string ApiKey { get; set; }
+
+        public bool ApiKeyCondition() => Source == "nuget";
     }
-
-    public bool SourceCondition() => string.IsNullOrWhiteSpace(Source);
-
-    [SelectPrompt] public string? Source { get; set; }
-
-    public string[] SourceSource = ["local", "github", "nuget"];
-
-    [TextPrompt(Secret = true)] public string ApiKey { get; set; }
-
-    public bool ApiKeyCondition() => Source == "nuget";
-}
