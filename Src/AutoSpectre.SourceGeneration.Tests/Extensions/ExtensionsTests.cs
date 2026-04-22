@@ -81,8 +81,8 @@ public class ExtensionsTests
         }
     }
 
-    
-    public (Compilation compilation, SyntaxTree tree) Generate(string code)
+
+    private (Compilation compilation, SyntaxTree tree) Generate(string code)
     {
         var syntaxTree = CSharpSyntaxTree.ParseText(code);
 

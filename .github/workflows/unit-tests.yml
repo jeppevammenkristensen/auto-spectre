@@ -1,0 +1,21 @@
+name: Unit Tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x     
+
+      - name: Run unit tests
+        working-directory: Scripts
+        run: dotnet run run-unit-tests.cs
