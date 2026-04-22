@@ -1,0 +1,6 @@
+* text=auto
+
+# Source generator tests compare against Roslyn's NormalizeWhitespace output,
+# which always emits CRLF. Force .cs files to CRLF on all platforms so
+# verbatim string literals in tests match the generator's output under CI (Linux).
+*.cs text eol=crlf
