@@ -8,15 +8,11 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Spectre.Console;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace AutoSpectre.SourceGeneration.Tests.Extensions;
 
 public class ExtensionsTests
 {
-  
-    
-    
     private readonly ITestOutputHelper _testOutputHelper;
 
     public ExtensionsTests(ITestOutputHelper testOutputHelper)
@@ -48,8 +44,8 @@ public class ExtensionsTests
 
         var semanticModel = compilation.GetSemanticModel(syntaxTree);
 
-        var tree = syntaxTree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().First();
-        var enclosingSymbol = semanticModel.GetDeclaredSymbol(tree);
+        var tree = syntaxTree.GetRoot(TestContext.Current.CancellationToken).DescendantNodes().OfType<ClassDeclarationSyntax>().First();
+        var enclosingSymbol = semanticModel.GetDeclaredSymbol(tree, cancellationToken: TestContext.Current.CancellationToken);
         foreach (var propertySymbol in enclosingSymbol?.GetMembers().OfType<IPropertySymbol>() ?? Enumerable.Empty<IPropertySymbol>())
         {
             propertySymbol.Type.IsEnumerableOfType().isEnumerable.Should().BeTrue(propertySymbol.DeclaringSyntaxReferences.First().ToString());
@@ -74,13 +70,13 @@ public class ExtensionsTests
 
         var semanticModel = compilation.GetSemanticModel(syntaxTree);
 
-        var tree = syntaxTree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().First();
-        var enclosingSymbol = semanticModel.GetDeclaredSymbol(tree);
+        var tree = syntaxTree.GetRoot(TestContext.Current.CancellationToken).DescendantNodes().OfType<ClassDeclarationSyntax>().First();
+        var enclosingSymbol = semanticModel.GetDeclaredSymbol(tree, cancellationToken: TestContext.Current.CancellationToken);
         if (enclosingSymbol is {})
         {
             foreach (var propertySymbol in enclosingSymbol.GetMembers().OfType<IPropertySymbol>())
             {
-                propertySymbol.Type.IsEnumerableOfTypeButNotString().isEnumerable.Should().BeFalse(propertySymbol.DeclaringSyntaxReferences.First().GetSyntax().ToString());
+                propertySymbol.Type.IsEnumerableOfTypeButNotString().isEnumerable.Should().BeFalse(propertySymbol.DeclaringSyntaxReferences.First().GetSyntax(TestContext.Current.CancellationToken).ToString());
             }
         }
     }
@@ -102,7 +98,7 @@ public class ExtensionsTests
 
         references.Add(MetadataReference.CreateFromFile(typeof(TextPromptAttribute).Assembly.Location));
 
-        var compilation = CSharpCompilation.Create("foo", new SyntaxTree[] { syntaxTree }, references, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+        var compilation = CSharpCompilation.Create("foo", [syntaxTree], references, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
         // TODO: Uncomment this line if you want to fail tests when the injected program isn't valid _before_ running generators
         var compileDiagnostics = compilation.GetDiagnostics();

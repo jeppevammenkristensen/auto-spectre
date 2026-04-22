@@ -5,7 +5,7 @@ using FluentAssertions.Execution;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Xunit.Abstractions;
+using Xunit;
 
 namespace AutoSpectre.SourceGeneration.Tests;
 
