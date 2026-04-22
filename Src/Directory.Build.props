@@ -5,8 +5,7 @@
     <RepositoryUrl>https://github.com/jeppevammenkristensen/auto-spectre</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <VersionPrefix>0.13.0</VersionPrefix>
-    <IsPackable>false</IsPackable> <!-- disable by default -->
-    <VersionSuffix>rc-01</VersionSuffix>
+    <IsPackable>false</IsPackable> <!-- disable by default -->   
     
   </PropertyGroup>
 </Project>
