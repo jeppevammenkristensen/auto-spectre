@@ -1,5 +1,4 @@
 ﻿using Xunit;
-using Xunit.Abstractions;
 
 namespace AutoSpectre.SourceGeneration.Tests;
 
