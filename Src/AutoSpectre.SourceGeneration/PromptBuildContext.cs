@@ -2,13 +2,16 @@
 using System.Collections.Generic;
 using System.Composition.Hosting.Core;
 using System.Linq;
+using System.Text;
+using AutoSpectre.SourceGeneration.BuildContexts;
+using AutoSpectre.SourceGeneration.Evaluation;
 using AutoSpectre.SourceGeneration.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 namespace AutoSpectre.SourceGeneration;
 
-public abstract class PromptBuildContext
+public abstract class PromptBuildContext : ISummaryCondition
 {
     public PromptBuildContext(SinglePropertyEvaluationContext context, string title)
     {
@@ -67,5 +70,31 @@ public abstract class PromptBuildContext
     protected string GetStaticOrInstancePrepend(bool isStatic)
     {
         return Context.TargetType.GetStaticOrInstance(isStatic);
-    } }
+    } 
+    
+    public virtual IEnumerable<object?> Confirmations => this.Context.Confirmations;
+
+    public void WriteToSummary(SummaryLineWriter builder)
+    {
+        WriteSummaryHeader(builder);
+        WriteTitle(builder);
+        builder.ApplySummaries(Confirmations.ToArray());
+    }
+
+    private void WriteTitle(SummaryLineWriter builder)
+    {
+        if (!string.IsNullOrWhiteSpace(Title))
+        {
+            builder.AppendLine($"/// PromptTitle: {Title}", true);
+        }
+    }
+
+    /// <summary>
+    /// This should display a header for the given PromptBuildContext
+    /// </summary>
+    /// <param name="builder"></param>
+    protected abstract void WriteSummaryHeader(SummaryLineWriter builder);
+    
+    
+}
 

@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Linq;
-using System.Net.Mime;
 using System.Text;
 using AutoSpectre.SourceGeneration.Evaluation;
 using AutoSpectre.SourceGeneration.Extensions;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Spectre.Console;
 using static AutoSpectre.SourceGeneration.CodeBuildConstants;
 
 namespace AutoSpectre.SourceGeneration.BuildContexts;
@@ -64,6 +60,11 @@ internal class TextPromptBuildContext : PromptBuilderContextWithPropertyContext
 
         builder.Append(")");
         return builder.ToString();
+    }
+
+    protected override void WriteSummaryHeader(SummaryLineWriter builder)
+    {
+        builder.AppendLine(" Exposes a text prompt", true);
     }
 
     private void BuildChoices(StringBuilder builder)

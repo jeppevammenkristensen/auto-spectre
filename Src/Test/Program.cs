@@ -12,20 +12,33 @@ namespace Test
     {
         public static async Task Main()
         {
-            var result = SpectreFactory.GetSpectreFactory_Test_SClass();
-            var m = await result.PromptAsync(new SClass("Jeppe Roi Kristensen"));
+           
+            
+           // await result.PromptAsync(new SClass("Jeppe Roi Kristensen"));
         }
     }
 
     [AutoSpectreForm()]
-    public class OtherClass
+    public partial class OtherClass
     {
-        [TextPrompt]
-        public string Name { get; set; } = string.Empty;
+        public bool NameCondition => false;
+
+        [TextPrompt(Title = "Speek friend", ChoicesSource = nameof(SelectSource))] public partial string Name { get; set; }
+        
+        public string[] SelectSource => new[] {"First", "Second"};
+        
+        [SelectPrompt(SearchEnabled = true, SearchPlaceholderText = "Search for it")]
+        public partial string Select { get; set; }
+
+        [TaskStep(Condition = nameof(NameCondition), NegateCondition = true)]
+        public partial void TaskStep()
+        {
+            
+        }
     }
 
     [AutoSpectreForm()]
-    public class SClass
+    public partial class SClass
     {
         private readonly string _firstName;
 
@@ -35,7 +48,7 @@ namespace Test
         }
 
         [TextPrompt(EditableDefaultValue = true, DefaultValueSource = nameof(SomeValueDefaultValueSource))]
-        public string SomeValue { get; set; }
+        public partial string SomeValue { get; set; }
 
         public string SomeValueDefaultValueSource() => "Angry";
         
@@ -54,14 +67,14 @@ namespace Test
          public List<string?> SomePromptSource => ["Jeppe", "Roo", "Ulrik"];
          public static string SomePromptCancelResult => "[empty]";        
          
+         public string[] OtherPromptSource => new[] {"Jeppe", "Roo", "Ulrik"};
+         
          [SelectPrompt(Source = nameof(OtherPromptSource))]
          public List<string> OtherPrompt { get; set; }
 
          public string OtherPromptDefaultValue() => "Jeppe";
          
 
-         public readonly List<string> OtherPromptSource = ["Jeppe", "Poul", "Mikkel"];
-         public List<string> OtherPromptCancelResult() => [];
 
         
 

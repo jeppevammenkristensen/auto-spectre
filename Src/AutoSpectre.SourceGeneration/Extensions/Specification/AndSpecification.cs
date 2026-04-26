@@ -43,6 +43,8 @@ public static class SpecificationRecipes
     public static Specification<ISymbol> IsPublicAndInstanceSpec => IsPublic & new IsInstanceSpecification<ISymbol>();
 
     public static Specification<ISymbol> IsPublic => new IsPublicSpecification<ISymbol>();
+    
+    public static Specification<ISymbol> IsInternal => new IsInternalSpecification<ISymbol>();
 
     public static IsInstanceSpecification<ISymbol> IsInstance = new IsInstanceSpecification<ISymbol>();
     public static Specification<ISymbol> IsStatic = IsInstance.Not(); 

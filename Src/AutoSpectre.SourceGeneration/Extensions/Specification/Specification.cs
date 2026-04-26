@@ -9,7 +9,9 @@ namespace AutoSpectre.SourceGeneration.Extensions.Specification;
 /// you can inject it in a Where clause or FirstOrDefault directly. 
 /// </summary>
 /// <typeparam name="T"></typeparam>
+#pragma warning disable CS0660, CS0661
 public abstract class Specification<T> : ISpecification
+#pragma warning restore CS0660, CS0661
 {
     public abstract bool IsSatisfiedBy(T obj);
     

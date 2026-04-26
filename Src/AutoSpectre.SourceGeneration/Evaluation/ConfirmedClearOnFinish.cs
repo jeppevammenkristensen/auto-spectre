@@ -1,5 +1,11 @@
-﻿namespace AutoSpectre.SourceGeneration.Evaluation;
+﻿using AutoSpectre.SourceGeneration.BuildContexts;
 
-public class ConfirmedClearOnFinish
+namespace AutoSpectre.SourceGeneration.Evaluation;
+
+public class ConfirmedClearOnFinish : ISummaryCondition
 {
+    public void WriteToSummary(SummaryLineWriter builder)
+    {
+        builder.AppendLine(" Clear on finish: true", true);
+    }
 }

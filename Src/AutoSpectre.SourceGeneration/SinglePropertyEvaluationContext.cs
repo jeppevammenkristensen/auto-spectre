@@ -15,24 +15,16 @@ namespace AutoSpectre.SourceGeneration;
 /// </summary>
 public class SingleMethodEvaluationContext : IConditionContext
 {
-    /// <summary>
-    /// Gets the method symbol being described by this context.
-    /// </summary>
+    /// <summary>The method symbol this context describes.</summary>
     public IMethodSymbol Method { get; }
 
-    /// <summary>
-    /// Gets a value indicating whether the method's return type is <see cref="System.Threading.Tasks.Task"/>.
-    /// </summary>
+    /// <summary>True if the method returns <see cref="System.Threading.Tasks.Task"/> or <see cref="System.Threading.Tasks.Task{TResult}"/>.</summary>
     public bool ReturnTypeIsTask { get; }
 
-    /// <summary>
-    /// Gets a value indicating whether the method accepts an <c>IAnsiConsole</c> parameter.
-    /// </summary>
+    /// <summary>True if the method accepts an <c>IAnsiConsole</c> parameter that the generator must pass through.</summary>
     public bool HasAnsiConsoleParameter { get; }
 
-    /// <summary>
-    /// Gets a value indicating whether this method participates as a task step in the generated flow.
-    /// </summary>
+    /// <summary>True when the method is rendered as a task step (e.g. wrapped in a Spectre status/progress block).</summary>
     public bool IsTaskStep { get; private set; }
 
     private Lazy<MethodDeclarationSyntax> _methodSyntaxLazy;
@@ -81,6 +73,13 @@ public class SingleMethodEvaluationContext : IConditionContext
     /// Gets or sets the optional condition that determines whether this method step is executed.
     /// </summary>
     public ConfirmedCondition? ConfirmedCondition { get; set; }
+
+    public bool IsPartial => Method.IsPartial();
+
+    public IEnumerable<object?> Confirmations => new List<object?>()
+    {
+        ConfirmedCondition, ConfirmedStatus
+    };
 }
 
 /// <summary>
@@ -102,12 +101,12 @@ public class ConfirmedStatusWrap
     /// Gets the status text shown to the user during execution.
     /// </summary>
     public string StatusText { get; }
-
+    
 }
 
 /// <summary>
-/// Represents a context participant (property or method) that can be conditionally rendered
-/// or executed based on a confirmed condition.
+/// Common shape for any evaluation context (property or method) that can carry a
+/// conditional-execution flag, allowing the generator to share condition-handling logic.
 /// </summary>
 public interface IConditionContext
 {
@@ -125,6 +124,8 @@ public interface IConditionContext
     /// Gets or sets the optional condition that gates the member's participation in the flow.
     /// </summary>
     public ConfirmedCondition? ConfirmedCondition { get; set; }
+    
+    public bool IsPartial { get; }
 }
 
 /// <summary>
@@ -189,7 +190,7 @@ public class SinglePropertyEvaluationContext : IConditionContext
     public static SinglePropertyEvaluationContext Empty = new(default(IPropertySymbol),
         false, default(ITypeSymbol), false, default(ITypeSymbol), default(INamedTypeSymbol));
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
-
+    
     private Lazy<PropertyDeclarationSyntax?> _propertySyntaxLazy;
 
     /// <summary>
@@ -294,6 +295,11 @@ public class SinglePropertyEvaluationContext : IConditionContext
     /// <summary>
     /// Gets or sets the confirmed default value source used to pre-fill the prompt.
     /// </summary>
+
+    // <inheritdoc />
+    public bool IsPartial => Property.IsPartial();
+
+    /// <summary>Resolved default value supplied to the prompt.</summary>
     public ConfirmedDefaultValue? ConfirmedDefaultValue { get; set; }
 
     /// <summary>
@@ -339,6 +345,8 @@ public class SinglePropertyEvaluationContext : IConditionContext
     /// <summary>
     /// Gets or sets the Spectre.Console style applied to the highlighted selection.
     /// </summary>
+
+    /// <summary>Optional Spectre style applied to the highlighted item in selection prompts.</summary>
     public string? HighlightStyle { get; set; } //public NamedTypedAnalysis? NamedTypeAnalysis { get; set; }
 
     /// <summary>
@@ -355,6 +363,25 @@ public class SinglePropertyEvaluationContext : IConditionContext
     /// Gets or sets the confirmed cancel-result configuration that defines behavior when the user cancels.
     /// </summary>
     public ConfirmedCancelResult? ConfirmedCancelResult { get; set; }
+    /// <summary>
+    /// All "Confirmed*" attribute-derived settings on this context, in declaration order.
+    /// May contain nulls for entries that were not set.
+    /// </summary>
+    public IEnumerable<object?> Confirmations => new List<object?>()
+    {
+        ConfirmedSelectionSource,
+        ConfirmedNamedTypeSource,
+        ConfirmedConverter,
+        ConfirmedValidator,
+        ConfirmedCondition,
+        ConfirmedDefaultValue,
+        ConfirmedDefaultStyle,
+        ConfirmedChoices,
+        ConfirmedChoicesStyle,
+        ConfirmedSearchEnabled,
+        ConfirmedCancelResult,
+        ConfirmedClearOnFinish
+    };
 
     public ConfirmedClearOnFinish? ConfirmedClearOnFinish { get; set; }
 
@@ -391,8 +418,6 @@ public class SinglePropertyEvaluationContext : IConditionContext
     ///  Returns the Type is the type is not an enumerable or the underlying
     /// type is it is an enumerable
     /// </summary>
-    /// <returns></returns>
-    /// <exception cref="NotImplementedException"></exception>
     public (bool nullable, ITypeSymbol type) GetSingleType() =>
         IsEnumerable
             ? (UnderlyingTypeIsNullable,

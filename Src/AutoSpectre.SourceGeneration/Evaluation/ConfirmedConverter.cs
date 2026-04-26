@@ -1,6 +1,8 @@
+using AutoSpectre.SourceGeneration.BuildContexts;
+
 namespace AutoSpectre.SourceGeneration.Evaluation;
 
-public class ConfirmedConverter
+public class ConfirmedConverter : ISummaryCondition
 {
     public string Converter { get; }
     public bool IsStatic { get; }
@@ -9,5 +11,10 @@ public class ConfirmedConverter
     {
         Converter = converter;
         IsStatic = isStatic;
+    }
+
+    public void WriteToSummary(SummaryLineWriter builder)
+    {
+        builder.AppendLine($" Converter: {Converter}", true);
     }
 }

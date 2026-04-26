@@ -228,6 +228,23 @@ public static class Extensions
         return source.DeclaredAccessibility == Accessibility.Internal;
     }
 
+    /// <summary>
+    /// Determines whether the symbol is declared with the partial keyword.
+    /// </summary>
+    /// <param name="source">The symbol to check for partial modifier.</param>
+    /// <returns>True if the symbol is declared as partial; otherwise, false.</returns>
+    internal static bool IsPartial(this ISymbol source)
+    {
+        if (source == null)
+            return false;
+        
+        return source
+            .DeclaringSyntaxReferences
+            .Select(r => r.GetSyntax())
+            .OfType<MemberDeclarationSyntax>()
+            .Any(syntax => syntax.Modifiers.Any(m => m.IsKind(Microsoft.CodeAnalysis.CSharp.SyntaxKind.PartialKeyword)));
+    }
+
     internal static bool IsInstance(this ISymbol source)
     {
         return !source.IsStatic;

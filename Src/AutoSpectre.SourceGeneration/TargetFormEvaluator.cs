@@ -16,6 +16,8 @@ public class TargetFormEvaluator
     public SourceProductionContext ProductionContext { get; }
     public GeneratorAttributeSyntaxContext SyntaxContext { get; }
 
+    public bool IsPartial => TargetNamedType.IsPartial();
+
     private readonly LazyTypes _lazyTypes;
     
     public TargetFormEvaluator(AttributeData attributeData, INamedTypeSymbol targetNamedType, SourceProductionContext productionContext, GeneratorAttributeSyntaxContext syntaxContext)

@@ -212,4 +212,9 @@ public class MultiAddBuildContext : PromptBuildContext
     {
         return this.BuildContext.Namespaces();
     }
+
+    protected override void WriteSummaryHeader(SummaryLineWriter builder)
+    {
+        builder.AppendLine("Exposes multiple add prompts", true);
+    }
 }

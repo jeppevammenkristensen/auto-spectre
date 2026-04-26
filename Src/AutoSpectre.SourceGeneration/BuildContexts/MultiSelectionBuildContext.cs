@@ -80,7 +80,11 @@ new MultiSelectionPrompt<{type}>()
         return builder.ToString();
     }
 
-   
+    protected override void WriteSummaryHeader(SummaryLineWriter builder)
+    {
+        builder.AppendLine("Exposes a multi-selection prompt", true);
+    }
+
 
     private string GenerateInstructionsText()
     {

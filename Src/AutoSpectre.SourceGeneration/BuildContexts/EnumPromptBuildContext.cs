@@ -1,4 +1,5 @@
-﻿using AutoSpectre.SourceGeneration.Extensions;
+﻿using System.Text;
+using AutoSpectre.SourceGeneration.Extensions;
 using Microsoft.CodeAnalysis;
 
 namespace AutoSpectre.SourceGeneration.BuildContexts;
@@ -35,5 +36,10 @@ public class EnumPromptBuildContext : PromptBuildContext
             {Context.ConfirmedSearchEnabled.GetSearchString()}
             .AddChoices(Enum.GetValues<{TypeName}>()))
         """;
+    }
+
+    protected override void WriteSummaryHeader(SummaryLineWriter builder)
+    {
+        builder.AppendLine("Exposes a prompt to select the values of the enum",true);
     }
 }
