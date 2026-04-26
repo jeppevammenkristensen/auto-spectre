@@ -14,7 +14,7 @@ public class ConfirmedDefaultValueTests
     [Fact]
     public void WriteToSummary_WritesDefaultValueLineWithBreak()
     {
-        var defaultValue = new ConfirmedDefaultValue(DefaultValueType.Property, "DefaultName", style: null, instance: false);
+        var defaultValue = new ConfirmedDefaultValue("DefaultName", SourceEvaluation.False);
         var builder = new StringBuilder();
 
         defaultValue.WriteToSummary(new SummaryLineWriter(builder));
@@ -25,7 +25,7 @@ public class ConfirmedDefaultValueTests
     [Fact]
     public void WriteToSummary_OutputDoesNotDependOnDefaultValueType()
     {
-        var method = new ConfirmedDefaultValue(DefaultValueType.Method, "DefaultName", style: "yellow", instance: true);
+        var method = new ConfirmedDefaultValue("DefaultName", SourceEvaluation.False);
         var builder = new StringBuilder();
 
         method.WriteToSummary(new SummaryLineWriter(builder));
