@@ -29,7 +29,12 @@ public class ConfirmPromptBuildContext : PromptBuildContext
         stringBuilder.AppendLine(")");
         return stringBuilder.ToString();
     }
-    
+
+    protected override void WriteSummaryHeader(SummaryLineWriter builder)
+    {
+        builder.AppendLine("Exposes a confirmation prompt (ConfirmationPrompt)", true);
+    }
+
     private void BuildDefaultStyle(StringBuilder builder)
     {
         if (Context.ConfirmedDefaultStyle is { Style: {} style } _)

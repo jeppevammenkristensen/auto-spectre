@@ -2,7 +2,7 @@
 
 namespace AutoSpectre.SourceGeneration.Evaluation;
 
-public class ConfirmedSelectionSource
+public class ConfirmedSelectionSource : ISummaryCondition
 {
     public ConfirmedSelectionSource(string name, SelectionPromptSelectionType source, bool isStatic)
     {
@@ -14,4 +14,8 @@ public class ConfirmedSelectionSource
     public string Name { get; }
     public SelectionPromptSelectionType Source { get; }
     public bool IsStatic { get; }
+    public void WriteToSummary(SummaryLineWriter builder)
+    {
+        builder.AppendLine($" Source: {Name}", true);
+    }
 }

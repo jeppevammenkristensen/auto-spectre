@@ -8,6 +8,67 @@ using Microsoft.CodeAnalysis;
 
 namespace AutoSpectre.SourceGeneration.BuildContexts;
 
+/// <summary>
+/// 
+/// </summary>
+public class SummaryLineWriter
+{
+    public StringBuilder Builder { get; }
+
+    public SummaryLineWriter(StringBuilder builder)
+    {
+        Builder = builder;
+    }
+
+    /// <summary>
+    /// sfsdfasdf <br/>
+    /// </summary>
+    /// <param name="line"></param>
+    /// <param name="addLineBreak"></param>
+    /// <returns></returns>
+    public SummaryLineWriter AppendLine(string line, bool addLineBreak)
+    {
+        Builder.Append("///" + line.TrimStart('/'));
+        NewLine(addLineBreak);
+        return this;
+    }
+
+    public SummaryLineWriter Append(string line, bool isFirstPartOfLine = false)
+    {
+        if (isFirstPartOfLine)
+        {
+            Builder.Append("///" + line.TrimStart('/'));
+        }
+        else
+        {
+            Builder.Append(line);
+        }
+
+        return this;
+
+
+    }
+
+    public static implicit operator StringBuilder(SummaryLineWriter source) => source.Builder;
+
+    public SummaryLineWriter NewLine(bool addLineBreak = true)
+    {
+        if (addLineBreak)
+        {
+            Builder.Append("<br/>");    
+        }
+        
+        Builder.AppendLine();
+        return this;
+    }
+
+    public override string ToString()
+    {
+        return Builder.ToString();
+    }
+}
+
+
 internal class ReuseExistingAutoSpectreFactoryPromptBuildContext : PromptBuilderContextWithPropertyContext
 {
     public override bool DeclaresVariable => true;
@@ -139,7 +200,12 @@ internal class ReuseExistingAutoSpectreFactoryPromptBuildContext : PromptBuilder
     public override IEnumerable<string> Namespaces()
     {
             yield return TypeNamespace;
-                }
+    }
+
+    protected override void WriteSummaryHeader(SummaryLineWriter builder)
+    {
+        builder.AppendLine("Reuses an existing factory to prompt for the value", true);
+    }
 
     public override IEnumerable<string> CodeInitializing()
     {

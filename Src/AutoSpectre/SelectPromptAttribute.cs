@@ -55,7 +55,7 @@ public class SelectPromptAttribute : AutoSpectreStepAttribute
     
     /// <summary>
     /// Enable search in the prompt. So it's possible to limit
-    /// the selection choices
+    /// the selection choices. This will only take effect on single selection and will be ignored for multi select
     /// </summary>
     public bool SearchEnabled { get; set; }
     

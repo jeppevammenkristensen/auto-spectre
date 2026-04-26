@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Text;
 using AutoSpectre.SourceGeneration.Extensions;
 using Microsoft.CodeAnalysis;
 
@@ -43,4 +44,9 @@ internal class SelectionPromptBuildContext : SelectionBaseBuildContext
     }
 
 
+
+    protected override void WriteSummaryHeader(SummaryLineWriter builder)
+    {
+        builder.AppendLine("Exposes a single selection prompt",true);
+    }
 }

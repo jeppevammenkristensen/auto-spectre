@@ -129,11 +129,8 @@ internal class StepContextBuilderOperation
     private readonly ConcurrentDictionary<INamedTypeSymbol, NamedTypedAnalysis> _analysedTypes =
         new (SymbolEqualityComparer.Default);
     
-    /// <summary>
-    /// The Roslyn syntax context for the <c>[AutoSpectreForm]</c>-decorated class being analysed.
-    /// </summary>
     public GeneratorAttributeSyntaxContext SyntaxContext { get; }
-
+    
     /// <summary>
     /// Methods or Properties on the <see cref="TargetType"/> that are
     /// candidates to have a prompt or task executed.

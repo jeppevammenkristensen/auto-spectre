@@ -1,8 +1,10 @@
+using AutoSpectre.SourceGeneration.BuildContexts;
+
 using System.Text;
 
 namespace AutoSpectre.SourceGeneration.Evaluation;
 
-public class ConfirmedDefaultValue : SourceResult
+public class ConfirmedDefaultValue : SourceResult, ISummaryCondition
 {
     
     public ConfirmedDefaultValue(string name, SourceEvaluation evaluation) : base(name, evaluation)
@@ -31,4 +33,9 @@ public class ConfirmedDefaultValue : SourceResult
     //     Name = name;
     //     Instance = instance;
     // }
+
+    public void WriteToSummary(SummaryLineWriter builder)
+    {
+        builder.AppendLine($" Default value: {Name}", true);
+    }
 }

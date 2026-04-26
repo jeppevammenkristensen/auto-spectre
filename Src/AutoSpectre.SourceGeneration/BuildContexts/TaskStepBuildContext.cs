@@ -123,5 +123,19 @@ public class TaskStepBuildContext : PromptBuildContext
             yield return ns;
         }
     }
+
+    public override IEnumerable<object?> Confirmations => EvaluationContext.Confirmations;
+
+    protected override void WriteSummaryHeader(SummaryLineWriter builder)
+    {
+        if (EvaluationContext.IsTaskStep)
+        {
+            builder.AppendLine("/// Executes a task step (for instance fetching data)", true);   
+        }
+        else
+        {
+            builder.AppendLine("/// A break step (a step for no further actions are performed", true);  
+        }
+    }
 }
 

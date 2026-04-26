@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using AutoSpectre.SourceGeneration.BuildContexts;
 using AutoSpectre.SourceGeneration.Extensions;
 
 namespace AutoSpectre.SourceGeneration.Evaluation;
@@ -52,7 +53,7 @@ internal interface IConfirmedWithPreprocessing
 
 }
 
-public class ConfirmedCancelResult : SourceResult 
+public class ConfirmedCancelResult : SourceResult, ISummaryCondition
 {
     public ConfirmedCancelResult(string name, SourceEvaluation evaluation) : base(name, evaluation)
     {
@@ -75,4 +76,9 @@ public class ConfirmedCancelResult : SourceResult
     /// CancelResult has no suffix as it's either the source or pointing to a Func
     /// </summary>
     protected override string Suffix => String.Empty;
+
+    public void WriteToSummary(SummaryLineWriter builder)
+    {
+        builder.Append($" Cancel result source: {Name}", true);
+    }
 }
