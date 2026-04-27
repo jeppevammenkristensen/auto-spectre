@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using AutoSpectre.SourceGeneration.BuildContexts;
 using AutoSpectre.SourceGeneration.Evaluation;
 using AutoSpectre.SourceGeneration.Extensions;
 using Microsoft.CodeAnalysis;
@@ -86,7 +87,7 @@ public class SingleMethodEvaluationContext : IConditionContext
 /// Wraps a confirmed status text that is displayed (typically with a spinner) while
 /// a task step executes.
 /// </summary>
-public class ConfirmedStatusWrap
+public class ConfirmedStatusWrap : ISummaryCondition
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="ConfirmedStatusWrap"/> class.
@@ -101,7 +102,11 @@ public class ConfirmedStatusWrap
     /// Gets the status text shown to the user during execution.
     /// </summary>
     public string StatusText { get; }
-    
+
+    public void WriteToSummary(SummaryLineWriter builder)
+    {
+        builder.AppendLine($"Uses status with text: {StatusText}", true);
+    }
 }
 
 /// <summary>

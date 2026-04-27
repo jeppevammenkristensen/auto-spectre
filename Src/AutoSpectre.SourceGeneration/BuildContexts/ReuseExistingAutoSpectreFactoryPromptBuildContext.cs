@@ -28,7 +28,7 @@ public class SummaryLineWriter
     /// <returns></returns>
     public SummaryLineWriter AppendLine(string line, bool addLineBreak)
     {
-        Builder.Append("///" + line.TrimStart('/'));
+        Builder.Append("/// " + line.TrimStart('/').TrimStart());
         NewLine(addLineBreak);
         return this;
     }

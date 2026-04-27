@@ -23,8 +23,14 @@ public class RunCommand : AsyncCommand<RunCommand.Settings>
             return 1;
         }
 
+        var spectresourcegeneratorSlnx = srcRoot / "SpectreSourceGenerator.slnx";
+        
         await SimpleExecRunner.Init("dotnet")
-            .AddArgumentPair("restore", srcRoot / "SpectreSourceGenerator.slnx").RunAsync(token: cancellationToken);
+            .AddArgumentPair("restore", spectresourcegeneratorSlnx).RunAsync(token: cancellationToken);
+
+        await SimpleExecRunner.Init("dotnet")
+            .AddArgumentPair("build", spectresourcegeneratorSlnx)
+            .RunAsync(token: cancellationToken);
 
         var testProjects = srcRoot
             .EnumerateFiles("*.csproj", SearchOption.AllDirectories)
