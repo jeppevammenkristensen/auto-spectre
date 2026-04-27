@@ -85,7 +85,7 @@ public abstract class PromptBuildContext : ISummaryCondition
     {
         if (!string.IsNullOrWhiteSpace(Title))
         {
-            builder.AppendLine($"/// PromptTitle: {Title}", true);
+            builder.AppendLine($"/// Title: {Title}", true);
         }
     }
 

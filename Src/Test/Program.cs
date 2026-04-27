@@ -52,7 +52,9 @@ namespace Test
 
         public string SomeValueDefaultValueSource() => "Angry";
         
-        
+        /// <summary>
+        /// This is a data <see cref="DateDefault"/>
+        /// </summary>
         [TextPrompt(Title = "Enter date", DefaultValueSource = nameof(DateDefault))]
         public DateOnly Date { get; set; }
         
@@ -70,7 +72,7 @@ namespace Test
          public string[] OtherPromptSource => new[] {"Jeppe", "Roo", "Ulrik"};
          
          [SelectPrompt(Source = nameof(OtherPromptSource))]
-         public List<string> OtherPrompt { get; set; }
+         public partial List<string> OtherPrompt { get; set; }
 
          public string OtherPromptDefaultValue() => "Jeppe";
          
@@ -79,7 +81,7 @@ namespace Test
         
 
         [Break(Condition = nameof(Abort))]
-        public void AbortMethod(IAnsiConsole console)
+        public partial void AbortMethod(IAnsiConsole console)
         {
             console.MarkupLine("Aborting");
         }
@@ -87,13 +89,13 @@ namespace Test
         public DateOnly DateDefault() => DateOnly.FromDateTime(DateTime.Now);
 
         [SelectPrompt(Title = "Select \"name\"")]
-        public string Name { get; set; } = string.Empty;
+        public partial string Name { get; set; } 
         
         [TextPrompt]
         public SomeEnum SomeEnum { get; set; } = SomeEnum.First;
 
-        [TaskStep(StatusText = "Processing", UseStatus = true, SpinnerStyle = "yellow bold")]
-        public async Task Hello()
+        [TaskStep(StatusText = "Processing the bad boy", UseStatus = false, SpinnerStyle = "yellow bold")]
+        public partial async Task Hello()
         {
             await Task.Delay(5000);
         }
@@ -140,12 +142,9 @@ namespace Test
                 Dumpify
             }
         }
-
-        
-
         
         
-        [TextPrompt(DefaultValueSource = nameof(FirstNameDefault))] public string FirstName { get; set; } = null!;
+        [TextPrompt(DefaultValueSource = nameof(FirstNameDefault))] public partial string FirstName { get; set; }
         public const string FirstNameDefault = "Jeppe";
     }
     

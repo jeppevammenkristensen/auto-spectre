@@ -96,7 +96,7 @@ public class SummaryLineWriterTests
 
         writer.AppendLine(string.Empty, addLineBreak: false);
 
-        builder.ToString().Should().Be($"///{Environment.NewLine}");
+        builder.ToString().Should().Be($"/// {Environment.NewLine}");
     }
 
     [Fact]
