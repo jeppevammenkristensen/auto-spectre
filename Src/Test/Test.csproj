@@ -8,9 +8,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Dumpify" Version="0.6.6" />
-      <PackageReference Include="NETStandard.Library" Version="2.0.3" />
-      <PackageReference Include="Spectre.Console" Version="0.55.2" />
+      <PackageReference Include="Dumpify" />
+      <PackageReference Include="Spectre.Console" />
     </ItemGroup>
 
     <ItemGroup>

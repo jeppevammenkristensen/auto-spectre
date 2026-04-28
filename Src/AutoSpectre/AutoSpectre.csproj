@@ -8,7 +8,7 @@
     <Description>Classes used by the AutoSpectre.SourceGeneration package</Description>
     <PackageReleaseNotes>
       - Important. Onwards only supports net8.0 and net10.0
-      - Add summaries if the decorated method and class are partial
+      - Add auto summaries if the decorated method/property and class are partial
     </PackageReleaseNotes>
     <PackageIcon>ghost.png</PackageIcon>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>
@@ -27,7 +27,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Spectre.Console" Version="0.55.2" />
+    <PackageReference Include="Spectre.Console" />
   </ItemGroup>
 
   <!-- Embed the source generator into this package so consumers only need to reference AutoSpectre -->
