@@ -25,13 +25,22 @@ public class RunCommand : AsyncCommand<RunCommand.Settings>
 
         var spectresourcegeneratorSlnx = srcRoot / "SpectreSourceGenerator.slnx";
         
+        AnsiConsole.Write(new Rule("[green]Restore[/]"));
+        
         await SimpleExecRunner.Init("dotnet")
-            .AddArgumentPair("restore", spectresourcegeneratorSlnx).RunAsync(token: cancellationToken);
-
-        await SimpleExecRunner.Init("dotnet")
-            .AddArgumentPair("build", spectresourcegeneratorSlnx)
+            .AddArgumentPair("restore", spectresourcegeneratorSlnx)
+            //.AddArgumentPair("-c", "Release")
             .RunAsync(token: cancellationToken);
 
+        AnsiConsole.Write(new Rule("[green]Build[/]"));
+        
+        await SimpleExecRunner.Init("dotnet")
+            .AddArgumentPair("build", spectresourcegeneratorSlnx)
+            .AddArgumentPair("-c", "Release")
+            .RunAsync(token: cancellationToken);
+
+        AnsiConsole.Write(new Rule("[green]Run unit-tests[/]"));
+        
         var testProjects = srcRoot
             .EnumerateFiles("*.csproj", SearchOption.AllDirectories)
             .Where(p => p.FileName.EndsWith(".Tests.csproj", StringComparison.OrdinalIgnoreCase)

@@ -830,6 +830,45 @@ public List<string> MenuChoiceSource => new() { "Start", "Settings" };
 public string MenuChoiceCancelResult => "Cancelled";
 ```
 
+## Partial summaries
+
+Since version 0.14.0, when an `[AutoSpectreForm]` class is declared `partial` you can also declare its prompted members as `partial`. The generator will emit an additional `*PartialSummaries.g.cs` file next to the factory, containing the partial declarations with XML `<summary>` documentation derived from each step's attribute configuration (title, condition, default value, choices, cancel result, clear-on-finish, search, etc.). This surfaces the prompt behavior in IntelliSense at the call site without you having to maintain doc comments by hand.
+
+Supported on partial properties decorated with `TextPrompt`/`SelectPrompt` and partial methods decorated with `TaskStep`/`Break`. Method bodies are stripped in the generated file — only the declaration is emitted.
+
+```csharp
+[AutoSpectreForm]
+public partial class PartialForm
+{
+    [TextPrompt(Title = "Enter your name")]
+    public partial string Name { get; set; }
+
+    [TaskStep]
+    public partial Task DoWork();
+}
+```
+
+Note. That for properties it must be the definition and not the implementation. This mean that especially the following
+is not allowed 
+
+```csharp
+[TextPrompt()]
+public partial string SomeProperty {get;set; } = string.Empty;
+
+// or 
+
+[TextPrompt()]
+public partial string SomeProperty {get => field, set => value = field}
+```
+
+but the following is allowed
+
+```csharp
+[TextPrompt()]
+public partial string SomeProperty {get;set;}
+```
+
+
 ## Factories
 
 ### ISpectreFactory and IAutoSpectreFactory
