@@ -1,5 +1,10 @@
 # Releases
 
+## 0.14.0
+
+* **Breaking:** Dropped `netstandard2.0`. `AutoSpectre` now targets `net8.0` and `net10.0` only.
+* Added partial-class summary generation. When an `[AutoSpectreForm]` class is declared `partial` and contains `partial` properties (decorated with `TextPrompt`/`SelectPrompt`) or `partial` methods (decorated with `TaskStep`/`Break`), the generator emits an additional `*PartialSummaries.g.cs` file alongside the factory. That file contains the partial member declarations with XML `<summary>` documentation derived from each step's configuration (title, condition, default value, choices, cancel result, clear-on-finish, search, etc.), so IntelliSense surfaces the prompt behavior at the call site. Method bodies are stripped — only the declaration is emitted.
+
 ## 0.13.0
 
 * Upgraded `Spectre.Console` dependency to 0.55.2.
