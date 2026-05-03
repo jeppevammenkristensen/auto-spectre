@@ -4,8 +4,7 @@
     <Authors>Jeppe Roi Kristensen</Authors>
     <RepositoryUrl>https://github.com/jeppevammenkristensen/auto-spectre</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <VersionPrefix>0.14.0</VersionPrefix>
-    <VersionSuffix>rc-04</VersionSuffix>
+    <VersionPrefix>0.14.0</VersionPrefix>    
     <IsPackable>false</IsPackable> <!-- disable by default -->   
     
   </PropertyGroup>
