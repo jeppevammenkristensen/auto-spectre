@@ -6,6 +6,8 @@ Project to auto-generate classes that can be used in a console to prompt for val
 
 **NOTE** From version 0.12.0 and forward AutoSpectre.SourceGeneration is being deprecated and instead build directly into AutoSpectre. When upgrading to 0.12.0 and later remember to remove older versions of it
 
+**NOTE** From version 0.14.0 and forward only .net8.0 and .net10 are supported
+
 ## Short Guide
 
 Decorate a class with the AutoSpectreForm attribute and then decorate the properties (must be settable) with a TextPrompt or SelectPrompt attribute.
