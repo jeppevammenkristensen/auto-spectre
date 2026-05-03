@@ -36,6 +36,28 @@ public record TestOutput(ImmutableArray<Diagnostic> CompileDiagnostics,
         return this;
     }
 
+    /// <summary>
+    /// Asserts that the generated code (combined with the original source) compiles
+    /// without any C# errors. Catches malformed templates that emit syntactically
+    /// invalid factory code (stray tokens, missing whitespace between tokens, etc.).
+    /// </summary>
+    public TestOutput ShouldCompileWithoutErrors()
+    {
+        var diagnostics = OutputCompilation.GetDiagnostics();
+        var errors = diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).ToList();
+
+        if (errors.Count > 0)
+        {
+            var details = string.Join(Environment.NewLine,
+                errors.Select(e => $"{e.Id}: {e.GetMessage()} @ {e.Location.GetLineSpan()}"));
+            throw new AssertionFailedException(
+                $"Generated code did not compile. Errors:{Environment.NewLine}{details}{Environment.NewLine}" +
+                $"--- Generated factory ---{Environment.NewLine}{Output}");
+        }
+
+        return this;
+    }
+
     public TestOutput ShouldContainNamespace(string nameSpace)
     {
         var last = OutputCompilation.SyntaxTrees.Last();

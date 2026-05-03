@@ -358,3 +358,8 @@ MigrationBackup/
 
 # Claude Code
 .claude/
+
+# Serena
+.serena/
+
+/src/playground
