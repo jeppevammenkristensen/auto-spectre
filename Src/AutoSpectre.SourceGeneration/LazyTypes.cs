@@ -1,7 +1,6 @@
 ﻿using System;
 using AutoSpectre.SourceGeneration.Models;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 
 namespace AutoSpectre.SourceGeneration;
 

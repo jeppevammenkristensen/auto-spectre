@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace AutoSpectre
+﻿namespace AutoSpectre
 {
     /// <summary>
     /// Specifies the type of prompt to present to the user.

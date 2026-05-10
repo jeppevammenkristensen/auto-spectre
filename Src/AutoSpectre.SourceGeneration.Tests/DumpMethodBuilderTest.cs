@@ -1,7 +1,4 @@
-﻿using System.Collections.Immutable;
-using System.Reflection;
-using AutoSpectre.SourceGeneration;
-using AutoSpectre.SourceGeneration.BuildContexts;
+﻿using AutoSpectre.SourceGeneration.BuildContexts;
 using AutoSpectre.SourceGeneration.Evaluation;
 using FluentAssertions;
 using FluentAssertions.Execution;
@@ -11,7 +8,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Xunit;
-using Xunit.Sdk;
 
 namespace AutoSpectre.SourceGeneration.Tests;
 

@@ -1,5 +1,3 @@
-using System;
-using System.Text;
 using AutoSpectre.SourceGeneration.BuildContexts;
 
 namespace AutoSpectre.SourceGeneration.Evaluation;

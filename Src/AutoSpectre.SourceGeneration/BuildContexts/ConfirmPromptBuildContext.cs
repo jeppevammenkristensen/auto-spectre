@@ -1,6 +1,4 @@
-﻿using System;
-using System.Text;
-using AutoSpectre.SourceGeneration.Evaluation;
+﻿using System.Text;
 using AutoSpectre.SourceGeneration.Extensions;
 
 namespace AutoSpectre.SourceGeneration.BuildContexts;

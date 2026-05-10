@@ -1,5 +1,14 @@
 # Releases
 
+## 0.14.1
+
+* Fixed issue where the partial implementation of the property was incorrect (dumb error. value = field instead of correct field = value)
+* Fix so it's allowed to use an initializer on partial properties without generating an error. 
+```csharp
+[TextPrompt]
+public partial string Name {get;set;} = "Default";
+```
+
 ## 0.14.0
 
 * **Breaking:** Dropped `netstandard2.0`. `AutoSpectre` now targets `net8.0` and `net10.0` only.

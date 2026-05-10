@@ -850,27 +850,6 @@ public partial class PartialForm
 }
 ```
 
-Note. That for properties it must be the definition and not the implementation. This mean that especially the following
-is not allowed 
-
-```csharp
-[TextPrompt()]
-public partial string SomeProperty {get;set; } = string.Empty;
-
-// or 
-
-[TextPrompt()]
-public partial string SomeProperty {get => field, set => value = field}
-```
-
-but the following is allowed
-
-```csharp
-[TextPrompt()]
-public partial string SomeProperty {get;set;}
-```
-
-
 ## Factories
 
 ### ISpectreFactory and IAutoSpectreFactory

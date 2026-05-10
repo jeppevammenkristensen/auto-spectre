@@ -1,5 +1,4 @@
-﻿using System.Text;
-using AutoSpectre.SourceGeneration.Extensions;
+﻿using AutoSpectre.SourceGeneration.Extensions;
 using Microsoft.CodeAnalysis;
 
 namespace AutoSpectre.SourceGeneration.BuildContexts;

@@ -1,5 +1,4 @@
 ﻿using System;
-using Microsoft.CodeAnalysis;
 
 namespace AutoSpectre.SourceGeneration.Extensions.Specification;
 

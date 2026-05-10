@@ -93,8 +93,14 @@ internal class NewCodeBuilder
 
                 if (syntax is PropertyDeclarationSyntax property)
                 {
-                    property = property.WithAccessorList(Test());
+                    property = property.WithAccessorList(GenerateAccessor());
                     property = property.WithAttributeLists(default).WithoutLeadingTrivia();
+                    
+                    if (property.Initializer != null)
+                    {
+                        property = property.WithInitializer(null).WithSemicolonToken(default);
+                    }
+                    
 
                     builder.AppendLine(property.NormalizeWhitespace().ToFullString());
                 }
@@ -118,7 +124,7 @@ internal class NewCodeBuilder
         return true;
     }
 
-    private AccessorListSyntax Test()
+    private AccessorListSyntax GenerateAccessor()
     {
         return AccessorList
         (
@@ -152,8 +158,8 @@ internal class NewCodeBuilder
                                 AssignmentExpression
                                 (
                                     SyntaxKind.SimpleAssignmentExpression,
-                                    IdentifierName("value"),
-                                    FieldExpression()
+                                    FieldExpression(),
+                                    IdentifierName("value")
                                 )
                             )
                         )

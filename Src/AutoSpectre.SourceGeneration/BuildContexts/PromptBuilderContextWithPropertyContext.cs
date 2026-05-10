@@ -1,7 +1,4 @@
-﻿using System;
-using Microsoft.CodeAnalysis.CSharp;
-
-namespace AutoSpectre.SourceGeneration.BuildContexts;
+﻿namespace AutoSpectre.SourceGeneration.BuildContexts;
 
 internal abstract class PromptBuilderContextWithPropertyContext : PromptBuildContext
 {

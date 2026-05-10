@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections;
-
-namespace AutoSpectre;
+﻿namespace AutoSpectre;
 
 /// <summary>
 /// A Common interface for presenting a way to prompt for data 

@@ -1,6 +1,4 @@
-﻿using Spectre.Console;
-
-namespace AutoSpectre;
+﻿namespace AutoSpectre;
 
 /// <summary>
 /// Use this on a Method or Task (can be async) to perform some kind of operation

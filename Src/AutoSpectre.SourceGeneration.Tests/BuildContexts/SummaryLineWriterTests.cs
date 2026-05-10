@@ -1,4 +1,3 @@
-using System;
 using System.Text;
 using AutoSpectre.SourceGeneration.BuildContexts;
 using FluentAssertions;

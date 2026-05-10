@@ -1,6 +1,3 @@
-using System.Linq;
-using System.Reflection;
-using AutoSpectre.SourceGeneration.Tests.TestUtils;
 using FluentAssertions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -43,6 +40,35 @@ public class PartialSummaryGenerationTests
         text.Should().Contain("partial class PartialForm");
         text.Should().Contain("Name");
         text.Should().Contain("<summary>");
+    }
+
+    [Fact]
+    public void PartialClassWithPartialProperty_RemovesInitializer()
+    {
+        const string source = """
+                              using AutoSpectre;
+
+                              namespace Test;
+
+                              [AutoSpectreForm]
+                              public partial class PartialForm
+                              {
+                                  [TextPrompt(Title = "Enter your name")]
+                                  public partial string Name { get; set; } = "DefaultName";
+                              }
+                              """;
+
+        var partialSummary = RunGenerator(source);
+
+        partialSummary.Should().NotBeNull();
+
+        var text = partialSummary!.ToString();
+        text.Should().Contain("partial class PartialForm");
+        text.Should().Contain("Name");
+        text.Should().NotContain("\"DefaultName\"",
+            "the initializer must be stripped from the generated partial property declaration");
+        text.Should().NotMatchRegex(@"Name\s*\{[^}]*\}\s*=",
+            "the partial property must not carry over a '= ...' initializer");
     }
 
     [Fact]

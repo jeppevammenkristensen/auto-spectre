@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
@@ -13,7 +13,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\AutoSpectreAnalyzer\AutoSpectreAnalyzer\AutoSpectreAnalyzer\AutoSpectreAnalyzer.csproj" OutputItemType="Analyzer"  ReferenceOutputAssembly="false" />
+      <ProjectReference Include="..\AutoSpectreAnalyzer\AutoSpectreAnalyzer\AutoSpectreAnalyzer\AutoSpectreAnalyzer.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
       <ProjectReference Include="..\AutoSpectre\AutoSpectre.csproj" />
       <ProjectReference Include="..\AutoSpectre.SourceGeneration\AutoSpectre.SourceGeneration.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>

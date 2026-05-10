@@ -5,7 +5,6 @@ using System.Text;
 using AutoSpectre.SourceGeneration.BuildContexts;
 using AutoSpectre.SourceGeneration.Extensions;
 using Microsoft.CodeAnalysis;
-using Spectre.Console;
 
 namespace AutoSpectre.SourceGeneration;
 

@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Reflection;
 using AutoSpectre.SourceGeneration.Extensions;
 using AutoSpectre.SourceGeneration.Models;
 using Microsoft.CodeAnalysis;
-using Spectre.Console;
 
 namespace AutoSpectre.SourceGeneration;
 

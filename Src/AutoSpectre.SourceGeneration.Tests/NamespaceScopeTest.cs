@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Text;
-using AutoSpectre.SourceGeneration;
+﻿using System.Text;
 using FluentAssertions;
 using JetBrains.Annotations;
 using Microsoft.CodeAnalysis;
