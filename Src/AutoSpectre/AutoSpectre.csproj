@@ -7,8 +7,7 @@
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <Description>Classes used by the AutoSpectre.SourceGeneration package</Description>
     <PackageReleaseNotes>
-      - Fix critial bug with incorrect implementation of partial property for summaries
-      - Fix so initializers on properties can be set on the root property (not carried over)
+      - Bumped Spectre version to 0.57.2      
     </PackageReleaseNotes>
     <PackageIcon>ghost.png</PackageIcon>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>
