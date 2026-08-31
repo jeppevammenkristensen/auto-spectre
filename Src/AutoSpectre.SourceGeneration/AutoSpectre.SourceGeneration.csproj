@@ -6,8 +6,7 @@
     <LangVersion>11</LangVersion>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <IsRoslynComponent>true</IsRoslynComponent>    
-    <PackageReleaseNotes>This is being embedded in AutoSpectre directly.</PackageReleaseNotes>
-    
+    <PackageReleaseNotes>Fix sdk releated issue.</PackageReleaseNotes>    
   </PropertyGroup>
 
   <PropertyGroup>
@@ -38,11 +37,11 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" PrivateAsserts="all">
-    </PackageReference>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp"
+                      VersionOverride="$(AutoSpectreRoslynVersion)"
+                      PrivateAssets="all" />
     <PackageReference Include="Spectre.Console" />
   </ItemGroup>
-
 
 
 </Project>

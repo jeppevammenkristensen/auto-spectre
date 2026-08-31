@@ -2,6 +2,8 @@
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <!-- Project references use the oldest supported Roslyn variant unless a packaging build overrides it. -->
+    <AutoSpectreRoslynVersion Condition="'$(AutoSpectreRoslynVersion)' == ''">4.8.0</AutoSpectreRoslynVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="AutoSpectre" Version="0.13.0" />

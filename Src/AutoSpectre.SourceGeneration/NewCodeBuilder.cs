@@ -126,6 +126,8 @@ internal class NewCodeBuilder
 
     private AccessorListSyntax GenerateAccessor()
     {
+        // Emit the contextual "field" keyword as text-compatible identifier syntax so the
+        // generator itself can compile against Roslyn versions that predate FieldExpressionSyntax.
         return AccessorList
         (
             List<AccessorDeclarationSyntax>
@@ -140,7 +142,7 @@ internal class NewCodeBuilder
                         (
                             ArrowExpressionClause
                             (
-                                FieldExpression()
+                                IdentifierName("field")
                             )
                         )
                         .WithSemicolonToken
@@ -158,7 +160,7 @@ internal class NewCodeBuilder
                                 AssignmentExpression
                                 (
                                     SyntaxKind.SimpleAssignmentExpression,
-                                    FieldExpression(),
+                                    IdentifierName("field"),
                                     IdentifierName("value")
                                 )
                             )
