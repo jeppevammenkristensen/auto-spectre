@@ -29,9 +29,11 @@
     <PackageReference Include="Spectre.Console" />
   </ItemGroup>
 
-  <!-- Embed the source generator into this package so consumers only need to reference AutoSpectre -->
+  <!-- Embed Roslyn-specific generator builds so each compiler loads the newest compatible variant. -->
   <ItemGroup>
-    <None Include="..\AutoSpectre.SourceGeneration\bin\$(Configuration)\netstandard2.0\AutoSpectre.SourceGeneration.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="..\AutoSpectre.SourceGeneration\bin\$(Configuration)\roslyn4.8\AutoSpectre.SourceGeneration.dll" Pack="true" PackagePath="analyzers/dotnet/roslyn4.8/cs" Visible="false" />
+    <None Include="..\AutoSpectre.SourceGeneration\bin\$(Configuration)\roslyn4.14\AutoSpectre.SourceGeneration.dll" Pack="true" PackagePath="analyzers/dotnet/roslyn4.14/cs" Visible="false" />
+    <None Include="..\AutoSpectre.SourceGeneration\bin\$(Configuration)\roslyn5.3\AutoSpectre.SourceGeneration.dll" Pack="true" PackagePath="analyzers/dotnet/roslyn5.3/cs" Visible="false" />
   </ItemGroup>
 
   <!-- Embed the analyzer and code fixes into this package -->
@@ -40,8 +42,10 @@
     <None Include="..\AutoSpectreAnalyzer\AutoSpectreAnalyzer\AutoSpectreAnalyzer.CodeFixes\bin\$(Configuration)\netstandard2.0\AutoSpectreAnalyzer.CodeFixes.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" Condition="Exists('..\AutoSpectreAnalyzer\AutoSpectreAnalyzer\AutoSpectreAnalyzer.CodeFixes\bin\$(Configuration)\netstandard2.0\AutoSpectreAnalyzer.CodeFixes.dll')" />
   </ItemGroup>
 
-  <Target Name="BuildSourceGenerator" BeforeTargets="Build;Pack" Condition="'$(NoBuild)' != 'true'">
-    <MSBuild Projects="..\AutoSpectre.SourceGeneration\AutoSpectre.SourceGeneration.csproj" Targets="Build" Properties="Configuration=$(Configuration);TargetFramework=netstandard2.0" />
+  <Target Name="BuildSourceGenerator" BeforeTargets="Build;Pack" Condition="'$(NoBuild)' != 'true' and '$(TargetFramework)' == 'net10.0'">
+    <Exec Command="dotnet build &quot;$(MSBuildProjectDirectory)\..\AutoSpectre.SourceGeneration\AutoSpectre.SourceGeneration.csproj&quot; --configuration $(Configuration) --target Rebuild -p:AutoSpectreRoslynVersion=4.8.0 -p:OutputPath=bin\$(Configuration)\roslyn4.8\" />
+    <Exec Command="dotnet build &quot;$(MSBuildProjectDirectory)\..\AutoSpectre.SourceGeneration\AutoSpectre.SourceGeneration.csproj&quot; --configuration $(Configuration) --target Rebuild -p:AutoSpectreRoslynVersion=4.14.0 -p:OutputPath=bin\$(Configuration)\roslyn4.14\" />
+    <Exec Command="dotnet build &quot;$(MSBuildProjectDirectory)\..\AutoSpectre.SourceGeneration\AutoSpectre.SourceGeneration.csproj&quot; --configuration $(Configuration) --target Rebuild -p:AutoSpectreRoslynVersion=5.3.0 -p:OutputPath=bin\$(Configuration)\roslyn5.3\" />
   </Target>
 
   <Target Name="BuildAnalyzer" BeforeTargets="Build;Pack" Condition="'$(NoBuild)' != 'true'">
