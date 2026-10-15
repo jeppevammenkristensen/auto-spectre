@@ -65,9 +65,12 @@ public class SelectPromptAttribute : AutoSpectreStepAttribute
     public string? SearchPlaceholderText { get; set; }
     
     /// <summary>
-    /// Sets the result or the Func to return when the user cancels the selection
+    /// Name of a member (parameterless method, property, or field) that provides the
+    /// result when the user cancels the selection. A method is invoked on cancellation
+    /// and can perform an operation before returning the result.
+    /// Omit to pick up the convention member {PropertyName}CancelResult automatically.
     /// </summary>
-    /// <remarks>Convention: {Source}CancelResult</remarks>
+    /// <remarks>Convention: {PropertyName}CancelResult</remarks>
     public string? CancelResult { get; set; }
 
     /// <summary>

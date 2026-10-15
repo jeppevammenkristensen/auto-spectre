@@ -397,6 +397,23 @@ public List<string> MenuChoiceSource => new() { "Start", "Settings" };
 public string OverrideCancel => "Cancelled";
 ```
 
+Alternatively, reference a public parameterless method. It is invoked when the user cancels and can perform an operation before returning the cancellation result:
+
+```csharp
+[SelectPrompt(CancelResult = nameof(OnCancel))]
+public string MenuChoice { get; set; } = string.Empty;
+
+public List<string> MenuChoiceSource => new() { "Start", "Settings" };
+
+public string OnCancel()
+{
+    Spectre.Console.AnsiConsole.MarkupLine("[yellow]Selection cancelled.[/]");
+    return "Cancelled";
+}
+```
+
+Use `nameof(OnCancel)`, not a method invocation or a lambda. The generator passes the method as a callback to `.AddCancelResult(...)`.
+
 When the referenced member is missing or has the wrong shape the source generator emits `AutoSpectre_JJK028` / `AutoSpectre_JJK029`.
 
 #### DefaultValue
@@ -867,7 +884,7 @@ Generated factories expose the following interfaces:
 
 * `ISpectreFactory<T>` exposes `Prompt(T form)`.
 * `IAsyncSpectreFactory<T>` additionally exposes `PromptAsync(T form)`.
-* `ICancellableSpectreFactory<T>` exposes `PromptAsync(T form, CancellationToken cancellationToken)`.
+* `ICancellableSpectreFactory<T>` exposes `PromptAsync(T form, CancellationToken cancellationToken)`. It is a separate interface to preserve backward compatibility with existing factory implementations.
 
 All factories implement the `ISpectreFactory` marker interface. Synchronous forms retain their existing `Prompt` method and also support both asynchronous overloads. Forms with asynchronous steps retain their existing `PromptAsync(T form)` override.
 
