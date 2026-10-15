@@ -28,12 +28,12 @@ public class EnumPromptBuildContext : PromptBuildContext
     public override string PromptPart(string? variableName = null)
     {
         return $"""
-        AnsiConsole.Prompt(
+        {PromptCallStart}
         new SelectionPrompt<{TypeName}>()
             .Title({GenerateTitleString()})
             .PageSize(10) 
             {Context.ConfirmedSearchEnabled.GetSearchString()}
-            .AddChoices(Enum.GetValues<{TypeName}>()))
+            .AddChoices(Enum.GetValues<{TypeName}>()){PromptCallEnd}
         """;
     }
 

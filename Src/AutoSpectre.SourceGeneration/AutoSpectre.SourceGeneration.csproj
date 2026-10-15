@@ -6,7 +6,11 @@
     <LangVersion>11</LangVersion>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <IsRoslynComponent>true</IsRoslynComponent>    
-    <PackageReleaseNotes>Fix sdk releated issue.</PackageReleaseNotes>    
+    <PackageReleaseNotes>
+      * Added cancellation-aware `PromptAsync(form, CancellationToken)` factories via `ICancellableSpectreFactory&lt;T&gt;`. Synchronous forms keep `Prompt` and now also implement `IAsyncSpectreFactory&lt;T&gt;` with both async overloads. Tokens flow through all prompt types, nested forms, collection confirmations and supported task-step parameters, with cancellation checks between steps. Existing async overloads, interface implementations and `AsyncSpectreFactoryBase&lt;T&gt;` subclasses remain compatible.
+      * Task steps now accept a `CancellationToken`, alone or alongside `IAnsiConsole` in either parameter order. Synchronous calls inject `CancellationToken.None`.
+      * Added a `net11.0` target alongside `net8.0` and `net10.0`. Building the package now requires .NET SDK 11 or later.
+    </PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -18,7 +22,6 @@
     <Description>A tool to generate a form using Spectre.Console through a source generator that generate a new class to collect data. NOTE. This will be deprecated as it will be included into AutoSpectre nuget library directly</Description>
     <PackageProjectUrl>https://github.com/jeppevammenkristensen/auto-spectre</PackageProjectUrl>
     <PackageTags>C#;Source Generator</PackageTags>
-    <PackageReleaseNotes>Rewrite of prompt class. Introduced general interface</PackageReleaseNotes>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>
   </PropertyGroup>
   

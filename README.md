@@ -432,7 +432,16 @@ The filosophy for this method is that you can do 'custom' things.
 
 It can return either void or Task. If the return type is Task this will affect how the SpectreFactory is generated. As the Prompt call will be async instead and be named PromptAsync.
 
-It allows you to have `IAnsiConsole` as a parameter, and that will be injected into the method when it's called. This should make it easier to do testing if that is desired.
+It allows `IAnsiConsole`, `CancellationToken`, or both in either order as parameters. The console and the active cancellation token are injected when the method is called. Synchronous `Prompt` calls pass `CancellationToken.None`.
+
+```csharp
+[TaskStep]
+public async Task LoadAsync(IAnsiConsole console, CancellationToken cancellationToken)
+{
+    await Task.Delay(1000, cancellationToken);
+    console.MarkupLine("Loaded");
+}
+```
 
 ### Title
 
@@ -852,16 +861,35 @@ public partial class PartialForm
 
 ## Factories
 
-### ISpectreFactory and IAutoSpectreFactory
+### Factory interfaces
 
-In the AutoSpectre library two general interfaces are exposed that the generated factories will implement
+Generated factories expose the following interfaces:
 
-* `ISpectreFactory<T>` which exposes the Prompt method
-* `IAutoSpectreFactory<T>` which exposes the PromptAsync method.
+* `ISpectreFactory<T>` exposes `Prompt(T form)`.
+* `IAsyncSpectreFactory<T>` additionally exposes `PromptAsync(T form)`.
+* `ICancellableSpectreFactory<T>` exposes `PromptAsync(T form, CancellationToken cancellationToken)`.
 
-Both of the factories implements the `ISpectreFactory` which is a marker interface to identify factories.
+All factories implement the `ISpectreFactory` marker interface. Synchronous forms retain their existing `Prompt` method and also support both asynchronous overloads. Forms with asynchronous steps retain their existing `PromptAsync(T form)` override.
 
-These were introduced in version 0.10.0 and was a breaking change as previously the method name was Get/GetAsync which has now been changed to Prompt/PromptAsync. 
+The original synchronous and asynchronous factory interfaces were introduced in version 0.10.0, when `Get`/`GetAsync` were renamed to `Prompt`/`PromptAsync`.
+
+### Cancellation
+
+Pass a cancellation token to the generated factory to cancel asynchronous prompting:
+
+```csharp
+using var cancellation = new CancellationTokenSource();
+var factory = new ExampleSpectreFactory();
+var result = await factory.PromptAsync(new Example(), cancellation.Token);
+```
+
+The token is forwarded to text, confirmation, selection and multi-selection prompts, nested forms, collection add-more confirmations, and task steps that accept it. Cancellation is also checked between steps. An observed cancellation throws `OperationCanceledException`; values already assigned to the supplied form are not rolled back. Custom task steps must cooperate with the token to cancel their own work.
+
+Calling `PromptAsync(form)` forwards `CancellationToken.None`. Existing implementations of `ISpectreFactory<T>` and `IAsyncSpectreFactory<T>` need no new members. Existing subclasses of `AsyncSpectreFactoryBase<T>` can continue overriding only `PromptAsync(form)`: the base token overload checks for cancellation before calling that legacy override, but cannot interrupt it once started. Override the token overload to support cancellation during custom prompting.
+
+Generated form-specific interfaces provide default implementations so existing handwritten factories and test doubles still compile. Nested forms built with an older generator fall back to their original prompting method, with cancellation checks before and after it; that legacy prompt cannot be interrupted while running.
+
+Escape-key cancellation is different from token cancellation. On a selection prompt configured with `CancelResult`, pressing Escape returns the callback's fallback value and the form continues. Cancelling the token interrupts prompting with `OperationCanceledException`, without invoking `CancelResult` or advancing to the next step.
 
 ### SpectreFactory
 

@@ -44,8 +44,6 @@ public class SummaryLineWriter
         }
 
         return this;
-
-
     }
 
     public static implicit operator StringBuilder(SummaryLineWriter source) => source.Builder;
@@ -54,9 +52,9 @@ public class SummaryLineWriter
     {
         if (addLineBreak)
         {
-            Builder.Append("<br/>");    
+            Builder.Append("<br/>");
         }
-        
+
         Builder.AppendLine();
         return this;
     }
@@ -67,13 +65,14 @@ public class SummaryLineWriter
     }
 }
 
-
 internal class ReuseExistingAutoSpectreFactoryPromptBuildContext : PromptBuilderContextWithPropertyContext
 {
     public override bool DeclaresVariable => true;
 
-    private ConfirmedNamedTypeSource NamedTypeSource => Context.ConfirmedNamedTypeSource ?? throw new InvalidOperationException("Source was unexpectedly null");
-   
+    private ConfirmedNamedTypeSource NamedTypeSource => Context.ConfirmedNamedTypeSource ??
+                                                        throw new InvalidOperationException(
+                                                            "Source was unexpectedly null");
+
     public INamedTypeSymbol NamedTypeSymbol { get; }
     public bool IsNullable { get; }
 
@@ -101,8 +100,6 @@ internal class ReuseExistingAutoSpectreFactoryPromptBuildContext : PromptBuilder
         FactoryClassName = namedTypeSymbol.GetSpectreFactoryClassName();
         FactoryInterface = namedTypeSymbol.GetSpectreFactoryInterfaceName();
         SpectreFactoryInstanceVariableName = namedTypeSymbol.GetSpectreVariableName();
-
-
     }
 
     public override string GenerateOutput(string destination)
@@ -111,7 +108,7 @@ internal class ReuseExistingAutoSpectreFactoryPromptBuildContext : PromptBuilder
         builder.AppendLine("{");
         if (IsNullable)
         {
-            builder.AppendLine($"""var confirmAdd = AnsiConsole.Confirm("Add ?");""");
+            builder.AppendLine($"var confirmAdd = {ConfirmCall("Add ?")};");
             builder.AppendLine("""if (confirmAdd)""");
             builder.AppendLine("{");
             builder.AppendLine($"{destination} = null;");
@@ -119,6 +116,7 @@ internal class ReuseExistingAutoSpectreFactoryPromptBuildContext : PromptBuilder
             builder.AppendLine("else");
             builder.AppendLine("{");
         }
+
         builder.AppendLine(PromptPart());
         builder.AppendLine($"{destination} = item;");
         builder.AppendLine("}");
@@ -127,6 +125,7 @@ internal class ReuseExistingAutoSpectreFactoryPromptBuildContext : PromptBuilder
         {
             builder.AppendLine("}");
         }
+
         return builder.ToString();
     }
 
@@ -137,35 +136,35 @@ internal class ReuseExistingAutoSpectreFactoryPromptBuildContext : PromptBuilder
             var usedVariableName = variableName ?? "item";
 
             return $"""
-            AnsiConsole.MarkupLine({GenerateTitleString()});
-            { InitializeVariable(usedVariableName) }
-             { GetValueFromFactory(usedVariableName)}
-            """;
+                    AnsiConsole.MarkupLine({GenerateTitleString()});
+                    {InitializeVariable(usedVariableName)}
+                     {GetValueFromFactory(usedVariableName)}
+                    """;
         }
         else
         {
             var usedVariable = variableName ?? "item";
             return $$"""
-            
-            bool isValid = false;
 
-            while (!isValid)
-            { 
-                AnsiConsole.MarkupLine({{GenerateTitleString()}});
-                {{ InitializeVariable(usedVariable) }}
-                {{ GetValueFromFactory(usedVariable)}}
+                     bool isValid = false;
 
-                if ({{GetStaticOrInstancePrepend(Context.ConfirmedValidator.IsStatic)}}.{{Context.ConfirmedValidator.Name}}({{usedVariable}}) is {} error)
-                {
-                    AnsiConsole.MarkupLineInterpolated($"[red]{error}[/]");
-                    isValid = false;
-                }
-                else 
-                {
-                    isValid = true;
-                }
-            }
-            """;
+                     while (!isValid)
+                     {
+                         AnsiConsole.MarkupLine({{GenerateTitleString()}});
+                         {{InitializeVariable(usedVariable)}}
+                         {{GetValueFromFactory(usedVariable)}}
+
+                         if ({{GetStaticOrInstancePrepend(Context.ConfirmedValidator.IsStatic)}}.{{Context.ConfirmedValidator.Name}}({{usedVariable}}) is {} error)
+                         {
+                             AnsiConsole.MarkupLineInterpolated($"[red]{error}[/]");
+                             isValid = false;
+                         }
+                         else
+                         {
+                             isValid = true;
+                         }
+                     }
+                     """;
         }
     }
 
@@ -173,7 +172,7 @@ internal class ReuseExistingAutoSpectreFactoryPromptBuildContext : PromptBuilder
     {
         // We are making (the probably dangerous assumption) that NamedTypeAnalysis is never null
         // when we are in this Context. Just in case we will throw an exception if it is null
-        
+
         if (NamedTypeSource.TypeConverter is { } initializer)
         {
             return $"var {variableName} = {GetStaticOrInstancePrepend(NamedTypeSource.IsStatic)}.{initializer}();";
@@ -186,6 +185,25 @@ internal class ReuseExistingAutoSpectreFactoryPromptBuildContext : PromptBuilder
 
     private string GetValueFromFactory(string variableName)
     {
+        if (SupportsCancellation)
+        {
+            var legacyCall = NamedTypeSource.NamedTypeAnalysis.HasAnyAsyncDecoratedMethods
+                ? $"await {SpectreFactoryInstanceVariableName}.PromptAsync({variableName}).ConfigureAwait(false);"
+                : $"{SpectreFactoryInstanceVariableName}.Prompt({variableName});";
+            return $$"""
+                     cancellationToken.ThrowIfCancellationRequested();
+                     if ({{SpectreFactoryInstanceVariableName}} is ICancellableSpectreFactory<{{NamedTypeSymbol.ToDisplayString()}}> cancellableFactory)
+                     {
+                         await cancellableFactory.PromptAsync({{variableName}}, cancellationToken).ConfigureAwait(false);
+                     }
+                     else
+                     {
+                         {{legacyCall}}
+                     }
+                     cancellationToken.ThrowIfCancellationRequested();
+                     """;
+        }
+
         if (NamedTypeSource.NamedTypeAnalysis.HasAnyAsyncDecoratedMethods)
         {
             return $"await {SpectreFactoryInstanceVariableName}.PromptAsync({variableName});";
@@ -198,7 +216,7 @@ internal class ReuseExistingAutoSpectreFactoryPromptBuildContext : PromptBuilder
 
     public override IEnumerable<string> Namespaces()
     {
-            yield return TypeNamespace;
+        yield return TypeNamespace;
     }
 
     protected override void WriteSummaryHeader(SummaryLineWriter builder)
@@ -208,6 +226,6 @@ internal class ReuseExistingAutoSpectreFactoryPromptBuildContext : PromptBuilder
 
     public override IEnumerable<string> CodeInitializing()
     {
-            yield return $"""{FactoryInterface} {SpectreFactoryInstanceVariableName} = new {FactoryClassName}();""";
+        yield return $"""{FactoryInterface} {SpectreFactoryInstanceVariableName} = new {FactoryClassName}();""";
     }
 }

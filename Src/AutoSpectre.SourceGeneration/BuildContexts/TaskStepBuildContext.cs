@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using AutoSpectre.SourceGeneration.Extensions;
 
@@ -7,7 +8,7 @@ namespace AutoSpectre.SourceGeneration.BuildContexts;
 public class TaskStepBuildContext : PromptBuildContext
 {
     private bool _generateTitle;
-    
+
     public TaskStepBuildContext(string? title, SingleMethodEvaluationContext methodEvaluationContext) : base(
         SinglePropertyEvaluationContext.Empty, title ?? string.Empty)
     {
@@ -22,9 +23,9 @@ public class TaskStepBuildContext : PromptBuildContext
         var builder = new StringBuilder();
         if (this.EvaluationContext.IsTaskStep && _generateTitle)
         {
-            builder.AppendLine($"AnsiConsole.MarkupLine({GenerateTitleString()});");    
+            builder.AppendLine($"AnsiConsole.MarkupLine({GenerateTitleString()});");
         }
-        
+
         StartStatus(builder);
 
         if (EvaluationContext.ReturnTypeIsTask)
@@ -35,11 +36,16 @@ public class TaskStepBuildContext : PromptBuildContext
         {
             builder.AppendLine($"{MethodInvocation(destination)};");
         }
-        
+
         EndStatus(builder);
 
         if (!EvaluationContext.IsTaskStep)
         {
+            if (SupportsCancellation)
+            {
+                builder.AppendLine("cancellationToken.ThrowIfCancellationRequested();");
+            }
+
             builder.AppendLine($"return {CodeBuildConstants.FormName};");
         }
 
@@ -49,7 +55,7 @@ public class TaskStepBuildContext : PromptBuildContext
 
     private void StartStatus(StringBuilder builder)
     {
-        if (EvaluationContext.ConfirmedStatus is not {} status)
+        if (EvaluationContext.ConfirmedStatus is not { } status)
         {
             return;
         }
@@ -67,7 +73,6 @@ public class TaskStepBuildContext : PromptBuildContext
         };
 
         builder.AppendLine(text);
-        
     }
 
     private string BuildStatus()
@@ -91,7 +96,7 @@ public class TaskStepBuildContext : PromptBuildContext
 
     private void EndStatus(StringBuilder builder)
     {
-        if (EvaluationContext.ConfirmedStatus is not {})
+        if (EvaluationContext.ConfirmedStatus is not { })
         {
             return;
         }
@@ -101,7 +106,11 @@ public class TaskStepBuildContext : PromptBuildContext
 
     private string MethodInvocation(string destination)
     {
-        return $"{destination}({(EvaluationContext.HasAnsiConsoleParameter ? "AnsiConsole.Console" : string.Empty)})";
+        var arguments = EvaluationContext.Method.Parameters.Select(parameter =>
+            parameter.Type.ToDisplayString() == "System.Threading.CancellationToken"
+                ? (SupportsCancellation ? "cancellationToken" : "CancellationToken.None")
+                : "AnsiConsole.Console");
+        return $"{destination}({string.Join(", ", arguments)})";
     }
 
     public override string PromptPart(string? variableName = null)
@@ -129,12 +138,11 @@ public class TaskStepBuildContext : PromptBuildContext
     {
         if (EvaluationContext.IsTaskStep)
         {
-            builder.AppendLine("/// Executes a task step (for instance fetching data)", true);   
+            builder.AppendLine("/// Executes a task step (for instance fetching data)", true);
         }
         else
         {
-            builder.AppendLine("/// A break step (a step for no further actions are performed", true);  
+            builder.AppendLine("/// A break step (a step for no further actions are performed", true);
         }
     }
 }
-

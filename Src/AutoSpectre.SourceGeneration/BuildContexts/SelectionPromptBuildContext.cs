@@ -27,7 +27,7 @@ internal class SelectionPromptBuildContext : SelectionBaseBuildContext
         var type = TypeSymbol.ToDisplayString();
 
         return $"""
-        AnsiConsole.Prompt(
+        {PromptCallStart}
         new SelectionPrompt<{type}>()
             .Title({GenerateTitleString()} ){GenerateConverter()}
             {GeneratePageSize()}
@@ -37,7 +37,7 @@ internal class SelectionPromptBuildContext : SelectionBaseBuildContext
             {GenerateCancel()}
             {GenerateMoreChoicesText()}
             {GenerateHighlightStyle()}
-            .AddChoices({GetChoicePrepend()}.{GetSelector()}.ToArray()))
+            .AddChoices({GetChoicePrepend()}.{GetSelector()}.ToArray()){PromptCallEnd}
         """;
     }
 

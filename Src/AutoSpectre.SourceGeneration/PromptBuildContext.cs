@@ -8,6 +8,27 @@ namespace AutoSpectre.SourceGeneration;
 
 public abstract class PromptBuildContext : ISummaryCondition
 {
+    /// <summary>Controls emission of cancellation-aware asynchronous prompts.</summary>
+    public bool SupportsCancellation { get; set; }
+
+    /// <summary>
+    /// The prompt start
+    /// </summary>
+    /// <remarks>if SupportCancellation is true <code>"(await AnsiConsole.PromptAsync(" : "AnsiConsole.Prompt("</code> is prepended</remarks>"(await AnsiConsole.PromptAsync(" : "AnsiConsole.Prompt("
+    protected string PromptCallStart =>
+        SupportsCancellation ? "(await AnsiConsole.PromptAsync(" : "AnsiConsole.Prompt(";
+
+    /// <summary>
+    /// The prompt end
+    /// </summary>
+    /// <remarks>Using in combination with <see cref="PromptCallEnd"/> and if SupportCancelation is set adds <code>", cancellationToken).ConfigureAwait(false))" : ")";</code></remarks>
+    protected string PromptCallEnd => SupportsCancellation ? ", cancellationToken).ConfigureAwait(false))" : ")";
+
+    /// <summary>Emits a confirmation using the same cancellation mode as the enclosing flow.</summary>
+    protected string ConfirmCall(string title) => SupportsCancellation
+        ? $"await AnsiConsole.ConfirmAsync({title.GetSafeTextWithQuotes()}, cancellationToken: cancellationToken).ConfigureAwait(false)"
+        : $"AnsiConsole.Confirm({title.GetSafeTextWithQuotes()})";
+
     public PromptBuildContext(SinglePropertyEvaluationContext context, string title)
     {
         Context = context;
@@ -22,7 +43,7 @@ public abstract class PromptBuildContext : ISummaryCondition
     public SinglePropertyEvaluationContext Context { get; }
 
     public abstract string GenerateOutput(string destination);
-    
+
     public string Title { get; }
 
     /// <summary>
@@ -32,7 +53,7 @@ public abstract class PromptBuildContext : ISummaryCondition
     /// </summary>
     /// <param name="title">The string to generate a title for.</param>
     /// <returns>The generated title.</returns>
-    protected string GenerateTitleString() => Title.GetSafeTextWithQuotes(); 
+    protected string GenerateTitleString() => Title.GetSafeTextWithQuotes();
 
     /// <summary>
     /// The parts that does the prompting. If the prompt result is stored in a variable
@@ -65,8 +86,8 @@ public abstract class PromptBuildContext : ISummaryCondition
     protected string GetStaticOrInstancePrepend(bool isStatic)
     {
         return Context.TargetType.GetStaticOrInstance(isStatic);
-    } 
-    
+    }
+
     public virtual IEnumerable<object?> Confirmations => this.Context.Confirmations;
 
     public void WriteToSummary(SummaryLineWriter builder)
@@ -89,7 +110,4 @@ public abstract class PromptBuildContext : ISummaryCondition
     /// </summary>
     /// <param name="builder"></param>
     protected abstract void WriteSummaryHeader(SummaryLineWriter builder);
-    
-    
 }
-

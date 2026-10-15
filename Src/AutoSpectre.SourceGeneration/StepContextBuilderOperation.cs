@@ -335,13 +335,14 @@ internal class StepContextBuilderOperation
         // Check if the method is void or returning a Task. We will accept with or without async
         if (method.ReturnsVoid || method.ReturnType.Equals(this.Types.Task, SymbolEqualityComparer.Default))
         {
-            bool validParameters = method.Parameters.Length == 0 || (method.Parameters.Length == 1 &&
-                                                                     method.Parameters[0].Type
-                                                                         .Equals(Types.IAnsiConsole,
-                                                                             SymbolEqualityComparer.Default));
+            bool validParameters = method.Parameters.Length <= 2 &&
+                method.Parameters.All(parameter => parameter.RefKind == RefKind.None &&
+                    (parameter.Type.Equals(Types.IAnsiConsole, SymbolEqualityComparer.Default) ||
+                     parameter.Type.Equals(Types.CancellationToken, SymbolEqualityComparer.Default))) &&
+                method.Parameters.Select(parameter => parameter.Type).Distinct(SymbolEqualityComparer.Default).Count() == method.Parameters.Length;
             if (validParameters)
             {
-                var hasAnsiConsole = method.Parameters.FirstOrDefault() is { };
+                var hasAnsiConsole = method.Parameters.Any(parameter => parameter.Type.Equals(Types.IAnsiConsole, SymbolEqualityComparer.Default));
                 var isAsync = method.ReturnType.Equals(this.Types.Task, SymbolEqualityComparer.Default);
                 return new SingleMethodEvaluationContext(method, isAsync, hasAnsiConsole, isTaskStep);
                 
@@ -351,7 +352,7 @@ internal class StepContextBuilderOperation
                 ProductionContext.ReportDiagnostic(Diagnostic.Create(
                     new(DiagnosticIds.Id0015_IncorrectMethodType,
                         "The method decorated with the TaskStepAttribute does not meet the requiremnts ",
-                        $"The return type must be void or a Task. IAnsiConsole is allowed a parameter, but can be omitted",
+                        $"The return type must be void or Task. Optional IAnsiConsole and CancellationToken parameters are allowed, once each.",
                         "General", DiagnosticSeverity.Error, true),
                     method.Locations.FirstOrDefault()));
             }

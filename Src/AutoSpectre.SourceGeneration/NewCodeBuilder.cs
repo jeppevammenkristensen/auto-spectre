@@ -29,6 +29,8 @@ internal class NewCodeBuilder
         "System.Linq",
         "System.Collections.Immutable",
         "System.Globalization",
+        "System.Threading",
+        "System.Threading.Tasks",
         "AutoSpectre",
         "AutoSpectre.Extensions",
         "Spectre.Console.Rendering"
@@ -95,12 +97,12 @@ internal class NewCodeBuilder
                 {
                     property = property.WithAccessorList(GenerateAccessor());
                     property = property.WithAttributeLists(default).WithoutLeadingTrivia();
-                    
+
                     if (property.Initializer != null)
                     {
                         property = property.WithInitializer(null).WithSemicolonToken(default);
                     }
-                    
+
 
                     builder.AppendLine(property.NormalizeWhitespace().ToFullString());
                 }
@@ -189,12 +191,15 @@ internal class NewCodeBuilder
 
         var members = BuildStepContexts();
         var isAsync = IsAsync;
-        var interfaceInheritance = isAsync ? $"IAsyncSpectreFactory<{typeName}>" : $"ISpectreFactory<{typeName}>";
+        var interfaceInheritance = isAsync
+            ? $"IAsyncSpectreFactory<{typeName}>, ICancellableSpectreFactory<{typeName}>"
+            : $"ISpectreFactory<{typeName}>, IAsyncSpectreFactory<{typeName}>, ICancellableSpectreFactory<{typeName}>";
         var implementationInheritance = isAsync
             ? $"AsyncSpectreFactoryBase<{typeName}>, {SpectreFactoryInterfaceName}"
             : $"{SpectreFactoryInterfaceName}";
 
         var returnTypeName = isAsync ? $"Task<{Type.FullName()}>" : Type.FullName();
+        var cancellationMembers = BuildStepContexts(supportsCancellation: true);
 
         var builder = new StringBuilder();
         builder.AppendLine("""
@@ -212,7 +217,7 @@ internal class NewCodeBuilder
                                  /// </summary>
                                  public interface {{SpectreFactoryInterfaceName}} : {{interfaceInheritance}}
                                  {
-
+                                     {{BuildCompatibilityInterfaceMethods(typeName, isAsync)}}
                                  }
 
                                  /// <summary>
@@ -220,16 +225,13 @@ internal class NewCodeBuilder
                                  /// </summary>
                                  public class {{SpectreFactoryClassName}} : {{implementationInheritance}}
                                  {
-                                     public {{(isAsync ? "override async " : string.Empty)}}{{returnTypeName}}  Prompt{{(isAsync ? "Async " : string.Empty)}}({{typeName}} {{FormName}})
+                                     /// <summary>Prompts for the form using the existing non-cancellable API.</summary>
+                                     public {{(isAsync ? "override " : string.Empty)}}{{returnTypeName}}  Prompt{{(isAsync ? "Async " : string.Empty)}}({{typeName}} {{FormName}})
                                      {
-                                         if ({{FormName}} == null) throw new ArgumentNullException(nameof({{FormName}}));
-
-                                         {{PreInitalization()}}
-
-                                         {{InitCulture()}}
-                                 {{members}}
-                                         return {{FormName}};
+                                         {{(isAsync ? $"return PromptAsync({FormName}, CancellationToken.None);" : $"if ({FormName} == null) throw new ArgumentNullException(nameof({FormName}));\n{PreInitalization()}\n{InitCulture()}\n{members}\nreturn {FormName};")}}
                                      }
+
+                                     {{BuildCancellationMethods(typeName, isAsync, cancellationMembers)}}
                                  }
 
                                  {{string.Empty /* GenerateExtensionMethodsClass()*/ }}
@@ -237,6 +239,45 @@ internal class NewCodeBuilder
         }
 
         return SyntaxFactory.ParseCompilationUnit(builder.ToString()).NormalizeWhitespace().ToFullString();
+    }
+
+    /// <summary>Emits an asynchronous path without changing existing method signatures.</summary>
+    private string BuildCompatibilityInterfaceMethods(string typeName, bool isAsync)
+    {
+        return $$"""
+                 {{(isAsync ? string.Empty : $"Task<{typeName}> IAsyncSpectreFactory<{typeName}>.PromptAsync({typeName} form) => Task.FromResult(((ISpectreFactory<{typeName}>)this).Prompt(form));")}}
+
+                 /// <summary>Provides a cooperative fallback for existing implementations of this interface.</summary>
+                 /// <remarks>Legacy implementations cannot be interrupted while their original prompt method runs.</remarks>
+                 async Task<{{typeName}}> ICancellableSpectreFactory<{{typeName}}>.PromptAsync({{typeName}} form, CancellationToken cancellationToken)
+                 {
+                     cancellationToken.ThrowIfCancellationRequested();
+                     var result = await ((IAsyncSpectreFactory<{{typeName}}>)this).PromptAsync(form).ConfigureAwait(false);
+                     cancellationToken.ThrowIfCancellationRequested();
+                     return result;
+                 }
+                 """;
+    }
+
+    /// <summary>Emits an asynchronous path without changing existing method signatures.</summary>
+    private string BuildCancellationMethods(string typeName, bool isAsync, string members)
+    {
+        return $$"""
+                 {{(isAsync ? string.Empty : $"/// <summary>Asynchronously prompts for the form without cancellation.</summary>\npublic Task<{typeName}> PromptAsync({typeName} {FormName}) => PromptAsync({FormName}, CancellationToken.None);")}}
+
+                 /// <summary>Asynchronously populates the form, observing cancellation during prompts and between steps.</summary>
+                 /// <remarks>Properties populated before cancellation are retained. Task steps must cooperate to interrupt their own work.</remarks>
+                 public {{(isAsync ? "override " : string.Empty)}}async Task<{{typeName}}> PromptAsync({{typeName}} {{FormName}}, CancellationToken cancellationToken)
+                 {
+                     if ({{FormName}} == null) throw new ArgumentNullException(nameof({{FormName}}));
+                     cancellationToken.ThrowIfCancellationRequested();
+                     {{PreInitalization()}}
+                     {{InitCulture()}}
+                     {{members}}
+                     cancellationToken.ThrowIfCancellationRequested();
+                     return {{FormName}};
+                 }
+                 """;
     }
 
     private bool IsAsync
@@ -357,11 +398,17 @@ internal class NewCodeBuilder
         return builder.ToString();
     }
 
-    private string BuildStepContexts()
+    private string BuildStepContexts(bool supportsCancellation = false)
     {
         StringBuilder builder = new();
         foreach (var stepContext in this.StepContexts)
         {
+            ConfigureCancellation(stepContext.BuildContext, supportsCancellation);
+            if (supportsCancellation)
+            {
+                builder.AppendLine("cancellationToken.ThrowIfCancellationRequested();");
+            }
+
             void AddConditions(ConfirmedCondition condition)
             {
                 var boolValue = condition.Negate ? "false" : "true";
@@ -418,6 +465,16 @@ internal class NewCodeBuilder
         }
 
         return builder.ToString();
+    }
+
+    /// <summary>Propagates the emission mode into prompts nested inside collection builders.</summary>
+    private static void ConfigureCancellation(PromptBuildContext context, bool supportsCancellation)
+    {
+        context.SupportsCancellation = supportsCancellation;
+        if (context is MultiAddBuildContext multiAdd)
+        {
+            ConfigureCancellation(multiAdd.BuildContext, supportsCancellation);
+        }
     }
 
     public string BuildPartialSpectreFactory()
@@ -486,6 +543,35 @@ internal class NewCodeBuilder
 
         builder.AppendLine("}");
 
+        builder.AppendLine($"/// <summary>Asynchronously prompts for the form, observing cancellation.</summary>");
+        builder.AppendLine(
+            $"public static System.Threading.Tasks.Task<{typeName}> PromptAsync(this {typeName} form, System.Threading.CancellationToken cancellationToken)");
+        builder.AppendLine($"    => new {SpectreFactoryClassName}().PromptAsync(form, cancellationToken);");
+        if (!IsAsync)
+        {
+            builder.AppendLine("/// <summary>Asynchronously prompts for the form without cancellation.</summary>");
+            builder.AppendLine(
+                $"public static System.Threading.Tasks.Task<{typeName}> PromptAsync(this {typeName} form)");
+            builder.AppendLine($"    => new {SpectreFactoryClassName}().PromptAsync(form);");
+        }
+
+        var asyncFormParameter = CanBeInitializedWithoutParameters ? string.Empty : $"{typeName} result, ";
+        var asyncFormArgument = CanBeInitializedWithoutParameters ? $"new {typeName}()" : "result";
+        builder.AppendLine(
+            "/// <summary>Creates a factory and asynchronously populates the form, observing cancellation.</summary>");
+        builder.AppendLine(
+            $"public static System.Threading.Tasks.Task<{typeName}> PromptAsync_{typeNameWithUnderscore}({asyncFormParameter}System.Threading.CancellationToken cancellationToken)");
+        builder.AppendLine(
+            $"    => new {SpectreFactoryClassName}().PromptAsync({asyncFormArgument}, cancellationToken);");
+        if (!IsAsync)
+        {
+            var parameter = CanBeInitializedWithoutParameters ? string.Empty : $"{typeName} result";
+            builder.AppendLine(
+                "/// <summary>Creates a factory and asynchronously populates the form without cancellation.</summary>");
+            builder.AppendLine(
+                $"public static System.Threading.Tasks.Task<{typeName}> PromptAsync_{typeNameWithUnderscore}({parameter})");
+            builder.AppendLine($"    => new {SpectreFactoryClassName}().PromptAsync({asyncFormArgument});");
+        }
 
         return builder.ToString();
     }

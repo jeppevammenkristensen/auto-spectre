@@ -32,7 +32,7 @@ internal class TextPromptBuildContext : PromptBuilderContextWithPropertyContext
     {
         var syntax = TypeSymbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax().ToString() ?? TypeSymbol.ToDisplayString();
         StringBuilder builder = new();
-        builder.AppendLine("AnsiConsole.Prompt(");
+        builder.AppendLine(PromptCallStart);
         builder.AppendLine($"""new TextPrompt<{syntax}>({GenerateTitleString()})""");
         if (Nullable)
         {
@@ -58,7 +58,7 @@ internal class TextPromptBuildContext : PromptBuilderContextWithPropertyContext
 """);
         }
 
-        builder.Append(")");
+        builder.Append(PromptCallEnd);
         return builder.ToString();
     }
 
