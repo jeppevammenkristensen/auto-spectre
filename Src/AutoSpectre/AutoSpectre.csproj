@@ -2,14 +2,14 @@
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
-    <TargetFrameworks>net11.0;net10.0;net8.0</TargetFrameworks>
+<!--    <TargetFrameworks>net11.0;net10.0;net8.0</TargetFrameworks>-->
+    <TargetFrameworks>net10.0;net8.0</TargetFrameworks>
     <LangVersion>latest</LangVersion>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <Description>Classes used by the AutoSpectre.SourceGeneration package</Description>
     <PackageReleaseNotes>
       * Added cancellation-aware `PromptAsync(form, CancellationToken)` factories via `ICancellableSpectreFactory&lt;T&gt;`. Synchronous forms keep `Prompt` and now also implement `IAsyncSpectreFactory&lt;T&gt;` with both async overloads. Tokens flow through all prompt types, nested forms, collection confirmations and supported task-step parameters, with cancellation checks between steps. Existing async overloads, interface implementations and `AsyncSpectreFactoryBase&lt;T&gt;` subclasses remain compatible.
-      * Task steps now accept a `CancellationToken`, alone or alongside `IAnsiConsole` in either parameter order. Synchronous calls inject `CancellationToken.None`.
-      * Added a `net11.0` target alongside `net8.0` and `net10.0`. Building the package now requires .NET SDK 11 or later.
+      * Task steps now accept a `CancellationToken`, alone or alongside `IAnsiConsole` in either parameter order. Synchronous calls inject `CancellationToken.None`.      
     </PackageReleaseNotes>
     <PackageIcon>ghost.png</PackageIcon>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>
