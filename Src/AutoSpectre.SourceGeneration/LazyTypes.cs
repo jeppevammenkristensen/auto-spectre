@@ -15,6 +15,7 @@ public class LazyTypes
     private readonly Lazy<INamedTypeSymbol?> _collection;
     private readonly Lazy<INamedTypeSymbol?> _autoSpectreForm;
     private readonly Lazy<INamedTypeSymbol?> _task;
+    private readonly Lazy<INamedTypeSymbol?> _cancellationToken;
     private readonly Lazy<INamedTypeSymbol?> _iAnsiConsole;
     private readonly Lazy<INamedTypeSymbol?> _textPrompt;
     private readonly Lazy<INamedTypeSymbol?> _selectPrompt;
@@ -30,6 +31,10 @@ public class LazyTypes
     public INamedTypeSymbol? Collection => _collection.Value;
     public INamedTypeSymbol? AutoSpectreForm => _autoSpectreForm.Value;
     public INamedTypeSymbol? Task => _task.Value;
+    /// <summary>
+    /// Gets the compilation's cancellation token type for task-step parameter validation.
+    /// </summary>
+    public INamedTypeSymbol? CancellationToken => _cancellationToken.Value;
     public INamedTypeSymbol? IAnsiConsole => _iAnsiConsole.Value;
     public INamedTypeSymbol? TextPrompt => _textPrompt.Value;
     public INamedTypeSymbol? SelectPrompt => _selectPrompt.Value;
@@ -50,6 +55,7 @@ public class LazyTypes
         _autoSpectreForm = new Lazy<INamedTypeSymbol?>(() =>
             compilation.GetTypeByMetadataName(Constants.AutoSpectreFormAttributeFullyQualifiedName));
         _task = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName("System.Threading.Tasks.Task"));
+        _cancellationToken = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName("System.Threading.CancellationToken"));
         _iAnsiConsole =
             new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName("Spectre.Console.IAnsiConsole"));
         _textPrompt = new Lazy<INamedTypeSymbol?>(() =>

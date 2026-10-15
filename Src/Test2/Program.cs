@@ -1,8 +1,10 @@
 ﻿using AutoSpectre;
 
 
+var cancellationToken = CancellationToken.None;
+
 var someForm = new SomeForm();
-someForm.Prompt();
+await someForm.PromptAsync(cancellationToken);
 int i = 0;
 
 

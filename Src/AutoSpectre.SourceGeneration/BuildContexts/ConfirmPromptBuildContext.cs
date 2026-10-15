@@ -21,10 +21,10 @@ public class ConfirmPromptBuildContext : PromptBuildContext
     public override string PromptPart(string? variableName = null)
     {
         var stringBuilder = new StringBuilder();
-        stringBuilder.AppendLine($"""AnsiConsole.Prompt(new ConfirmationPrompt({GenerateTitleString()})""");
+        stringBuilder.AppendLine($"""{PromptCallStart}new ConfirmationPrompt({GenerateTitleString()})""");
         BuildDefaultStyle(stringBuilder);
         BuildChoicesStyle(stringBuilder);
-        stringBuilder.AppendLine(")");
+        stringBuilder.AppendLine(PromptCallEnd);
         return stringBuilder.ToString();
     }
 

@@ -54,7 +54,7 @@ public class MultiAddBuildContext : PromptBuildContext
                 do 
                 {
                     {{ GenerateAssignment() }}
-                    continuePrompting = AnsiConsole.Confirm("Add more items?");
+                    continuePrompting = {{ConfirmCall("Add more items?")}};
                     
                 } while (continuePrompting);      
             """);

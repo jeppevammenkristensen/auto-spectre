@@ -53,7 +53,7 @@ internal class MultiSelectionBuildContext : SelectionBaseBuildContext
         var conversion = NeedsConversion(TypeSymbol);
 
         var prompt = $"""
-AnsiConsole.Prompt(
+{PromptCallStart}
 new MultiSelectionPrompt<{type}>()
 .Title({GenerateTitleString()}){GenerateConverter()}
 {GenerateRequired()}
@@ -64,7 +64,7 @@ new MultiSelectionPrompt<{type}>()
 {GenerateDefaultValue()}
 {GenerateCancel()}
 {GenerateInstructionsText()}
-.AddChoices({GetChoicePrepend()}.{GetSelector()}.ToArray()))
+.AddChoices({GetChoicePrepend()}.{GetSelector()}.ToArray()){PromptCallEnd}
 """;
         var builder = new StringBuilder(150);
 
