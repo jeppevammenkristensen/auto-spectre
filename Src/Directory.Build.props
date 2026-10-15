@@ -6,8 +6,6 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <VersionPrefix>0.15.0</VersionPrefix>
     <VersionSuffix Condition="'$(Configuration)' == 'Debug'">dev-01</VersionSuffix>
-    <VersionSuffix Condition="'$(Configuration)' != 'Debug'">preview-01</VersionSuffix>
-    
     <IsPackable>false</IsPackable> <!-- disable by default -->   
     
   </PropertyGroup>
