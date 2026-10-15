@@ -1,5 +1,9 @@
 # Releases
 
+## Unreleased
+
+* Added a `net11.0` target alongside `net8.0` and `net10.0`. Building the package now requires .NET SDK 11 or later.
+
 ## 0.14.1
 
 * Fixed issue where the partial implementation of the property was incorrect (dumb error. value = field instead of correct field = value)
