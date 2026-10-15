@@ -18,6 +18,12 @@ jobs:
             8.0.x
             10.0.x
 
+      - name: Setup .NET 11 preview
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 11.0.x
+          dotnet-quality: preview
+
       - name: Run unit tests
         working-directory: Scripts
         run: dotnet run run-unit-tests.cs
