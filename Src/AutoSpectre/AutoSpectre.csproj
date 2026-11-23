@@ -45,9 +45,9 @@
   </ItemGroup>
 
   <Target Name="BuildSourceGenerator" BeforeTargets="Build;Pack" Condition="'$(NoBuild)' != 'true' and '$(TargetFramework)' == 'net10.0'">
-    <Exec Command="dotnet build &quot;$(MSBuildProjectDirectory)\..\AutoSpectre.SourceGeneration\AutoSpectre.SourceGeneration.csproj&quot; --configuration $(Configuration) --target Rebuild -p:AutoSpectreRoslynVersion=4.8.0 -p:OutputPath=bin\$(Configuration)\roslyn4.8\" />
-    <Exec Command="dotnet build &quot;$(MSBuildProjectDirectory)\..\AutoSpectre.SourceGeneration\AutoSpectre.SourceGeneration.csproj&quot; --configuration $(Configuration) --target Rebuild -p:AutoSpectreRoslynVersion=4.14.0 -p:OutputPath=bin\$(Configuration)\roslyn4.14\" />
-    <Exec Command="dotnet build &quot;$(MSBuildProjectDirectory)\..\AutoSpectre.SourceGeneration\AutoSpectre.SourceGeneration.csproj&quot; --configuration $(Configuration) --target Rebuild -p:AutoSpectreRoslynVersion=5.3.0 -p:OutputPath=bin\$(Configuration)\roslyn5.3\" />
+    <Exec Command="dotnet build &quot;$(MSBuildProjectDirectory)/../AutoSpectre.SourceGeneration/AutoSpectre.SourceGeneration.csproj&quot; --configuration $(Configuration) --target Rebuild -p:AutoSpectreRoslynVersion=4.8.0 -p:OutputPath=&quot;bin/$(Configuration)/roslyn4.8/&quot;" />
+    <Exec Command="dotnet build &quot;$(MSBuildProjectDirectory)/../AutoSpectre.SourceGeneration/AutoSpectre.SourceGeneration.csproj&quot; --configuration $(Configuration) --target Rebuild -p:AutoSpectreRoslynVersion=4.14.0 -p:OutputPath=&quot;bin/$(Configuration)/roslyn4.14/&quot;" />
+    <Exec Command="dotnet build &quot;$(MSBuildProjectDirectory)/../AutoSpectre.SourceGeneration/AutoSpectre.SourceGeneration.csproj&quot; --configuration $(Configuration) --target Rebuild -p:AutoSpectreRoslynVersion=5.3.0 -p:OutputPath=&quot;bin/$(Configuration)/roslyn5.3/&quot;" />
   </Target>
 
   <Target Name="BuildAnalyzer" BeforeTargets="Build;Pack" Condition="'$(NoBuild)' != 'true'">
