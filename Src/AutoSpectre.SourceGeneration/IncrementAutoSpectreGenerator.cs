@@ -113,6 +113,18 @@ public class IncrementAutoSpectreGenerator : IIncrementalGenerator
                         productionContext.AddSource($"{targetNamedType}PartialSummaries.g.cs", partialCode);
                     }
                 }
+                else if (targetNamedType.IsPartial())
+                {
+                    // A form can use its culture helper even when it has no prompt steps.
+                    var formEvaluation = new TargetFormEvaluator(attribute, targetNamedType, productionContext,
+                        syntaxContext);
+                    var builder = new NewCodeBuilder(targetNamedType, new List<IStepContext>(),
+                        formEvaluation.GetFormContext());
+                    if (builder.BuildPartialCode(out var partialCode))
+                    {
+                        productionContext.AddSource($"{targetNamedType}PartialSummaries.g.cs", partialCode);
+                    }
+                }
             }
             else
             {
