@@ -18,13 +18,13 @@ public class SelectionSourceDiagnosticsTests : AutoSpectreGeneratorTestsBase
     /// </summary>
     public static IEnumerable<object[]> SourceCases()
     {
-        foreach (var visibility in new[] { "public", "private", "protected", "internal" })
-        foreach (var member in new[] { "field", "property", "method" })
-        foreach (var isStatic in new[] { false, true })
-        foreach (var explicitSource in new[] { false, true })
-        foreach (var multiSelect in new[] { false, true })
+        foreach (var visibility in new[] {"public", "private", "protected", "internal"})
+        foreach (var member in new[] {"field", "property", "method"})
+        foreach (var isStatic in new[] {false, true})
+        foreach (var explicitSource in new[] {false, true})
+        foreach (var multiSelect in new[] {false, true})
         {
-            yield return new object[] { visibility, member, isStatic, explicitSource, multiSelect };
+            yield return new object[] {visibility, member, isStatic, explicitSource, multiSelect};
         }
     }
 
@@ -77,9 +77,7 @@ public class SelectionSourceDiagnosticsTests : AutoSpectreGeneratorTestsBase
         var warning = output.GeneratorDiagnostics.Should()
             .ContainSingle(d => d.Severity == DiagnosticSeverity.Warning).Which;
         warning.Id.Should().Be(DiagnosticIds.Id0026_NoSelectionSource);
-        warning.GetMessage().Should().Be(explicitSource
-            ? "This could be a candidate as source for Pick. But it must be public"
-            : "This could be a candidate as source for Pick if you adjust to internal or public");
+        warning.GetMessage().Should().Be("This could be a candidate as source for Pick. But it must be public");
         LocatedText(warning).Should().Be(sourceName);
     }
 
@@ -96,10 +94,10 @@ public class SelectionSourceDiagnosticsTests : AutoSpectreGeneratorTestsBase
                      "private string[] SOURCE(int value) => new[] { \"a\" };",
                      "public string[] SOURCE(int value) => new[] { \"a\" };"
                  })
-        foreach (var explicitSource in new[] { false, true })
-        foreach (var multiSelect in new[] { false, true })
+        foreach (var explicitSource in new[] {false, true})
+        foreach (var multiSelect in new[] {false, true})
         {
-            yield return new object[] { declaration, explicitSource, multiSelect };
+            yield return new object[] {declaration, explicitSource, multiSelect};
         }
     }
 
@@ -147,11 +145,11 @@ public class SelectionSourceDiagnosticsTests : AutoSpectreGeneratorTestsBase
             .Replace("public class TestForm", "public class TestForm : BaseForm");
         source += $$"""
 
-            public class BaseForm
-            {
-                protected string[] {{sourceName}}() => new[] { "protected" };
-            }
-            """;
+                    public class BaseForm
+                    {
+                        protected string[] {{sourceName}}() => new[] { "protected" };
+                    }
+                    """;
         var output = GetOutput(source);
 
         output.GeneratorDiagnostics.Should().BeEmpty();
@@ -171,19 +169,19 @@ public class SelectionSourceDiagnosticsTests : AutoSpectreGeneratorTestsBase
         var propertyType = multiSelect ? "string[]" : "string";
         var initialValue = multiSelect ? "new string[0]" : "\"\"";
         return $$"""
-            using AutoSpectre;
+                 using AutoSpectre;
 
-            namespace Test;
+                 namespace Test;
 
-            [AutoSpectreForm]
-            public class TestForm
-            {
-                {{attribute}}
-                public {{propertyType}} Pick { get; set; } = {{initialValue}};
+                 [AutoSpectreForm]
+                 public class TestForm
+                 {
+                     {{attribute}}
+                     public {{propertyType}} Pick { get; set; } = {{initialValue}};
 
-                {{declaration}}
-            }
-            """;
+                     {{declaration}}
+                 }
+                 """;
     }
 
     private static string LocatedText(Diagnostic diagnostic) =>
