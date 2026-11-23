@@ -259,7 +259,62 @@ The class that you wan't populated, should be decorated with the `AutoSpectreFor
 
 ### Culture
 
-You can control the overall culture used by setting the culture property. This will be used for TextPrompts. If it's isn't set the CurrentUICulture will be used.
+You can control the overall culture used for text prompts by setting `AutoSpectreForm.Culture`. If it isn't set,
+`CultureInfo.CurrentUICulture` is used.
+
+Partial forms also receive a private `CultureInfo GetCultureInfo()` method for use inside the form.
+It returns the configured culture, or `CultureInfo.CurrentUICulture` when no culture is specified.
+Generated factories continue to initialize their culture independently. Base and derived partial forms
+can each have this private helper; calls inside a base form use that base form's culture, not the derived form's.
+
+### Escaping interpolated markup
+
+Partial forms also receive two private helpers for formatting interpolated strings safely for Spectre.Console markup:
+
+- `string EscapeInterpolated(FormattableString formattableString)` uses the form's `GetCultureInfo()`.
+- `string EscapeInterpolated(IFormatProvider provider, FormattableString value)` uses an explicit format provider.
+
+String arguments and the string representations of non-`IFormattable` objects have their markup escaped.
+`IFormattable` arguments retain their format specifiers and are formatted using the selected provider; their output is
+not markup-escaped.
+Null arguments are preserved. Markup in the interpolated string's literal text is left intact.
+
+```csharp
+[AutoSpectreForm(Culture = "da-DK")]
+public partial class ReceiptForm
+{
+    public string FormatTotal(string name, decimal total) =>
+        EscapeInterpolated($"[bold]{name}[/]: {total:N2}");
+
+    public string FormatInvariantTotal(decimal total) =>
+        EscapeInterpolated(System.Globalization.CultureInfo.InvariantCulture, $"{total:N2}");
+}
+```
+
+Pass an interpolated string directly to these helpers, rather than a previously formatted `string`,
+so argument values can be escaped and formatted separately. Do not declare these generated helpers yourself.
+
+For example, use the helper in a selection prompt's convention-based converter to style each choice
+without interpreting markup inside the choice itself:
+
+```csharp
+[AutoSpectreForm]
+public partial class SomeForm
+{
+    [SelectPrompt(Title = "Enter your name", Source = nameof(NameSource))]
+    public partial string[] Name { get; set; } = [];
+
+    public string[] NameSource => ["Jeppe", "Peter", "Ulrik", "[Guest]"];
+
+    public string NameConverter(string source)
+    {
+        return EscapeInterpolated($"[red bold]{source}[/]");
+    }
+}
+```
+
+The literal `[red bold]...[/]` styles each choice, while a value such as `[Guest]` is displayed
+as text rather than parsed as a markup tag.
 
 ### ~~DisableDump~~ Removed since version 0.10.0
 

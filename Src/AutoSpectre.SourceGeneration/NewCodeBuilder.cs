@@ -1,12 +1,12 @@
 ﻿using System;
-using AutoSpectre.SourceGeneration.Extensions;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using AutoSpectre.SourceGeneration.BuildContexts;
 using AutoSpectre.SourceGeneration.Evaluation;
+using AutoSpectre.SourceGeneration.Extensions;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static AutoSpectre.SourceGeneration.CodeBuildConstants;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -36,12 +36,6 @@ internal class NewCodeBuilder
         "Spectre.Console.Rendering"
     };
 
-    private INamedTypeSymbol Type { get; }
-    private List<IStepContext> StepContexts { get; }
-    private SingleFormEvaluationContext SingleFormEvaluationContext { get; }
-
-    private bool CanBeInitializedWithoutParameters { get; }
-
     public NewCodeBuilder(INamedTypeSymbol type, List<IStepContext> stepContexts,
         SingleFormEvaluationContext singleFormEvaluationContext)
     {
@@ -55,11 +49,45 @@ internal class NewCodeBuilder
         // change the return type to be void or Task
     }
 
+    private INamedTypeSymbol Type { get; }
+    private string GeneratedAccessibility => Type.DeclaredAccessibility == Accessibility.Public ? "public" : "internal";
+    private List<IStepContext> StepContexts { get; }
+    private SingleFormEvaluationContext SingleFormEvaluationContext { get; }
+
+    private bool CanBeInitializedWithoutParameters { get; }
+
+    private bool IsAsync
+    {
+        get
+        {
+            var isAsync = StepContexts.Any(x => x.IsAsync);
+            return isAsync;
+        }
+    }
+
+    private string SpectreFactoryClassName
+    {
+        get
+        {
+            var spectreFactoryClassName = Type.GetSpectreFactoryClassName();
+            return spectreFactoryClassName;
+        }
+    }
+
+    private string SpectreFactoryInterfaceName
+    {
+        get
+        {
+            var spectreFactoryInterfaceName = Type.GetSpectreFactoryInterfaceName();
+            return spectreFactoryInterfaceName;
+        }
+    }
+
     public bool BuildPartialCode(out string partialCode)
     {
         partialCode = string.Empty;
 
-        if (StepContexts.All(x => !x.GetConditionContext().IsPartial))
+        if (!Type.IsPartial() && StepContexts.All(x => !x.GetConditionContext().IsPartial))
         {
             return false;
         }
@@ -74,8 +102,48 @@ internal class NewCodeBuilder
 
         using (NamespaceScope.Begin(builder, Type.ContainingNamespace))
         {
-            builder.AppendLine($"\tpublic partial class {Type.Name}")
+            builder.AppendLine($"\t{GeneratedAccessibility} partial class {Type.Name}")
                 .AppendLine($"\t{{");
+
+            if (Type.IsPartial())
+            {
+                builder.AppendLine($$"""
+                                     /// <summary>
+                                     /// Returns the culture configured for this form, or the current UI culture.
+                                     /// </summary>
+                                     private CultureInfo GetCultureInfo() => {{CultureInitializer()}};
+
+                                     /// <summary>
+                                     /// Formats an interpolated string using the form's culture and escapes markup in its arguments.
+                                     /// </summary>
+                                     /// <param name="formattableString">The interpolated string to format.</param>
+                                     /// <returns>The formatted string with markup escaped in text arguments.</returns>
+                                     private string EscapeInterpolated(FormattableString formattableString)
+                                     {
+                                         return EscapeInterpolated(GetCultureInfo(), formattableString);
+                                     }
+
+                                     /// <summary>
+                                     /// Formats an interpolated string using the specified provider and escapes markup in its arguments.
+                                     /// </summary>
+                                     /// <param name="provider">The provider used to format argument values.</param>
+                                     /// <param name="value">The interpolated string to format.</param>
+                                     /// <returns>The formatted string with markup escaped in text arguments.</returns>
+                                     private string EscapeInterpolated(IFormatProvider provider, FormattableString value)
+                                     {
+                                         object?[] args = value.GetArguments()
+                                             .Select(arg => arg switch
+                                             {
+                                                 null => null,
+                                                 string text => text.EscapeMarkup(),
+                                                 IFormattable => arg,
+                                                 _ => arg.ToString()?.EscapeMarkup(),
+                                             })
+                                             .ToArray();
+                                         return string.Format(provider, value.Format, args);
+                                     }
+                                     """);
+            }
 
             foreach (var stepContext in StepContexts.Where(x => x.GetConditionContext().IsPartial))
             {
@@ -215,7 +283,7 @@ internal class NewCodeBuilder
                                  /// <summary>
                                  /// Helps create and fill <see cref="{{typeName}}"/> with values
                                  /// </summary>
-                                 public interface {{SpectreFactoryInterfaceName}} : {{interfaceInheritance}}
+                                 {{GeneratedAccessibility}} interface {{SpectreFactoryInterfaceName}} : {{interfaceInheritance}}
                                  {
                                      {{BuildCompatibilityInterfaceMethods(typeName, isAsync)}}
                                  }
@@ -223,7 +291,7 @@ internal class NewCodeBuilder
                                  /// <summary>
                                  /// Helps create and fill <see cref="{{typeName}}"/> with values
                                  /// </summary>
-                                 public class {{SpectreFactoryClassName}} : {{implementationInheritance}}
+                                 {{GeneratedAccessibility}} class {{SpectreFactoryClassName}} : {{implementationInheritance}}
                                  {
                                      /// <summary>Prompts for the form using the existing non-cancellable API.</summary>
                                      public {{(isAsync ? "override " : string.Empty)}}{{returnTypeName}}  Prompt{{(isAsync ? "Async " : string.Empty)}}({{typeName}} {{FormName}})
@@ -238,7 +306,7 @@ internal class NewCodeBuilder
                                  """);
         }
 
-        return SyntaxFactory.ParseCompilationUnit(builder.ToString()).NormalizeWhitespace().ToFullString();
+        return ParseCompilationUnit(builder.ToString()).NormalizeWhitespace().ToFullString();
     }
 
     /// <summary>Emits an asynchronous path without changing existing method signatures.</summary>
@@ -278,33 +346,6 @@ internal class NewCodeBuilder
                      return {{FormName}};
                  }
                  """;
-    }
-
-    private bool IsAsync
-    {
-        get
-        {
-            var isAsync = StepContexts.Any(x => x.IsAsync);
-            return isAsync;
-        }
-    }
-
-    private string SpectreFactoryClassName
-    {
-        get
-        {
-            var spectreFactoryClassName = Type.GetSpectreFactoryClassName();
-            return spectreFactoryClassName;
-        }
-    }
-
-    private string SpectreFactoryInterfaceName
-    {
-        get
-        {
-            var spectreFactoryInterfaceName = Type.GetSpectreFactoryInterfaceName();
-            return spectreFactoryInterfaceName;
-        }
     }
 
 
@@ -356,13 +397,20 @@ internal class NewCodeBuilder
 
     private string InitCulture()
     {
-        var cultureInitializer = SingleFormEvaluationContext.ConfirmedCulture switch
+        return $"var {CultureVariableName} = {CultureInitializer()};";
+    }
+
+    /// <summary>
+    /// Shares culture selection between the factory and the form's private helper.
+    /// </summary>
+    /// <returns>The expression that creates or retrieves the form's culture.</returns>
+    private string CultureInitializer()
+    {
+        return SingleFormEvaluationContext.ConfirmedCulture switch
         {
             { } cult => $"new CultureInfo(\"{cult.Culture}\")",
             _ => "CultureInfo.CurrentUICulture"
         };
-
-        return $"var {CodeBuildConstants.CultureVariableName} = {cultureInitializer};";
     }
 
     private bool EvaluateIfCanBeInitalizedWithoutParameters()
@@ -509,7 +557,7 @@ internal class NewCodeBuilder
         var spectreInterfaceType = IsAsync ? $"IAsyncSpectreFactory<{typeName}>" : $"ISpectreFactory<{typeName}>";
 
         builder.AppendLine(
-            $"public static {spectreInterfaceType} {getSpectreFactoryMethodName}() => new {SpectreFactoryClassName}();");
+            $"{GeneratedAccessibility} static {spectreInterfaceType} {getSpectreFactoryMethodName}() => new {SpectreFactoryClassName}();");
 
         var returnType = TaskOrTypeName(typeName, IsAsync);
         var methodName = IsAsync ? "PromptAsync" : "Prompt";
@@ -519,7 +567,8 @@ internal class NewCodeBuilder
 
         if (CanBeInitializedWithoutParameters)
         {
-            builder.AppendLine($"public static {asyncString} {returnType} {methodName}_{typeNameWithUnderscore}()");
+            builder.AppendLine(
+                $"{GeneratedAccessibility} static {asyncString} {returnType} {methodName}_{typeNameWithUnderscore}()");
             builder.AppendLine("{");
             builder.AppendLine($"\tvar result = new {typeName}();");
             builder.AppendLine($"\tvar factory = {getSpectreFactoryMethodName}();");
@@ -529,14 +578,15 @@ internal class NewCodeBuilder
         else
         {
             builder.AppendLine(
-                $"public static {asyncString} {returnType} {methodName}_{typeNameWithUnderscore}({typeName} result)");
+                $"{GeneratedAccessibility} static {asyncString} {returnType} {methodName}_{typeNameWithUnderscore}({typeName} result)");
             builder.AppendLine("{");
             builder.AppendLine($"\tvar factory = {getSpectreFactoryMethodName}();");
             builder.AppendLine($"\treturn {awaitString} factory.{methodName}(result);");
             builder.AppendLine("}");
         }
 
-        builder.AppendLine($"public static {asyncString} {returnType} {methodName}(this {typeName} form)");
+        builder.AppendLine(
+            $"{GeneratedAccessibility} static {asyncString} {returnType} {methodName}(this {typeName} form)");
         builder.AppendLine("{");
         builder.AppendLine($"\tvar factory = {getSpectreFactoryMethodName}();");
         builder.AppendLine($"\treturn {awaitString} factory.{methodName}(form);");
@@ -545,13 +595,13 @@ internal class NewCodeBuilder
 
         builder.AppendLine($"/// <summary>Asynchronously prompts for the form, observing cancellation.</summary>");
         builder.AppendLine(
-            $"public static System.Threading.Tasks.Task<{typeName}> PromptAsync(this {typeName} form, System.Threading.CancellationToken cancellationToken)");
+            $"{GeneratedAccessibility} static System.Threading.Tasks.Task<{typeName}> PromptAsync(this {typeName} form, System.Threading.CancellationToken cancellationToken)");
         builder.AppendLine($"    => new {SpectreFactoryClassName}().PromptAsync(form, cancellationToken);");
         if (!IsAsync)
         {
             builder.AppendLine("/// <summary>Asynchronously prompts for the form without cancellation.</summary>");
             builder.AppendLine(
-                $"public static System.Threading.Tasks.Task<{typeName}> PromptAsync(this {typeName} form)");
+                $"{GeneratedAccessibility} static System.Threading.Tasks.Task<{typeName}> PromptAsync(this {typeName} form)");
             builder.AppendLine($"    => new {SpectreFactoryClassName}().PromptAsync(form);");
         }
 
@@ -560,7 +610,7 @@ internal class NewCodeBuilder
         builder.AppendLine(
             "/// <summary>Creates a factory and asynchronously populates the form, observing cancellation.</summary>");
         builder.AppendLine(
-            $"public static System.Threading.Tasks.Task<{typeName}> PromptAsync_{typeNameWithUnderscore}({asyncFormParameter}System.Threading.CancellationToken cancellationToken)");
+            $"{GeneratedAccessibility} static System.Threading.Tasks.Task<{typeName}> PromptAsync_{typeNameWithUnderscore}({asyncFormParameter}System.Threading.CancellationToken cancellationToken)");
         builder.AppendLine(
             $"    => new {SpectreFactoryClassName}().PromptAsync({asyncFormArgument}, cancellationToken);");
         if (!IsAsync)
@@ -569,7 +619,7 @@ internal class NewCodeBuilder
             builder.AppendLine(
                 "/// <summary>Creates a factory and asynchronously populates the form without cancellation.</summary>");
             builder.AppendLine(
-                $"public static System.Threading.Tasks.Task<{typeName}> PromptAsync_{typeNameWithUnderscore}({parameter})");
+                $"{GeneratedAccessibility} static System.Threading.Tasks.Task<{typeName}> PromptAsync_{typeNameWithUnderscore}({parameter})");
             builder.AppendLine($"    => new {SpectreFactoryClassName}().PromptAsync({asyncFormArgument});");
         }
 
