@@ -12,7 +12,7 @@ int i = 0;
 [AutoSpectreForm]
 public partial class SomeForm
 {
-    [SelectPrompt(Title = "Enter your name")]
+    [SelectPrompt(Title = "Enter your name", Source = nameof(NameSource))]
     public partial string[] Name { get; set; } = [];
     
     public string[] NameSource => ["Jeppe", "Peter","Ulrik"];

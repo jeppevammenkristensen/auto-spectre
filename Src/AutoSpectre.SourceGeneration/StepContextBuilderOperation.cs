@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using AutoSpectre.SourceGeneration.BuildContexts;
 using AutoSpectre.SourceGeneration.Evaluation;
@@ -681,20 +682,32 @@ internal class StepContextBuilderOperation
     /// <summary>
     /// Resolves the <c>Source</c> member for a SelectPrompt (explicit or <c>{PropertyName}Source</c>) and
     /// records it on the property context. Emits <c>Id0005_SelectionSourceNotFound</c> or
-    /// <c>Id0026_NoSelectionSource</c> when missing.
+    /// <c>Id0026_NoSelectionSource</c> when missing, with a warning on a non-public candidate.
     /// </summary>
+    /// <param name="memberAttributeData">The prompt settings, including an optional explicit source name.</param>
+    /// <param name="propertyContext">The property requiring a source of selection choices.</param>
     private void EvaluateSelectionSource(TranslatedMemberAttributeData memberAttributeData,
         SinglePropertyEvaluationContext propertyContext)
     {
         var selectionSource = memberAttributeData.SelectionSource ?? $"{propertyContext.Property.Name}Source";
         TypeFieldMethodPropertySpecifications specs =
             new TypeFieldMethodPropertySpecifications(EnumerableOfTypeSpec(propertyContext.GetSingleType().type));
-            
-        var match = TargetType
+
+        var signatureMatches = TargetType
             .GetAllMembers()
             .Where(x => x.Name == selectionSource)
             .Where(specs.Field.Or(specs.Method).Or(specs.Property))
+            .ToImmutableArray();
+
+        var match = signatureMatches
             .FirstOrDefault(x => x.IsPublic());
+
+        // Only suggest a non-public candidate when no public source is valid.
+        ISymbol? inaccessibleMatch = null;
+        if (match == null)
+        {
+            inaccessibleMatch = signatureMatches.FirstOrDefault();
+        }
 
         if (match is { })
         {
@@ -709,21 +722,49 @@ internal class StepContextBuilderOperation
             else
                 throw new NotSupportedException();
         }
-        else if(memberAttributeData.SelectionSource is {})
+        else if (memberAttributeData.SelectionSource is { })
         {
+            var description = inaccessibleMatch is { }
+                ? $"A source matching {memberAttributeData.SelectionSource} was found but it must be public"
+                : $"The selection source {memberAttributeData.SelectionSource} was not found on type";
+
+            if (inaccessibleMatch is { })
+            {
+                ProductionContext.ReportDiagnostic(Diagnostic.Create(
+                    new(DiagnosticIds.Id0026_NoSelectionSource,
+                        "Could be candidate",
+                        $"This could be a candidate as source for {propertyContext.Property.Name}. But it must be public",
+                        "General", DiagnosticSeverity.Warning, true),
+                    inaccessibleMatch.Locations.FirstOrDefault()));
+            }
+
             ProductionContext.ReportDiagnostic(Diagnostic.Create(
                 new(DiagnosticIds.Id0005_SelectionSourceNotFound,
                     "Not a valid selection source",
-                    $"The selection source {memberAttributeData.SelectionSource} was not found on type",
+                    description,
                     "General", DiagnosticSeverity.Error, true),
                 propertyContext.Property.Locations.FirstOrDefault()));
         }
         else
         {
+            var description = inaccessibleMatch is { }
+                ? "A selection source was found matching the signature but it must be public"
+                : "No selection source was set. You can fix this by setting the source or following the name convention for a valid source";
+
+            if (inaccessibleMatch is { })
+            {
+                ProductionContext.ReportDiagnostic(Diagnostic.Create(
+                    new(DiagnosticIds.Id0026_NoSelectionSource,
+                        "Could be candidate",
+                        $"This could be a candidate as source for {propertyContext.Property.Name} if you adjust to internal or public",
+                        "General", DiagnosticSeverity.Warning, true),
+                    inaccessibleMatch.Locations.FirstOrDefault()));
+            }
+
             ProductionContext.ReportDiagnostic(Diagnostic.Create(
                 new(DiagnosticIds.Id0026_NoSelectionSource,
                     "No selection source set",
-                    $"No selection source was set. You can fix this by setting the source or following the name convention for a valid source",
+                    description,
                     "General", DiagnosticSeverity.Error, true),
                 propertyContext.Property.Locations.FirstOrDefault()));
         }
