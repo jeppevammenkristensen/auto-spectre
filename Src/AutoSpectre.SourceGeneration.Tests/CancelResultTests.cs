@@ -103,7 +103,8 @@ public class CancelResultTests : AutoSpectreGeneratorTestsBase
 
                          public IEnumerable<string> ItemsCancelResult => new string[0];
                     }
-                    """).OutputShouldContain(".AddCancelResult(form.ItemsCancelResult)");
+                    """).OutputShouldContain(".AddCancelResult(form.ItemsCancelResult.ToList())")
+            .ShouldCompileWithoutErrors();
     }
 
     [Fact]

@@ -2,6 +2,7 @@
 using System.Text;
 using AutoSpectre.SourceGeneration.BuildContexts;
 using AutoSpectre.SourceGeneration.Extensions;
+using Microsoft.CodeAnalysis;
 
 namespace AutoSpectre.SourceGeneration.Evaluation;
 
@@ -67,9 +68,33 @@ public class ConfirmedCancelResult : SourceResult, ISummaryCondition
     {
     }
 
+    /// <summary>
+    /// Emits the cancel result, adapting enumerable sources to Spectre's list-based multi-select overload.
+    /// Method sources remain deferred until cancellation.
+    /// </summary>
+    /// <param name="context">The prompt whose cancel result is being generated.</param>
+    /// <param name="builder">The destination for the fluent configuration.</param>
     public override void GeneratePrompt(SinglePropertyEvaluationContext context, StringBuilder builder)
     {
-        builder.AppendLine($".AddCancelResult({SourcePath(context)})");
+        var source = SourcePath(context);
+        var sourceType = Evaluation.MatchedSymbol switch
+        {
+            IMethodSymbol method => method.ReturnType,
+            IPropertySymbol property => property.Type,
+            IFieldSymbol field => field.Type,
+            _ => null
+        };
+        var returnsList = sourceType is INamedTypeSymbol { Name: "List", Arity: 1 } namedType &&
+                          namedType.ContainingNamespace.ToDisplayString() == "System.Collections.Generic";
+        if (context.IsEnumerable && Evaluation.TargetIsEnumerable && !returnsList &&
+            sourceType is not null && sourceType.IsEnumerableOfTypeButNotString().isEnumerable)
+        {
+            source = Evaluation.AccessType == SourceAccessType.NoParameterInvocation
+                ? $"() => {source}().ToList()"
+                : $"{source}.ToList()";
+        }
+
+        builder.AppendLine($".AddCancelResult({source})");
     }
 
     /// <summary>

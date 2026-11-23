@@ -13,7 +13,6 @@ using static AutoSpectre.SourceGeneration.Extensions.Specification.Specification
 
 namespace AutoSpectre.SourceGeneration;
 
-
 public enum SourceAccessType
 {
     PropertyOrField,
@@ -33,6 +32,7 @@ public class SourceEvaluation
     /// </summary>
     /// <remarks>For SelectionPrompt CancelResult this would return false. But for MultiSelectinPrompt it would be true</remarks>
     public bool TargetIsEnumerable { get; }
+
     public static SourceEvaluation False => new(false, default, null!, false);
 
     public SourceEvaluation(bool valid, SourceAccessType accessType, ISymbol matchedSymbol, bool targetIsEnumerable)
@@ -46,7 +46,8 @@ public class SourceEvaluation
 
 internal static class SourceEvaluator
 {
-    public static SourceEvaluation EvaluateSource(ITypeSymbol targetType, SinglePropertyEvaluationContext propertyContext)
+    public static SourceEvaluation EvaluateSource(ITypeSymbol targetType,
+        SinglePropertyEvaluationContext propertyContext)
     {
         return EvaluateSource(targetType.GetMembers(), propertyContext);
     }
@@ -57,15 +58,16 @@ internal static class SourceEvaluator
     /// <param name="candidates">The collection of symbols to evaluate, including methods, properties, and fields.</param>
     /// <param name="propertyContext">The evaluation context containing type requirements and enumerable status for matching.</param>
     /// <param name="shouldBeEnumerable">For enumerable. This is here for the TextPrompt scenario where you can have a list of values. But it's expected that the default value is single</param>
+    /// <param name="requirePublic">Whether to exclude non-public members; disable only to diagnose an inaccessible signature match.</param>
     /// <returns>A SourceEvaluation indicating whether a matching source was found, its access type, and whether it represents a single value or collection.</returns>
     public static SourceEvaluation EvaluateSource(IEnumerable<ISymbol> candidates,
         SinglePropertyEvaluationContext propertyContext,
-        bool? shouldBeEnumerable = null)
+        bool? shouldBeEnumerable = null, bool requirePublic = true)
     {
-        foreach (var symbol in candidates.Where(IsPublic.And(
+        foreach (var symbol in candidates.Where(symbol => !requirePublic || symbol.IsPublic()).Where(
                      MethodWithNoParametersSpec
                          .Or(new FieldSpecification<ISymbol>())
-                         .Or(Check.Property<ISymbol>()))))
+                         .Or(Check.Property<ISymbol>())))
         {
             (ITypeSymbol typeSymbol, SourceAccessType accessType) = symbol switch
             {
@@ -74,7 +76,7 @@ internal static class SourceEvaluator
                 IFieldSymbol fieldSymbol => (fieldSymbol.Type, SourceAccessType.PropertyOrField),
                 _ => throw new InvalidOperationException("This should not occur")
             };
-            
+
             if (propertyContext.IsEnumerable && shouldBeEnumerable is not false)
             {
                 if (EnumerableOfTypeSpec(propertyContext.RequiredUnderlyingType) == typeSymbol)
@@ -84,7 +86,7 @@ internal static class SourceEvaluator
                     {
                         targetIsEnumerable = false;
                     }
-                    
+
                     return new SourceEvaluation(true, accessType, symbol, targetIsEnumerable);
                 }
                 else
@@ -101,36 +103,54 @@ internal static class SourceEvaluator
                 {
                     if (OfTypeSpec(propertyContext.RequiredUnderlyingType) == typeSymbol)
                     {
-                        return new SourceEvaluation(true, accessType,symbol, targetIsEnumerable: false);
+                        return new SourceEvaluation(true, accessType, symbol, targetIsEnumerable: false);
                         //propertyContext.ConfirmedCancelResult = new ConfirmedCancelResult(search.Value, CancelResultType.Value, symbol.IsStatic);
                     }
-                    
                 }
                 else
                 {
                     if (OfTypeSpec(propertyContext.Type) == typeSymbol)
                     {
-                        return new SourceEvaluation(true, accessType,symbol, targetIsEnumerable: false);
+                        return new SourceEvaluation(true, accessType, symbol, targetIsEnumerable: false);
                         //propertyContext.ConfirmedCancelResult = new ConfirmedCancelResult(search.Value, CancelResultType.Value, symbol.IsStatic);
-                    }    
+                    }
                 }
-                
-                
-                
             }
         }
-        
+
         return SourceEvaluation.False;
     }
 }
 
 internal class StepContextBuilderOperation
 {
+    /// <summary>
+    /// Points to a signature-compatible source that cannot be used because it is not public.
+    /// Call only after ruling out valid public matches.
+    /// </summary>
+    /// <param name="candidate">The inaccessible signature match, or null when no signature matched.</param>
+    /// <param name="diagnosticId">The diagnostic identifier for the feature being resolved.</param>
+    /// <param name="role">The feature for which the member could be used.</param>
+    /// <param name="stepName">The prompt or task that needs the member.</param>
+    /// <returns>True when a candidate warning was reported.</returns>
+    private bool ReportNonPublicCandidate(ISymbol? candidate, string diagnosticId, string role, string stepName)
+    {
+        if (candidate is null)
+            return false;
+
+        ProductionContext.ReportDiagnostic(Diagnostic.Create(
+            new(diagnosticId, "Matching member must be public",
+                $"The member {candidate.Name} matches the signature for {role} on {stepName}, but it must be public",
+                "General", DiagnosticSeverity.Warning, true),
+            candidate.Locations.FirstOrDefault()));
+        return true;
+    }
+
     private readonly ConcurrentDictionary<INamedTypeSymbol, NamedTypedAnalysis> _analysedTypes =
-        new (SymbolEqualityComparer.Default);
-    
+        new(SymbolEqualityComparer.Default);
+
     public GeneratorAttributeSyntaxContext SyntaxContext { get; }
-    
+
     /// <summary>
     /// Methods or Properties on the <see cref="TargetType"/> that are
     /// candidates to have a prompt or task executed.
@@ -198,11 +218,12 @@ internal class StepContextBuilderOperation
             }
             else if (method is { })
             {
-                HandleMethod(method, attributeData, result,types);
+                HandleMethod(method, attributeData, result, types);
             }
             else
             {
-                throw new InvalidOperationException($"Both {nameof(property)} and {nameof(method)} are unexpectedly null");
+                throw new InvalidOperationException(
+                    $"Both {nameof(property)} and {nameof(method)} are unexpectedly null");
             }
         }
 
@@ -213,7 +234,8 @@ internal class StepContextBuilderOperation
     /// Processes a method-based step (TaskStep or Break): validates the signature, resolves condition and
     /// status metadata, and appends a <see cref="MethodContext"/> to <paramref name="stepContexts"/>.
     /// </summary>
-    private void HandleMethod(IMethodSymbol method, TranslatedMemberAttributeData memberAttributeData, List<IStepContext> stepContexts, LazyTypes types)
+    private void HandleMethod(IMethodSymbol method, TranslatedMemberAttributeData memberAttributeData,
+        List<IStepContext> stepContexts, LazyTypes types)
     {
         if (!method.IsPublicInstance())
         {
@@ -225,11 +247,13 @@ internal class StepContextBuilderOperation
                 method.Locations.FirstOrDefault()));
             return;
         }
-        
-        var isTaskStep = memberAttributeData.AskType == AskTypeCopy.Task; // Will hate myself when there are more than two method types
-        
+
+        var isTaskStep =
+            memberAttributeData.AskType ==
+            AskTypeCopy.Task; // Will hate myself when there are more than two method types
+
         // This evaluation should catch both a TaskStep and a Break Attribute
-        if (EvaluateSingleMethodEvaluationContext(method, isTaskStep) is not {} singleMethodEvaluationContext)
+        if (EvaluateSingleMethodEvaluationContext(method, isTaskStep) is not { } singleMethodEvaluationContext)
         {
             return;
         }
@@ -245,7 +269,8 @@ internal class StepContextBuilderOperation
     /// When <c>UseStatus</c> is set on the attribute, verifies the method does no prompting and that a
     /// <c>StatusText</c> is supplied, then records the confirmed status (plus spinner style/type).
     /// </summary>
-    private void EvaluateStatus(TranslatedMemberAttributeData memberAttributeData, SingleMethodEvaluationContext singleMethodEvaluationContext)
+    private void EvaluateStatus(TranslatedMemberAttributeData memberAttributeData,
+        SingleMethodEvaluationContext singleMethodEvaluationContext)
     {
         if (memberAttributeData.UseStatus == false)
             return;
@@ -268,7 +293,6 @@ internal class StepContextBuilderOperation
             singleMethodEvaluationContext.ConfirmedStatus = new ConfirmedStatusWrap(memberAttributeData.StatusText);
             EvaluateSpinnerStyle(memberAttributeData, singleMethodEvaluationContext);
             EvaluateSpinnerType(memberAttributeData, singleMethodEvaluationContext);
-
         }
         else
         {
@@ -284,7 +308,8 @@ internal class StepContextBuilderOperation
     /// <summary>
     /// Copies the <c>SpinnerType</c> attribute value onto the method evaluation context, when set.
     /// </summary>
-    private void EvaluateSpinnerType(TranslatedMemberAttributeData memberAttributeData, SingleMethodEvaluationContext singleMethodEvaluationContext)
+    private void EvaluateSpinnerType(TranslatedMemberAttributeData memberAttributeData,
+        SingleMethodEvaluationContext singleMethodEvaluationContext)
     {
         if (memberAttributeData.SpinnerType is { })
         {
@@ -296,7 +321,8 @@ internal class StepContextBuilderOperation
     /// Validates the <c>SpinnerStyle</c> attribute value against Spectre's style syntax and records it;
     /// reports <c>Id0019_SpinnerStyleNotValid</c> when the value is malformed.
     /// </summary>
-    private void EvaluateSpinnerStyle(TranslatedMemberAttributeData memberAttributeData, SingleMethodEvaluationContext singleMethodEvaluationContext)
+    private void EvaluateSpinnerStyle(TranslatedMemberAttributeData memberAttributeData,
+        SingleMethodEvaluationContext singleMethodEvaluationContext)
     {
         if (memberAttributeData.SpinnerStyle is { } style)
         {
@@ -306,15 +332,14 @@ internal class StepContextBuilderOperation
             }
             else
             {
-                ProductionContext.ReportDiagnostic(Diagnostic.Create(new (DiagnosticIds.Id0019_SpinnerStyleNotValid,
-                        "The Spinnerstyle is not correct",
-                        "The SpinnerStyle is not correct",
-                        "General",
-                        DiagnosticSeverity.Warning,
-                        true), singleMethodEvaluationContext.Method.Locations.FirstOrDefault()));
+                ProductionContext.ReportDiagnostic(Diagnostic.Create(new(DiagnosticIds.Id0019_SpinnerStyleNotValid,
+                    "The Spinnerstyle is not correct",
+                    "The SpinnerStyle is not correct",
+                    "General",
+                    DiagnosticSeverity.Warning,
+                    true), singleMethodEvaluationContext.Method.Locations.FirstOrDefault()));
             }
         }
-        
     }
 
     /// <summary>
@@ -337,16 +362,19 @@ internal class StepContextBuilderOperation
         if (method.ReturnsVoid || method.ReturnType.Equals(this.Types.Task, SymbolEqualityComparer.Default))
         {
             bool validParameters = method.Parameters.Length <= 2 &&
-                method.Parameters.All(parameter => parameter.RefKind == RefKind.None &&
-                    (parameter.Type.Equals(Types.IAnsiConsole, SymbolEqualityComparer.Default) ||
-                     parameter.Type.Equals(Types.CancellationToken, SymbolEqualityComparer.Default))) &&
-                method.Parameters.Select(parameter => parameter.Type).Distinct(SymbolEqualityComparer.Default).Count() == method.Parameters.Length;
+                                   method.Parameters.All(parameter => parameter.RefKind == RefKind.None &&
+                                                                      (parameter.Type.Equals(Types.IAnsiConsole,
+                                                                           SymbolEqualityComparer.Default) ||
+                                                                       parameter.Type.Equals(Types.CancellationToken,
+                                                                           SymbolEqualityComparer.Default))) &&
+                                   method.Parameters.Select(parameter => parameter.Type)
+                                       .Distinct(SymbolEqualityComparer.Default).Count() == method.Parameters.Length;
             if (validParameters)
             {
-                var hasAnsiConsole = method.Parameters.Any(parameter => parameter.Type.Equals(Types.IAnsiConsole, SymbolEqualityComparer.Default));
+                var hasAnsiConsole = method.Parameters.Any(parameter =>
+                    parameter.Type.Equals(Types.IAnsiConsole, SymbolEqualityComparer.Default));
                 var isAsync = method.ReturnType.Equals(this.Types.Task, SymbolEqualityComparer.Default);
                 return new SingleMethodEvaluationContext(method, isAsync, hasAnsiConsole, isTaskStep);
-                
             }
             else
             {
@@ -376,7 +404,8 @@ internal class StepContextBuilderOperation
     /// on <see cref="TranslatedMemberAttributeData.AskType"/>, and appends the resulting build context to
     /// <paramref name="stepContexts"/>.
     /// </summary>
-    private void HandleProperty(IPropertySymbol property, TranslatedMemberAttributeData memberAttributeData, List<IStepContext> stepContexts,
+    private void HandleProperty(IPropertySymbol property, TranslatedMemberAttributeData memberAttributeData,
+        List<IStepContext> stepContexts,
         LazyTypes types)
     {
         if (IsPublicAndInstanceSpec != property)
@@ -388,11 +417,11 @@ internal class StepContextBuilderOperation
                 property.Locations.FirstOrDefault()));
             return;
         }
-        
+
         var propertyContext = SinglePropertyEvaluationContext.GenerateFromPropertySymbol(property, TargetType);
 
         EvaluateCondition(propertyContext, memberAttributeData);
-        
+
         if (memberAttributeData.AskType == AskTypeCopy.Normal)
         {
             EvaluateNamedType(propertyContext, memberAttributeData);
@@ -401,9 +430,9 @@ internal class StepContextBuilderOperation
             EvaluateClearOnFinish(propertyContext, memberAttributeData);
             EvaluatePromptStyle(propertyContext, memberAttributeData);
             EvaluateValidation(propertyContext, memberAttributeData);
-            EvaluateChoices(propertyContext,memberAttributeData);
-            EvaluateEnableSearch(propertyContext,memberAttributeData);
-            
+            EvaluateChoices(propertyContext, memberAttributeData);
+            EvaluateEnableSearch(propertyContext, memberAttributeData);
+
             if (!propertyContext.IsEnumerable)
             {
                 if (GetTextPromptBuildContext(memberAttributeData, propertyContext) is
@@ -446,7 +475,7 @@ internal class StepContextBuilderOperation
                 if (!propertyContext.IsEnumerable)
                 {
                     EvaluateEnableSearch(propertyContext, memberAttributeData);
-                    
+
                     stepContexts.Add(new PropertyContext(property.Name, property,
                         new SelectionPromptBuildContext(memberAttributeData.Title, propertyContext)));
                 }
@@ -455,7 +484,7 @@ internal class StepContextBuilderOperation
                     stepContexts.Add(new PropertyContext(property.Name, property,
                         new MultiSelectionBuildContext(title: memberAttributeData.Title,
                             propertyContext,
-                             types)));
+                            types)));
                 }
             }
             else
@@ -470,7 +499,8 @@ internal class StepContextBuilderOperation
     /// Records <see cref="ConfirmedClearOnFinish"/> on the property context when <c>ClearOnFinish</c> is
     /// set on the attribute.
     /// </summary>
-    private void EvaluateClearOnFinish(SinglePropertyEvaluationContext propertyContext, TranslatedMemberAttributeData memberAttributeData)
+    private void EvaluateClearOnFinish(SinglePropertyEvaluationContext propertyContext,
+        TranslatedMemberAttributeData memberAttributeData)
     {
         if (memberAttributeData.ClearOnFinish)
         {
@@ -499,7 +529,7 @@ internal class StepContextBuilderOperation
             {
                 return new StringMatch(conventionName, true);
             }
-            
+
             return new StringMatch(match!, false);
         }
 
@@ -512,10 +542,11 @@ internal class StepContextBuilderOperation
     /// confirmed result. Emits <c>Id0028_CancelResult_NotFound</c> / <c>Id0029_CancelResult_NotValid</c>
     /// on failure.
     /// </summary>
-    private void EvaluateCancelResult(SinglePropertyEvaluationContext propertyContext, TranslatedMemberAttributeData memberAttributeData)
+    private void EvaluateCancelResult(SinglePropertyEvaluationContext propertyContext,
+        TranslatedMemberAttributeData memberAttributeData)
     {
         var search = StringMatch.From(memberAttributeData.CancelResult, $"{propertyContext.Property.Name}CancelResult");
-        
+
         var candidates = TargetType.GetMembers()
             .Where(x => x.Name == search.Match).ToList();
 
@@ -531,7 +562,6 @@ internal class StepContextBuilderOperation
                     "General", DiagnosticSeverity.Warning, true),
                 propertyContext.Property.Locations.FirstOrDefault()));
             return;
-
         }
 
         var source = SourceEvaluator.EvaluateSource(candidates, propertyContext);
@@ -541,6 +571,11 @@ internal class StepContextBuilderOperation
         }
 
         if (propertyContext.ConfirmedCancelResult is not null)
+            return;
+
+        var signatureMatch = SourceEvaluator.EvaluateSource(candidates, propertyContext, requirePublic: false);
+        if (ReportNonPublicCandidate(signatureMatch.Valid ? signatureMatch.MatchedSymbol : null,
+                DiagnosticIds.Id0029_CancelResult_NotValid, "CancelResult", propertyContext.Property.Name))
             return;
 
         var expectedType = propertyContext.IsEnumerable
@@ -563,11 +598,11 @@ internal class StepContextBuilderOperation
     private void EvaluateChoices(SinglePropertyEvaluationContext propertyEvaluationContext,
         TranslatedMemberAttributeData memberAttributeData)
     {
-        if (memberAttributeData.ChoicesStyle is {} style && style.EvaluateStyle())
+        if (memberAttributeData.ChoicesStyle is { } style && style.EvaluateStyle())
         {
             propertyEvaluationContext.ConfirmedChoicesStyle = new(style);
         }
-        
+
         var nameCandidate = memberAttributeData.ChoicesSource ?? $"{propertyEvaluationContext.Property.Name}Choices";
         var isGuess = memberAttributeData.ChoicesSource == null;
 
@@ -577,14 +612,13 @@ internal class StepContextBuilderOperation
             .GetMembers()
             .Where(x => x.Name == nameCandidate)
             .ToList();
-        
+
         var publicMethodOrPropertyOrFieldMatchSpec = (spec.Property | spec.Method | spec.Field) & IsPublic;
 
         if (candidates.Count > 0)
         {
             if (candidates.FirstOrDefault(publicMethodOrPropertyOrFieldMatchSpec) is { } match)
             {
-                
                 string? choiceInvalidText = null;
 
                 ChoiceSourceType choiceSourceType = default;
@@ -607,8 +641,14 @@ internal class StepContextBuilderOperation
             }
             else
             {
+                if (ReportNonPublicCandidate(candidates.FirstOrDefault(spec.Property | spec.Method | spec.Field),
+                        DiagnosticIds.Id0023_ChoiceCandidate_NotValid, "ChoicesSource",
+                        propertyEvaluationContext.Property.Name))
+                    return;
+
                 ProductionContext.ReportDiagnostic(Diagnostic.Create(
-                    new(DiagnosticIds.Id0023_ChoiceCandidate_NotValid, $"The match for Choice source {nameCandidate} was not valid",
+                    new(DiagnosticIds.Id0023_ChoiceCandidate_NotValid,
+                        $"The match for Choice source {nameCandidate} was not valid",
                         $"The source with name {nameCandidate} must be public instance and be either a method with no parameters or a property returning any kind of enumerable of type {propertyEvaluationContext.GetSingleType()}",
                         "General", DiagnosticSeverity.Warning, true),
                     propertyEvaluationContext.Property.Locations.FirstOrDefault()));
@@ -619,20 +659,22 @@ internal class StepContextBuilderOperation
             if (!isGuess)
             {
                 ProductionContext.ReportDiagnostic(Diagnostic.Create(
-                    new(DiagnosticIds.Id0024_ChoiceCandidate_NotFound, $"No matches found for Choice source {nameCandidate} ",
+                    new(DiagnosticIds.Id0024_ChoiceCandidate_NotFound,
+                        $"No matches found for Choice source {nameCandidate} ",
                         $"No candidate with name {nameCandidate} was found",
                         "General", DiagnosticSeverity.Warning, true),
                     propertyEvaluationContext.Property.Locations.FirstOrDefault()));
             }
         }
     }
-    
+
     /// <summary>
     /// For complex property types, analyses whether the type is itself decorated with
     /// <c>[AutoSpectreForm]</c> and whether an initializer method is required. Records a
     /// <see cref="ConfirmedNamedTypeSource"/> or reports <c>Id0020_InitializerNeeded</c>.
     /// </summary>
-    private void EvaluateNamedType(SinglePropertyEvaluationContext propertyContext, TranslatedMemberAttributeData memberAttributeData)
+    private void EvaluateNamedType(SinglePropertyEvaluationContext propertyContext,
+        TranslatedMemberAttributeData memberAttributeData)
     {
         var namedTypeAnalysis = EvaluateType(propertyContext);
         if (namedTypeAnalysis == null)
@@ -640,7 +682,8 @@ internal class StepContextBuilderOperation
 
         var initializer = EvaluateAndReturnTypeInitializer(propertyContext, memberAttributeData, namedTypeAnalysis);
 
-        if (namedTypeAnalysis is { IsDecoratedWithValidAutoSpectreForm: true, HasEmptyConstructor: false } && initializer is null)
+        if (namedTypeAnalysis is {IsDecoratedWithValidAutoSpectreForm: true, HasEmptyConstructor: false} &&
+            initializer is null)
         {
             ProductionContext.ReportDiagnostic(Diagnostic.Create(
                 new(DiagnosticIds.Id0020_InitializerNeeded, $"The type needs a method to initialize it",
@@ -649,36 +692,47 @@ internal class StepContextBuilderOperation
                 propertyContext.Property.Locations.FirstOrDefault()));
             return;
         }
-        propertyContext.ConfirmedNamedTypeSource = new ConfirmedNamedTypeSource(namedTypeAnalysis, initializer?.Name, initializer?.IsStatic ?? false);
+
+        propertyContext.ConfirmedNamedTypeSource =
+            new ConfirmedNamedTypeSource(namedTypeAnalysis, initializer?.Name, initializer?.IsStatic ?? false);
     }
-    
+
     /// <summary>
     /// Finds the public, parameterless initializer method (explicit <c>TypeInitializer</c> or the
     /// conventional <c>Init{TypeName}</c>) that returns the target named type, or <c>null</c> when none exists.
     /// </summary>
-    private IMethodSymbol? EvaluateAndReturnTypeInitializer(SinglePropertyEvaluationContext propertyContext, TranslatedMemberAttributeData memberAttributeData, NamedTypedAnalysis? namedTypedAnalysis)
+    private IMethodSymbol? EvaluateAndReturnTypeInitializer(SinglePropertyEvaluationContext propertyContext,
+        TranslatedMemberAttributeData memberAttributeData, NamedTypedAnalysis? namedTypedAnalysis)
     {
         var typeInitializer = memberAttributeData.TypeInitializer ?? $"Init{propertyContext.Type.Name}";
-        
-        
-        if (namedTypedAnalysis is {})
+
+
+        if (namedTypedAnalysis is { })
         {
-            var methodSpec = 
-                MethodWithNoParametersSpec.WithReturnType(namedTypedAnalysis.NamedTypeSymbol) & IsPublic;
-            
-            var methodMatch = TargetType.GetAllMembers()
+            var methodSpec = MethodWithNoParametersSpec.WithReturnType(namedTypedAnalysis.NamedTypeSymbol);
+
+            var signatureMatches = TargetType.GetAllMembers()
                 .OfType<IMethodSymbol>()
                 .Where(x => x.Name == typeInitializer)
-                .FirstOrDefault(methodSpec);
-                
+                .Where(methodSpec)
+                .ToList();
+            var methodMatch = signatureMatches.FirstOrDefault(x => x.IsPublic());
+
             if (methodMatch is { })
             {
                 return methodMatch;
+            }
+
+            if (namedTypedAnalysis.IsDecoratedWithValidAutoSpectreForm)
+            {
+                ReportNonPublicCandidate(signatureMatches.FirstOrDefault(), DiagnosticIds.Id0020_InitializerNeeded,
+                    "TypeInitializer", propertyContext.Property.Name);
             }
         }
 
         return null;
     }
+
     /// <summary>
     /// Resolves the <c>Source</c> member for a SelectPrompt (explicit or <c>{PropertyName}Source</c>) and
     /// records it on the property context. Emits <c>Id0005_SelectionSourceNotFound</c> or
@@ -756,7 +810,7 @@ internal class StepContextBuilderOperation
                 ProductionContext.ReportDiagnostic(Diagnostic.Create(
                     new(DiagnosticIds.Id0026_NoSelectionSource,
                         "Could be candidate",
-                        $"This could be a candidate as source for {propertyContext.Property.Name} if you adjust to internal or public",
+                        $"This could be a candidate as source for {propertyContext.Property.Name}. But it must be public",
                         "General", DiagnosticSeverity.Warning, true),
                     inaccessibleMatch.Locations.FirstOrDefault()));
             }
@@ -837,7 +891,8 @@ internal class StepContextBuilderOperation
     /// <summary>
     /// Parses and stores the <c>PromptStyle</c> attribute value on the property context.
     /// </summary>
-    private void EvaluatePromptStyle(SinglePropertyEvaluationContext propertyContext, TranslatedMemberAttributeData memberAttribute)
+    private void EvaluatePromptStyle(SinglePropertyEvaluationContext propertyContext,
+        TranslatedMemberAttributeData memberAttribute)
     {
         propertyContext.PromptStyle =
             EvaluateStyle(memberAttribute.PromptStyle, nameof(propertyContext.PromptStyle), propertyContext);
@@ -887,38 +942,48 @@ internal class StepContextBuilderOperation
     private void EvaluateDefaultValue(SinglePropertyEvaluationContext propertyContext,
         TranslatedMemberAttributeData memberAttributeData)
     {
-        var parsedStyle = EvaluateStyle(memberAttributeData.DefaultValueStyle, nameof(memberAttributeData.DefaultValueStyle),
+        var parsedStyle = EvaluateStyle(memberAttributeData.DefaultValueStyle,
+            nameof(memberAttributeData.DefaultValueStyle),
             propertyContext);
-        if (parsedStyle is {})
+        if (parsedStyle is { })
             propertyContext.ConfirmedDefaultStyle = new ConfirmedDefaultStyle(parsedStyle);
 
-        var defaultValue = StringMatch.From(memberAttributeData.DefaultValue, $"{propertyContext.Property.Name}DefaultValue");
-        
+        var defaultValue = StringMatch.From(memberAttributeData.DefaultValue,
+            $"{propertyContext.Property.Name}DefaultValue");
+
         var candidates = TargetType
             .GetMembers()
             .Where(x => x.Name.ToString() == defaultValue.Value)
             .ToList();
-        
-        
+
+
         // The trick with false is because there can only be a single instance for the default value
-        
+
         var sourceEvaluation = SourceEvaluator.EvaluateSource(candidates, propertyContext, shouldBeEnumerable: false);
         if (sourceEvaluation.Valid)
         {
             propertyContext.ConfirmedDefaultValue = new ConfirmedDefaultValue(defaultValue.Value, sourceEvaluation);
             return;
-            
         }
-       
+
+        var signatureMatch = SourceEvaluator.EvaluateSource(candidates, propertyContext,
+            shouldBeEnumerable: false, requirePublic: false);
+        var inaccessibleMatch = signatureMatch.Valid ? signatureMatch.MatchedSymbol : null;
+        ReportNonPublicCandidate(inaccessibleMatch, DiagnosticIds.Id0025_DefaultValueSource_NotFound,
+            "DefaultValue", propertyContext.Property.Name);
+
         if (!defaultValue.Deducted)
         {
             ProductionContext.ReportDiagnostic(Diagnostic.Create(
-                new(DiagnosticIds.Id0025_DefaultValueSource_NotFound, $"Default value {memberAttributeData.DefaultValue} was not found. It should be a method with no parameters or a property returning a single type",
-                    $"Could not find a valid correct method, property or field with name {memberAttributeData.DefaultValue} in the target class", "General",
+                new(DiagnosticIds.Id0025_DefaultValueSource_NotFound,
+                    $"Default value {memberAttributeData.DefaultValue} was not found. It should be a method with no parameters or a property returning a single type",
+                    inaccessibleMatch is not null
+                        ? $"A default value source matching {defaultValue.Value} was found but it must be public"
+                        : $"Could not find a valid correct method, property or field with name {memberAttributeData.DefaultValue} in the target class",
+                    "General",
                     DiagnosticSeverity.Error, true),
                 propertyContext.Property.Locations.FirstOrDefault()));
         }
-        
     }
 
     /// <summary>
@@ -957,7 +1022,7 @@ internal class StepContextBuilderOperation
     {
         bool guessed = memberAttributeData.Converter == null;
         var converterName = memberAttributeData.Converter ?? $"{context.Property.Name}Converter";
-        
+
 
         bool ConverterMethodOrProperty(ISymbol symbol)
         {
@@ -981,17 +1046,21 @@ internal class StepContextBuilderOperation
         var candidates = TargetType
             .GetAllMembers()
             .Where(x => x.Name == converterName)
-            .Where(x => x.IsPublic())
             .ToList();
 
-        var match = candidates.FirstOrDefault(ConverterMethodOrProperty);
+        var signatureMatches = candidates.Where(ConverterMethodOrProperty).ToList();
+        var match = signatureMatches.FirstOrDefault(x => x.IsPublic());
 
         if (match is { })
         {
             context.ConfirmedConverter = new ConfirmedConverter(converterName, match.IsStatic);
         }
-        else if (!guessed || candidates.Count > 0)
+        else if (!guessed || signatureMatches.Count > 0 || candidates.Any(x => x.IsPublic()))
         {
+            if (ReportNonPublicCandidate(signatureMatches.FirstOrDefault(), "AutoSpectre_JJK0008",
+                    "Converter", context.Property.Name))
+                return;
+
             ProductionContext.ReportDiagnostic(Diagnostic.Create(
                 new("AutoSpectre_JJK0008",
                     $"Converter {memberAttributeData.Converter} should be a method taking a {context.UnderlyingType} as input and return string on the class",
@@ -1000,7 +1069,7 @@ internal class StepContextBuilderOperation
                 context.Property.Locations.FirstOrDefault()));
         }
     }
-    
+
     /// <summary>
     /// For named (non-primitive) property types, analyses whether the type is itself decorated with
     /// <c>[AutoSpectreForm]</c>, whether it exposes async prompt steps, and whether it has an empty
@@ -1022,10 +1091,10 @@ internal class StepContextBuilderOperation
                 .Where(x => x.IsPublicInstance())
                 .FilterDecoratedWithAnyAttribute(Types.TaskStepPrompt!, Types.TextPrompt!, Types.SelectPrompt!)
                 .ToList();
-            
+
             // if (decoratedMethods.Count == 0)
             //     return new NamedTypedAnalysis(symbol, false, false, false);
-            
+
             var hasAnyAsyncDecoratedMethods = decoratedMethods
                 .OfType<IMethodSymbol>()
                 .Where(x => x.ReturnType.Equals(Types.Task, SymbolEqualityComparer.Default))
@@ -1033,9 +1102,9 @@ internal class StepContextBuilderOperation
                 .Any();
 
             var hasEmptyConstructor = symbol.InstanceConstructors.Any(x => x.Parameters.Length == 0);
-            return 
+            return
                 new NamedTypedAnalysis(symbol, isDecoratedWithAutoSpectreForm, hasAnyAsyncDecoratedMethods,
-                hasEmptyConstructor);
+                    hasEmptyConstructor);
         });
 
         return namedType;
@@ -1068,7 +1137,8 @@ internal class StepContextBuilderOperation
             {
                 if (confirmedNamedTypeSource.NamedTypeAnalysis is {IsDecoratedWithValidAutoSpectreForm: true})
                 {
-                    return new ReuseExistingAutoSpectreFactoryPromptBuildContext(memberAttributeData.Title, confirmedNamedTypeSource.NamedTypeAnalysis.NamedTypeSymbol,
+                    return new ReuseExistingAutoSpectreFactoryPromptBuildContext(memberAttributeData.Title,
+                        confirmedNamedTypeSource.NamedTypeAnalysis.NamedTypeSymbol,
                         evaluationContext.IsNullable, evaluationContext);
                 }
                 else
@@ -1081,11 +1151,12 @@ internal class StepContextBuilderOperation
                                 $"Only classes with {Constants.AutoSpectreFormAttributeFullyQualifiedName} supported",
                                 "General", DiagnosticSeverity.Warning, true),
                             evaluationContext.Property.Locations.FirstOrDefault()));
-                        return null;    
+                        return null;
                     }
                     else
                     {
-                        return new TextPromptBuildContext(memberAttributeData, type, evaluationContext.IsNullable, evaluationContext);
+                        return new TextPromptBuildContext(memberAttributeData, type, evaluationContext.IsNullable,
+                            evaluationContext);
                     }
                 }
             }
@@ -1101,7 +1172,8 @@ internal class StepContextBuilderOperation
 
         else
         {
-            return new TextPromptBuildContext(memberAttributeData, type, evaluationContext.IsNullable, evaluationContext);
+            return new TextPromptBuildContext(memberAttributeData, type, evaluationContext.IsNullable,
+                evaluationContext);
         }
     }
 
@@ -1114,10 +1186,11 @@ internal class StepContextBuilderOperation
     {
         if (memberAttributeData.SearchEnabled == true)
         {
-            propertyContext.ConfirmedSearchEnabled = new ConfirmedSearchEnabled(true, memberAttributeData.SearchPlaceholderText);
+            propertyContext.ConfirmedSearchEnabled =
+                new ConfirmedSearchEnabled(true, memberAttributeData.SearchPlaceholderText);
         }
     }
-    
+
     /// <summary>
     /// Resolves the <c>Condition</c> member (explicit or conventional <c>{Name}Condition</c>) that controls
     /// whether a step runs. The target must be a public bool property or parameterless bool-returning method.
@@ -1160,7 +1233,8 @@ internal class StepContextBuilderOperation
             TargetType.GetMembers(condition)
                 .ToList();
 
-        var match = candidates.FirstOrDefault(IsConditionMatch);
+        var signatureMatches = candidates.Where(IsConditionMatch).ToList();
+        var match = signatureMatches.FirstOrDefault(x => x.IsPublic());
 
         if (match is { })
         {
@@ -1174,6 +1248,10 @@ internal class StepContextBuilderOperation
         }
         else if (candidates.Count > 0)
         {
+            if (ReportNonPublicCandidate(signatureMatches.FirstOrDefault(),
+                    DiagnosticIds.Id0010_ConditionNameMatchInvalid, "Condition", propertyContext.Name))
+                return;
+
             ProductionContext.ReportDiagnostic(Diagnostic.Create(
                 new(DiagnosticIds.Id0010_ConditionNameMatchInvalid,
                     $"Found name matches for {condition} but they were not valid",
@@ -1246,21 +1324,28 @@ internal class StepContextBuilderOperation
         var candidates =
             TargetType
                 .GetAllMembers()
-                .Where(x => x.IsPublic() && x.Name == validator)
+                .Where(x => x.Name == validator)
                 .ToList();
 
-        var match = candidates.FirstOrDefault(IsMethodMatch);
+        var signatureMatches = candidates.Where(IsMethodMatch).ToList();
+        var match = signatureMatches.FirstOrDefault(x => x.IsPublic());
+        var publicCandidateCount = candidates.Count(x => x.IsPublic());
 
         if (match is { })
         {
-            propertyContext.ConfirmedValidator = new ConfirmedValidator(validator, !propertyContext.IsEnumerable, match.IsStatic);
+            propertyContext.ConfirmedValidator =
+                new ConfirmedValidator(validator, !propertyContext.IsEnumerable, match.IsStatic);
         }
-        else if (candidates.Count > 0)
+        else if (signatureMatches.Count > 0 || publicCandidateCount > 0)
         {
+            if (ReportNonPublicCandidate(signatureMatches.FirstOrDefault(),
+                    DiagnosticIds.Id0008_ValidatorNameMatchInvalid, "Validator", propertyContext.Property.Name))
+                return;
+
             ProductionContext.ReportDiagnostic(Diagnostic.Create(
                 new(DiagnosticIds.Id0008_ValidatorNameMatchInvalid,
                     $"Found name matches for {validator} but they were not valid",
-                    $"{candidates.Count} matches where found. But they did not match having a parameter of type {propertyContext.Type} and return type string",
+                    $"{publicCandidateCount} matches where found. But they did not match having a parameter of type {propertyContext.Type} and return type string",
                     "General", DiagnosticSeverity.Warning, true),
                 propertyContext.Property.Locations.FirstOrDefault()));
         }
@@ -1290,9 +1375,9 @@ internal class StepContextBuilderOperation
             Field = FieldOfTypeSpec(_type);
         }
 
-        public FieldSpecification<ISymbol> Field { get;  }
+        public FieldSpecification<ISymbol> Field { get; }
 
-        public Specification<ISymbol> Property { get;  }
+        public Specification<ISymbol> Property { get; }
 
         public Specification<ISymbol> PropertyOrField => Property | Field;
 

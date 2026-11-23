@@ -1,5 +1,9 @@
 # Releases
 
+## 0.16.0
+
+* Member-source diagnostics now point to matching non-public validators, converters, choices, defaults, cancel results, conditions and nested-form initializers and explain that they must be public. Valid public matches take precedence; inaccessible conditions are no longer emitted into generated factories.
+
 ## 0.15.0
 
 * Added cancellation-aware `PromptAsync(form, CancellationToken)` factories via `ICancellableSpectreFactory<T>`. Synchronous forms keep `Prompt` and now also implement `IAsyncSpectreFactory<T>` with both async overloads. Tokens flow through all prompt types, nested forms, collection confirmations and supported task-step parameters, with cancellation checks between steps. Existing async overloads, interface implementations and `AsyncSpectreFactoryBase<T>` subclasses remain compatible.

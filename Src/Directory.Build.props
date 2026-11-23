@@ -4,7 +4,7 @@
     <Authors>Jeppe Roi Kristensen</Authors>
     <RepositoryUrl>https://github.com/jeppevammenkristensen/auto-spectre</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <VersionPrefix>0.15.0</VersionPrefix>
+    <VersionPrefix>0.16.0</VersionPrefix>
     <VersionSuffix Condition="'$(Configuration)' == 'Debug'">dev-01</VersionSuffix>
     <IsPackable>false</IsPackable> <!-- disable by default -->   
     

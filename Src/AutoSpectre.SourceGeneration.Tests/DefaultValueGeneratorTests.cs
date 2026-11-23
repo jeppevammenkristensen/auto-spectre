@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Microsoft.CodeAnalysis;
 using Xunit;
 
 namespace AutoSpectre.SourceGeneration.Tests;
@@ -117,15 +118,19 @@ public class DefaultValueGeneratorTests : AutoSpectreGeneratorTestsBase
                     """).OutputShouldContain(expected);
     }
     
+    /// <summary>
+    /// Checks that invalid explicit defaults retain their prompt error and matching non-public candidates also warn.
+    /// </summary>
+    /// <param name="source">The invalid default source declaration.</param>
+    /// <param name="hasAccessibilityWarning">Whether the source has a valid signature but is non-public.</param>
     [Theory]
-    [InlineData("private string DefaultValueSource {get;set}")]
-    [InlineData("private static string DefaultValueSource {get;set}")]
-    [InlineData("private static string DefaultValueSource() => string.Empty;")]
-    [InlineData("public int DefaultValueSource() => 45")]
-  
-    public void DefaultValueIsInvalidReturnsDiagnostic(string source)
+    [InlineData("private string DefaultValueSource {get;set}", true)]
+    [InlineData("private static string DefaultValueSource {get;set}", true)]
+    [InlineData("private static string DefaultValueSource() => string.Empty;", true)]
+    [InlineData("public int DefaultValueSource() => 45", false)]
+    public void DefaultValueIsInvalidReturnsDiagnostic(string source, bool hasAccessibilityWarning)
     {
-        GetOutput($$"""
+        var output = GetOutput($$"""
                     using AutoSpectre;
                     using System.Collections.Generic;
 
@@ -139,7 +144,28 @@ public class DefaultValueGeneratorTests : AutoSpectreGeneratorTestsBase
                          
                          {{ source }}
                     }
-                    """).ShouldHaveSourceGeneratorDiagnosticOnlyOnce(DiagnosticIds.Id0025_DefaultValueSource_NotFound);
+                    """);
+
+        var error = output.GeneratorDiagnostics.Should().ContainSingle(d =>
+            d.Id == DiagnosticIds.Id0025_DefaultValueSource_NotFound &&
+            d.Severity == DiagnosticSeverity.Error).Which;
+        error.Location.SourceTree!.GetText(TestContext.Current.CancellationToken)
+            .ToString(error.Location.SourceSpan).Should().Be("Property");
+
+        if (hasAccessibilityWarning)
+        {
+            var warning = output.GeneratorDiagnostics.Should().ContainSingle(d =>
+                d.Id == DiagnosticIds.Id0025_DefaultValueSource_NotFound &&
+                d.Severity == DiagnosticSeverity.Warning).Which;
+            warning.GetMessage().Should().Contain("must be public");
+            warning.Location.SourceTree!.GetText(TestContext.Current.CancellationToken).ToString(warning.Location.SourceSpan).Should()
+                .Be("DefaultValueSource");
+            output.GeneratorDiagnostics.Should().HaveCount(2);
+        }
+        else
+        {
+            output.ShouldHaveSourceGeneratorDiagnosticOnlyOnce(DiagnosticIds.Id0025_DefaultValueSource_NotFound);
+        }
     }
     
     [Theory]
