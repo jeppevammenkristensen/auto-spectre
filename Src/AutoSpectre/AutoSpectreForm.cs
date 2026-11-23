@@ -33,10 +33,4 @@ public class AutoSpectreForm : Attribute
     /// Gets or sets the culture to use for prompts. If not set, the default culture is used.
     /// </summary>
     public string? Culture { get; set; }
-    
-    /// <summary>
-    /// This has been retired
-    /// </summary>
-    [Obsolete("Retired used dumpify instead or other to output", true)]
-    public bool DisableDump { get; set; }
 }
