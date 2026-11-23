@@ -20,4 +20,14 @@
     <ProjectReference Include="..\AutoSpectre\AutoSpectre.csproj" />
   </ItemGroup>
 
+  <!-- Inspect the packaged variants, not the generator selected for the test host. -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\AutoSpectre.SourceGeneration\bin\$(Configuration)\roslyn4.8\AutoSpectre.SourceGeneration.dll"
+                      LogicalName="Generator.roslyn4.8.dll" />
+    <EmbeddedResource Include="..\AutoSpectre.SourceGeneration\bin\$(Configuration)\roslyn4.14\AutoSpectre.SourceGeneration.dll"
+                      LogicalName="Generator.roslyn4.14.dll" />
+    <EmbeddedResource Include="..\AutoSpectre.SourceGeneration\bin\$(Configuration)\roslyn5.3\AutoSpectre.SourceGeneration.dll"
+                      LogicalName="Generator.roslyn5.3.dll" />
+  </ItemGroup>
+
 </Project>
