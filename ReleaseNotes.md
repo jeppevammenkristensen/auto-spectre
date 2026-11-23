@@ -2,6 +2,8 @@
 
 ## 0.16.0
 
+* Added a `net11.0` target alongside `net8.0` and `net10.0`, with generator tests targeting .NET 10 and .NET 11.
+  Building the repository now requires .NET SDK 11 or later.
 * Member-source diagnostics now point to matching non-public validators, converters, choices, defaults, cancel results, conditions and nested-form initializers and explain that they must be public. Valid public matches take precedence; inaccessible conditions are no longer emitted into generated factories.
 
 ## 0.15.0

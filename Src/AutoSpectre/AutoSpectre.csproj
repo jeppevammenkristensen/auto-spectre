@@ -2,12 +2,13 @@
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
-<!--    <TargetFrameworks>net11.0;net10.0;net8.0</TargetFrameworks>-->
-    <TargetFrameworks>net10.0;net8.0</TargetFrameworks>
+    <TargetFrameworks>net11.0;net10.0;net8.0</TargetFrameworks>
     <LangVersion>latest</LangVersion>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <Description>Classes used by the AutoSpectre.SourceGeneration package</Description>
-    <PackageReleaseNotes>            
+    <PackageReleaseNotes>
+      * Added a net11.0 target alongside net8.0 and net10.0. Building the package requires .NET SDK 11 or later.
+      * Member-source diagnostics now point to matching private, internal or protected validators, converters, choices, defaults, cancel results, conditions and nested-form initializers and explain that they must be public. Valid public matches take precedence; inaccessible conditions are no longer emitted into generated factories.
     </PackageReleaseNotes>
     <PackageIcon>ghost.png</PackageIcon>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>
